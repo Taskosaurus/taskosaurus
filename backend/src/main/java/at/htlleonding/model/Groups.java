@@ -1,9 +1,8 @@
 package at.htlleonding.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.NamedQuery;
+import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 @NamedQuery(name= Groups.GET_ALL_GROUPS, query="SELECT g from Groups g")
@@ -15,6 +14,16 @@ public class Groups {
     Long id;
     String name;
     String link;
+
+    @OneToMany(mappedBy = "group")
+    List<Player> players;
+
+    public Groups(String name) {
+        this.name = name;
+    }
+
+    public Groups() {
+    }
 
     public Long getId() {
         return id;
@@ -38,5 +47,13 @@ public class Groups {
 
     public void setLink(String link) {
         this.link = link;
+    }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public void setPlayers(List<Player> players) {
+        this.players = players;
     }
 }
