@@ -1,8 +1,0 @@
-{
-    "groups": [
-      { "id": 1, "name": "a group name", "link": 100 }
-    ],
-    "players": [
-      { "id": 1, "name": "a player name", "groupId": 1 }
-    ]
-}
