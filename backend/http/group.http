@@ -1,4 +1,4 @@
-GET localhost:8080/api/group/
+GET localhost:8080/api/group/list
 
 ###
  POST localhost:8080/api/group/create
@@ -10,7 +10,7 @@ Content-Type: application/json
 
 ###
 
- POST localhost:8080/api/group/joinGroup/2
+POST localhost:8080/api/player/create
 Content-Type: application/json
 
 {
@@ -18,3 +18,13 @@ Content-Type: application/json
 }
 
 ###
+
+POST localhost:8080/api/group/join/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Isabella"
+}
+
+### Invalid Groupid

@@ -14,9 +14,8 @@ public class Player {
     String name;
 
     @ManyToOne
-    @JoinColumn(name = "groupId")
     @JsonIgnoreProperties({ "players" })
-    Groups group;
+    EntityGroup group;
 
     public Player(String name) {
         this.name = name;
@@ -41,11 +40,11 @@ public class Player {
         this.name = name;
     }
 
-    public Groups getGroup() {
+    public EntityGroup getGroup() {
         return group;
     }
 
-    public void setGroup(Groups group) {
+    public void setGroup(EntityGroup group) {
         this.group = group;
     }
 }

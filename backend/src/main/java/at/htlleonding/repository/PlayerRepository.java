@@ -1,13 +1,13 @@
 package at.htlleonding.repository;
 
-import at.htlleonding.dto.GroupNameDto;
 import at.htlleonding.dto.PlayerNameDto;
-import at.htlleonding.model.Groups;
+import at.htlleonding.model.EntityGroup;
 import at.htlleonding.model.Player;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
 
 import java.util.List;
 
@@ -20,10 +20,17 @@ public class PlayerRepository {
         return em.createNamedQuery(Player.GET_ALL_PLAYERS, Player.class).getResultList();
     }
 
+    public Player getPlayerById(Long id) throws NotFoundException {
+        Player requestedPlayer = em.find(Player.class, id);
+        if(requestedPlayer == null) {
+            throw new NotFoundException("Player with id " + id + " not found");
+        }
+        return requestedPlayer;
+    }
+
     @Transactional
-    public Player createPlayerFromDto(PlayerNameDto player, Groups group) {
+    public Player createPlayerFromDto(PlayerNameDto player) {
         Player createdPlayer = new Player(player.name());
-        createdPlayer.setGroup(group);
         em.persist(createdPlayer);
 
         return createdPlayer;

@@ -6,8 +6,8 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@NamedQuery(name= Groups.GET_ALL_GROUPS, query="SELECT g from Groups g")
-public class Groups {
+@NamedQuery(name= EntityGroup.GET_ALL_GROUPS, query="SELECT g from EntityGroup g")
+public class EntityGroup {
     public static final String GET_ALL_GROUPS = "Group.getAll";
 
     @Id
@@ -20,11 +20,11 @@ public class Groups {
     @JsonIgnoreProperties({ "group" })
     List<Player> players;
 
-    public Groups(String name) {
+    public EntityGroup(String name) {
         this.name = name;
     }
 
-    public Groups() {
+    public EntityGroup() {
     }
 
     public Long getId() {

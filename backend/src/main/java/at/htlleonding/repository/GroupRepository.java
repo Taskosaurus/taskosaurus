@@ -1,7 +1,8 @@
 package at.htlleonding.repository;
 
 import at.htlleonding.dto.GroupNameDto;
-import at.htlleonding.model.Groups;
+import at.htlleonding.model.EntityGroup;
+import at.htlleonding.model.Player;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -15,12 +16,12 @@ public class GroupRepository {
     @Inject
     EntityManager em;
 
-    public List<Groups> getAllGroups() {
-        return em.createNamedQuery(Groups.GET_ALL_GROUPS, Groups.class).getResultList();
+    public List<EntityGroup> getAllGroups() {
+        return em.createNamedQuery(EntityGroup.GET_ALL_GROUPS, EntityGroup.class).getResultList();
     }
 
-    public Groups getGroupById(Long id) throws NotFoundException {
-        Groups group = em.find(Groups.class, id);
+    public EntityGroup getGroupById(Long id) throws NotFoundException {
+        EntityGroup group = em.find(EntityGroup.class, id);
         if (group == null) {
             throw new NotFoundException("Group with id " + id + " not found");
         }
@@ -29,13 +30,19 @@ public class GroupRepository {
 
 
     @Transactional
-    public Groups createGroupFromDto(GroupNameDto group) {
-        Groups createdGroup = new Groups(group.name());
+    public EntityGroup createGroupFromDto(GroupNameDto group) {
+        EntityGroup createdGroup = new EntityGroup(group.name());
         em.persist(createdGroup);
 
-        String link = "/api/group/joinGroup/" + createdGroup.getId();
+        String link = "/api/group/join/" + createdGroup.getId();
         createdGroup.setLink(link);
 
         return createdGroup;
+    }
+
+    @Transactional
+    public Player addPlayerToGroup(Player player, EntityGroup group) throws NotFoundException {
+        player.setGroup(group);
+        return em.merge(player);
     }
 }
