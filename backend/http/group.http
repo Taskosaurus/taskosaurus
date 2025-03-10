@@ -1,0 +1,20 @@
+GET localhost:8080/api/group/
+
+###
+ POST localhost:8080/api/group/create
+Content-Type: application/json
+
+{
+    "name": "Gruppe haxi"
+}
+
+###
+
+ POST localhost:8080/api/group/joinGroup/2
+Content-Type: application/json
+
+{
+  "name": "Isabella"
+}
+
+###

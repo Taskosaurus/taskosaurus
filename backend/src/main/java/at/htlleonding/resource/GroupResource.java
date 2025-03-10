@@ -43,8 +43,8 @@ public class GroupResource {
     public Response joinGroup(PlayerNameDto player, @PathParam("id") Long id) {
         try {
             Groups group = groupRepository.getGroupById(id);
-            Player createdPlayer = playerRepository.createPlayerFromDto(player);
-            createdPlayer.setGroup(group);
+            Player createdPlayer = playerRepository.createPlayerFromDto(player, group);
+            //createdPlayer.setGroup(group);
 
             return Response.status(Response.Status.OK).entity(createdPlayer).build();
         } catch (NotFoundException e) {

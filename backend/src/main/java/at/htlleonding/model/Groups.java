@@ -1,5 +1,6 @@
 package at.htlleonding.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -16,6 +17,7 @@ public class Groups {
     String link;
 
     @OneToMany(mappedBy = "group")
+    @JsonIgnoreProperties({ "group" })
     List<Player> players;
 
     public Groups(String name) {

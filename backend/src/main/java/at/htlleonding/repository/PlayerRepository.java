@@ -21,8 +21,9 @@ public class PlayerRepository {
     }
 
     @Transactional
-    public Player createPlayerFromDto(PlayerNameDto player) {
+    public Player createPlayerFromDto(PlayerNameDto player, Groups group) {
         Player createdPlayer = new Player(player.name());
+        createdPlayer.setGroup(group);
         em.persist(createdPlayer);
 
         return createdPlayer;

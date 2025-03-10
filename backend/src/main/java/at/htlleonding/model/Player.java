@@ -1,5 +1,6 @@
 package at.htlleonding.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
@@ -14,6 +15,7 @@ public class Player {
 
     @ManyToOne
     @JoinColumn(name = "groupId")
+    @JsonIgnoreProperties({ "players" })
     Groups group;
 
     public Player(String name) {
