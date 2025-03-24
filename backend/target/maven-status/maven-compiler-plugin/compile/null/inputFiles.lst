@@ -1,3 +1,4 @@
+/home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/dto/ErrorMessageDto.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/dto/GroupNameDto.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/dto/PlayerNameDto.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/model/EntityGroup.java
@@ -5,3 +6,4 @@
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/repository/GroupRepository.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/repository/PlayerRepository.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/resource/GroupResource.java
+/home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/resource/PlayerResource.java
