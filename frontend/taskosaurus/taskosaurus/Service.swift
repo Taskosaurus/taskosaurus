@@ -39,16 +39,38 @@ class NetworkService {
         let group = Group(id: nil, name: name, link: nil, players: [])
         request.httpBody = try? JSONEncoder().encode(group)
         
-        URLSession.shared.dataTask(with: request) { _, _, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    completion(.failure(error))
-                } else {
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            // Debugging der Antwort
+            if let data = data {
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("Antwort vom Server: \(responseString)")
+                }
+            }
+            
+            guard let data = data else {
+                completion(.failure(URLError(.badServerResponse)))
+                return
+            }
+            
+            do {
+                // Hier versuchst du, die Antwort zu dekodieren
+                let group = try JSONDecoder().decode(Group.self, from: data)
+                DispatchQueue.main.async {
                     completion(.success(()))
                 }
+            } catch {
+                // Verbessere die Fehlerbehandlung, um genauere Informationen zu liefern
+                print("Fehler beim Dekodieren der Antwort: \(error.localizedDescription)")
+                completion(.failure(error))
             }
         }.resume()
     }
+
 
     // Spieler erstellen (POST)
     func createPlayer(name: String, completion: @escaping (Result<Player, Error>) -> Void) {
@@ -77,6 +99,26 @@ class NetworkService {
                 }
             } catch {
                 completion(.failure(error))
+            }
+        }.resume()
+    }
+    
+    func joinGroup(player: Player, group: Group, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "\(baseURL)/group/join/\(group.id)") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        request.httpBody = try? JSONEncoder().encode(player)
+        
+        URLSession.shared.dataTask(with: request) { _, _, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    completion(.failure(error))
+                } else {
+                    completion(.success(()))
+                }
             }
         }.resume()
     }

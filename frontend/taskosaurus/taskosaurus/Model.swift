@@ -5,12 +5,14 @@ struct Player: Codable, Identifiable, Hashable {
     var name: String
 }
 
-struct Group: Codable, Identifiable, Hashable {
+
+struct Group: Identifiable, Codable {
     var id: Int?
     var name: String
     var link: String?
-    var players: [Player]
+    var players: [Player]?
 }
+
 
 struct Model {
     var groups: [Group] = []

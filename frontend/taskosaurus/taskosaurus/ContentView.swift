@@ -6,7 +6,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             List(viewModel.groups) { group in
-                NavigationLink(destination: GroupDetailView(group: group)) {
+                NavigationLink(destination: GroupDetailView(viewModel: viewModel, group: group)) {
                     Text(group.name)
                         .fontWeight(.bold)
                 }
