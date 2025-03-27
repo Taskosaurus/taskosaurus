@@ -5,16 +5,25 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            List(viewModel.groups) { group in
-                NavigationLink(destination: GroupDetailView(viewModel: viewModel, group: group)) {
-                    Text(group.name)
+            VStack(alignment: .leading) {
+                HStack {
+                    Text("Gruppen")
+                        .font(.largeTitle)
                         .fontWeight(.bold)
+                    
+                    Spacer()
+                    
+                    NavigationLink(destination: GroupCreationView(viewModel: viewModel)) {
+                        Image(systemName: "plus.square")
+                            .font(.title)
+                    }
                 }
-            }
-            .navigationTitle("Gruppen")
-            .toolbar {
-                NavigationLink(destination: GroupCreationView(viewModel: viewModel)) {
-                    Text("Gruppe erstellen")
+                .padding(.horizontal)
+                
+                List(viewModel.groups) { group in
+                    NavigationLink(destination: GroupDetailView(viewModel: viewModel, group: group)) {
+                        Text(group.name)
+                    }
                 }
             }
         }
