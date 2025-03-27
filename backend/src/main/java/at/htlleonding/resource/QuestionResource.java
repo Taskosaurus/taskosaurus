@@ -37,7 +37,28 @@ public class QuestionResource {
         LocalDate requestedDate = request.date() == null ? LocalDate.now() : request.date();
         String question = "Successful! Localdate: " + requestedDate;
 
-        // TODO: get question from database and return it
+        /*
+         * TODO: get question from database and return it
+         * TODO: also get the answers of the question that are already present
+         * TODO: if date is today and there is no entry for it yet, get a random question that hasn't been answered yet
+         * TODO: next to questions and answers, also return if the user has already answered this question
+          */
+
+        return Response.status(Response.Status.OK).entity(question).build();
+    }
+
+    @POST
+    @Path("answerDailyQuestion")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response answerQuestion(DailyQuestionRequestDto request) {
+        LocalDate requestedDate = request.date() == null ? LocalDate.now() : request.date();
+        String question = "Successful! Localdate: " + requestedDate;
+
+        /*
+         * TODO: create entry in the question answers table
+         * TODO: return the new answers that are already present for this question
+         */
 
         return Response.status(Response.Status.OK).entity(question).build();
     }

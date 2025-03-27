@@ -12,6 +12,9 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.util.LinkedList;
+import java.util.List;
+
 @Path("/api/group/")
 public class GroupResource {
     @Inject
@@ -47,6 +50,41 @@ public class GroupResource {
             Player mergedPlayer = groupRepository.addPlayerToGroup(validatedPlayer, validatedGroup);
 
             return Response.status(Response.Status.OK).entity(mergedPlayer).build();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND).entity(new ErrorMessageDto(e.getMessage())).build();
+        }
+    }
+
+    @POST
+    @Path("getJoinedGroup")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getJoinedGroup(Player player) {
+        try {
+            Player validatedPlayer = playerRepository.getPlayerById(player.getId());
+            EntityGroup validatedGroup = groupRepository.getGroupById(validatedPlayer.getGroup().getId());
+
+            return Response.status(Response.Status.OK).entity(validatedGroup).build();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND).entity(new ErrorMessageDto(e.getMessage())).build();
+        }
+    }
+
+    @POST
+    @Path("getJoinedGroups")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getJoinedGroup(Player[] players) {
+        try {
+            List<EntityGroup> groups = new LinkedList<>();
+
+            for (Player player : players) {
+                Player validatedPlayer = playerRepository.getPlayerById(player.getId());
+                EntityGroup validatedGroup = groupRepository.getGroupById(validatedPlayer.getGroup().getId());
+                groups.add(validatedGroup);
+            }
+            
+            return Response.status(Response.Status.OK).entity(groups).build();
         } catch (NotFoundException e) {
             return Response.status(Response.Status.NOT_FOUND).entity(new ErrorMessageDto(e.getMessage())).build();
         }
