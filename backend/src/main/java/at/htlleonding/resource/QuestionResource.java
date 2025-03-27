@@ -12,6 +12,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.time.LocalDate;
+
 @Path("/api/question/")
 public class QuestionResource {
     @Inject
@@ -25,12 +27,10 @@ public class QuestionResource {
     }
 
     @POST
-    @Path("getDailyQuestion")
+    @Path("getDailyQuestion/{date}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response create(PlayerNameDto player) {
-        Player createdPlayer = playerRepository.createPlayerFromDto(player);
-
-        return Response.status(Response.Status.OK).entity(createdPlayer).build();
+    public Response getQuestion(@PathParam("date") LocalDate date) {
+        return Response.status(Response.Status.OK).entity(date).build();
     }
 }
