@@ -1,0 +1,10 @@
+
+POST localhost:8080/api/question/getDailyQuestion
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Isabella"
+}
+
+###
