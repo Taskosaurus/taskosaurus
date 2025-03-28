@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  h2:
+    image: oscarfonts/h2:latest
+    container_name: my_h2_db
+    restart: always
+    environment:
+      H2_OPTIONS: '-tcp -tcpAllowOthers -ifNotExists'
+    volumes:
+      - h2_data:/opt/h2-data
+    ports:
+      - "1521:1521"
+
+volumes:
+  h2_data:

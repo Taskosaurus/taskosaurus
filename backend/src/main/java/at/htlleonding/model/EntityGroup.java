@@ -5,8 +5,8 @@ import jakarta.persistence.*;
 
 import java.util.List;
 
-@Entity
-@NamedQuery(name= EntityGroup.GET_ALL_GROUPS, query="SELECT g from EntityGroup g")
+@Entity(name="GroupEntity")
+@NamedQuery(name= EntityGroup.GET_ALL_GROUPS, query="SELECT g from GroupEntity g")
 public class EntityGroup {
     public static final String GET_ALL_GROUPS = "Group.getAll";
 
