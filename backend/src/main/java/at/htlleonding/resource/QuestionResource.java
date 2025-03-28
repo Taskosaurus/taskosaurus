@@ -35,6 +35,11 @@ public class QuestionResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getQuestion(DailyQuestionRequestDto request) {
         LocalDate requestedDate = request.date() == null ? LocalDate.now() : request.date();
+
+        if (requestedDate.isAfter(LocalDate.now())) {
+            return Response.status(Response.Status.OK).entity(new ErrorMessageDto("Date can't be later than today!")).build();
+        }
+
         String question = "Successful! Localdate: " + requestedDate;
 
         /*
@@ -53,6 +58,11 @@ public class QuestionResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response answerQuestion(DailyQuestionRequestDto request) {
         LocalDate requestedDate = request.date() == null ? LocalDate.now() : request.date();
+
+        /*
+         * TODO: check if there is a question for the group at the requested date
+         */
+
         String question = "Successful! Localdate: " + requestedDate;
 
         /*

@@ -7,4 +7,24 @@ Content-Type: application/json
   "name": "Isabella"
 }
 
-###
+### Valid date
+
+POST localhost:8080/api/question/getDailyQuestion
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Isabella",
+  "date": "2024-10-21"
+}
+
+### Invalid date
+
+POST localhost:8080/api/question/getDailyQuestion
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Isabella",
+  "date": "2024-31-21"
+}

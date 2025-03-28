@@ -2,15 +2,17 @@ version: '3.8'
 
 services:
   h2:
-    image: oscarfonts/h2:latest
+    image: h2database/h2database:latest  # Verwende das offizielle H2-Docker-Image
     container_name: my_h2_db
     restart: always
     environment:
-      H2_OPTIONS: '-tcp -tcpAllowOthers -ifNotExists'
+      H2_OPTIONS: '-tcp -tcpAllowOthers -ifNotExists -tcpPort 9092'
     volumes:
-      - h2_data:/opt/h2-data
+      - h2_data:/h2-data
     ports:
-      - "1521:1521"
+      - "9092:9092"  # H2 TCP Port
+      - "8081:81"    # Web-UI Port
+    command: java -cp /opt/h2/bin/h2.jar org.h2.tools.Server -tcp -tcpAllowOthers -tcpPort 9092
 
 volumes:
   h2_data:
