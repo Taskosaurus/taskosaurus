@@ -80,8 +80,9 @@ class NetworkService {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let player = Player(id: nil, name: name)
-        request.httpBody = try? JSONEncoder().encode(player)
+        //let player = Player(id: nil, name: name)
+        let playerData = ["name": name]
+        request.httpBody = try? JSONEncoder().encode(playerData)
         
         URLSession.shared.dataTask(with: request) { data, _, error in
             if let error = error {
@@ -104,22 +105,24 @@ class NetworkService {
     }
     
     func joinGroup(player: Player, group: Group, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let url = URL(string: "\(baseURL)/group/join/\(group.id)") else { return }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        request.httpBody = try? JSONEncoder().encode(player)
-        
-        URLSession.shared.dataTask(with: request) { _, _, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    completion(.failure(error))
-                } else {
-                    completion(.success(()))
+        if var link = group.link {
+            guard let url = URL(string: "\(baseURL)/\(link)") else { return }
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            request.httpBody = try? JSONEncoder().encode(player)
+            
+            URLSession.shared.dataTask(with: request) { _, response, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        completion(.failure(error))
+                    } else {
+                        print(response)
+                        completion(.success(()))
+                    }
                 }
-            }
-        }.resume()
+            }.resume()
+        }
     }
 }

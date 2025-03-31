@@ -21,7 +21,7 @@ struct ContentView: View {
                 .padding(.horizontal)
                 
                 List(viewModel.groups) { group in
-                    NavigationLink(destination: GroupDetailView(viewModel: viewModel, group: group)) {
+                    NavigationLink(destination: GroupOverviewView(viewModel: viewModel, group: group)) {
                         Text(group.name)
                     }
                 }

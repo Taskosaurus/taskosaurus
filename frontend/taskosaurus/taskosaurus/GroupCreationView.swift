@@ -60,13 +60,17 @@ struct GroupCreationView: View {
             creationSuccess = false
             return
         }
-        
-        let createdGroupName = groupName // Speichere den Namen vor dem Zurücksetzen
-        viewModel.createGroup(name: createdGroupName)
-        DispatchQueue.main.async {
-            self.creationSuccess = true
-            self.lastCreatedGroup = createdGroupName
-            self.groupName = "" // Eingabefeld zurücksetzen
+
+        let createdGroupName = groupName 
+        viewModel.createGroup(name: createdGroupName) { success in
+            DispatchQueue.main.async {
+                self.creationSuccess = success
+                if success {
+                    self.lastCreatedGroup = createdGroupName
+                    self.groupName = "" // Eingabefeld leeren
+                }
+            }
         }
     }
+
 }

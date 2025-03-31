@@ -19,39 +19,48 @@ class ViewModel: ObservableObject {
     }
 
     // Gruppe erstellen
-    func createGroup(name: String) {
+    func createGroup(name: String, completion: @escaping (Bool) -> Void) {
         service.createGroup(name: name) { result in
-            switch result {
-                case .success():
-                    self.fetchGroups()
-                case .failure(let error):
-                    self.fetchGroups()
-                    print("Fehler beim Erstellen der Gruppe: \(error.localizedDescription)")
+            DispatchQueue.main.async {
+                switch result {
+                    case .success():
+                        self.fetchGroups()
+                        completion(true)  // Erfolg -> UI aktualisieren
+                    case .failure(let error):
+                        print("Fehler beim Erstellen der Gruppe: \(error.localizedDescription)")
+                        completion(false) // Fehler -> Kein Erfolg
                 }
+            }
         }
     }
     
     // Spieler erstellen
     func createPlayer(name: String, group: Group) {
         service.createPlayer(name: name) { result in
-            switch result {
-            case .success(let player):
-                self.player = player
-                self.joinGroup(player: self.player!, group: group)
-            case .failure(let error):
-                print("Fehler beim Erstellen des Spielers: \(error.localizedDescription)")
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let player):
+                    self.player = player
+                    self.joinGroup(player: self.player!, group: group)
+                case .failure(let error):
+                    print("Fehler beim Erstellen des Spielers: \(error.localizedDescription)")
+                }
             }
         }
     }
     
     func joinGroup(player: Player, group: Group) {
         service.joinGroup(player: player, group: group) { result in
-            switch result {
-            case .success():
-                print("success")
-            case .failure(let error):
-                print("Fehler beim joinen: \(error.localizedDescription)")
+            DispatchQueue.main.async {
+                switch result {
+                case .success():
+                    print("success")
+                    self.fetchGroups()
+                case .failure(let error):
+                    print("Fehler beim joinen: \(error.localizedDescription)")
+                }
             }
         }
     }
 }
+	
