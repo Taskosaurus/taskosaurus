@@ -1,5 +1,6 @@
 package at.htlleonding.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @NamedQuery(name= GroupQuestionAnswer.GET_ALL_GROUPQUESTIONANSWER, query="SELECT gqa from GroupQuestionAnswer gqa")
@@ -17,10 +18,13 @@ public class GroupQuestionAnswer {
     @JoinColumn(name = "answering_player_id")
     private Player answeringPlayer;
 
-    private String answer;
+    @ManyToOne
+    @JoinColumn(name = "answer")
+    private Player answer;
 
     @ManyToOne
     @JoinColumn(name = "group_question_id")
+    @JsonIgnoreProperties({"answers"})
     private GroupQuestion groupQuestion;
 
     public GroupQuestionAnswer() {
@@ -42,11 +46,11 @@ public class GroupQuestionAnswer {
         this.answeringPlayer = answeringPlayer;
     }
 
-    public String getAnswer() {
+    public Player getAnswer() {
         return answer;
     }
 
-    public void setAnswer(String answer) {
+    public void setAnswer(Player answer) {
         this.answer = answer;
     }
 

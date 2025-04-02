@@ -1,5 +1,6 @@
 package at.htlleonding.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.List;
 import java.time.LocalDate;
@@ -16,18 +17,27 @@ public class GroupQuestion {
 
     @ManyToOne
     @JoinColumn(name = "question_id")
+    @JsonIgnoreProperties({"groupQuestions"})
     private Question question;
 
     @ManyToOne
     @JoinColumn(name = "group_id")
+    @JsonIgnoreProperties({"groupQuestions"})
     private EntityGroup group;
 
     private LocalDate date;
 
     @OneToMany(mappedBy = "groupQuestion", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"groupQuestion"})
     private List<GroupQuestionAnswer> answers;
 
     public GroupQuestion() {
+    }
+
+    public GroupQuestion(Question question, EntityGroup group, LocalDate date) {
+        this.question = question;
+        this.group = group;
+        this.date = date;
     }
 
     public Long getId() {

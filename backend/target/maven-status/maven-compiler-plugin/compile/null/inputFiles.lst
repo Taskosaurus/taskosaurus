@@ -3,9 +3,17 @@
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/dto/GroupNameDto.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/dto/PlayerNameDto.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/model/EntityGroup.java
+/home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/model/GroupQuestion.java
+/home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/model/GroupQuestionAnswer.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/model/Player.java
+/home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/model/Question.java
+/home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/repository/GroupQuestionAnswerRepository.java
+/home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/repository/GroupQuestionRepository.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/repository/GroupRepository.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/repository/PlayerRepository.java
+/home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/repository/QuestionRepository.java
+/home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/resource/GroupQuestionAnswerResource.java
+/home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/resource/GroupQuestionResource.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/resource/GroupResource.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/resource/PlayerResource.java
 /home/finaltrashcan/Documents/Swift/Taskosaurus/taskosaurus/backend/src/main/java/at/htlleonding/resource/QuestionResource.java
