@@ -1,12 +1,11 @@
 import SwiftUI
 
 @main
-struct taskosaurusApp: App {
-    let viewModel = ViewModel() // Initialisiere das ViewModel
-
+struct MyApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView(viewModel: viewModel) // Übergebe das ViewModel an ContentView
+            // Setzt die GameSelectionView als Startansicht
+            GameSelectionView()
         }
     }
 }

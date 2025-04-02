@@ -13,6 +13,10 @@ struct Group: Identifiable, Codable {
     var players: [Player]?
 }
 
+struct Question: Identifiable, Codable {
+    var id: Int?
+    var question: String
+}
 
 struct Model {
     var groups: [Group] = []

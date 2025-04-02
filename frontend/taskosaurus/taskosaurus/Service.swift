@@ -2,11 +2,11 @@ import Foundation
 
 class NetworkService {
     
-    let baseURL = "http://localhost:8080/api"
+    let baseURL = "http://localhost:8080"
 
     // Gruppen abrufen
     func fetchGroups(completion: @escaping (Result<[Group], Error>) -> Void) {
-        guard let url = URL(string: "\(baseURL)/group/list") else { return }
+        guard let url = URL(string: "\(baseURL)/api/group/list") else { return }
         
         URLSession.shared.dataTask(with: url) { data, _, error in
             if let error = error {
@@ -30,7 +30,7 @@ class NetworkService {
 
     // Gruppe erstellen (POST)
     func createGroup(name: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let url = URL(string: "\(baseURL)/group/create") else { return }
+        guard let url = URL(string: "\(baseURL)/api/group/create") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -74,7 +74,7 @@ class NetworkService {
 
     // Spieler erstellen (POST)
     func createPlayer(name: String, completion: @escaping (Result<Player, Error>) -> Void) {
-        guard let url = URL(string: "\(baseURL)/player/create") else { return }
+        guard let url = URL(string: "\(baseURL)/api/player/create") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

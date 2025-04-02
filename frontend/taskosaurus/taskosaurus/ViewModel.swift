@@ -3,6 +3,7 @@ import Foundation
 class ViewModel: ObservableObject {
     @Published var groups: [Group] = []
     @Published var player: Player?
+    @Published var question: Question?
     
     private let service = NetworkService()
     
@@ -25,10 +26,10 @@ class ViewModel: ObservableObject {
                 switch result {
                     case .success():
                         self.fetchGroups()
-                        completion(true)  // Erfolg -> UI aktualisieren
+                        completion(true)
                     case .failure(let error):
                         print("Fehler beim Erstellen der Gruppe: \(error.localizedDescription)")
-                        completion(false) // Fehler -> Kein Erfolg
+                        completion(false)
                 }
             }
         }
@@ -49,6 +50,7 @@ class ViewModel: ObservableObject {
         }
     }
     
+    //beim spieler erstellen, gleich Gruppe zuweisen
     func joinGroup(player: Player, group: Group) {
         service.joinGroup(player: player, group: group) { result in
             DispatchQueue.main.async {
@@ -62,5 +64,9 @@ class ViewModel: ObservableObject {
             }
         }
     }
+    
+    // Dummy-Frage abrufen
+    func getQuestion() {
+        self.question = Question(id: 1, question: "Wer würde sich eher eine Glatze schneiden?")
+    }
 }
-	

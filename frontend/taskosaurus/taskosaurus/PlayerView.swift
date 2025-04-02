@@ -6,15 +6,22 @@ struct PlayerView: View {
     var group: Group
 
     var body: some View {
-        VStack {
+        HStack {
             TextField("Spielername", text: $playerName)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
             
-            Button("Spieler erstellen") {
+            Button(action: {
                 viewModel.createPlayer(name: playerName, group: group)
+            }) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.title)
+                    .foregroundColor(.blue)
+                    .padding()
             }
-            .padding()
+
+            
+            
         }
     }
 }
