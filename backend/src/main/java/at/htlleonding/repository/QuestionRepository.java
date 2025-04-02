@@ -1,9 +1,6 @@
 package at.htlleonding.repository;
 
-import at.htlleonding.model.EntityGroup;
-import at.htlleonding.model.GroupQuestion;
-import at.htlleonding.model.Player;
-import at.htlleonding.model.Question;
+import at.htlleonding.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -37,6 +34,19 @@ public class QuestionRepository {
         return questions.isEmpty() ? createRandomQuestionForGroup(group, date) : questions.getFirst();
     }
 
+    private GroupQuestion getGroupQuestionForDate(LocalDate date, EntityGroup group) {
+        List<GroupQuestion> questions = entityManager.createQuery(
+                        "SELECT gq FROM GroupQuestion gq " +
+                                "WHERE gq.group = :group " +
+                                "AND gq.date = :date", GroupQuestion.class)
+                .setParameter("group", group)
+                .setParameter("date", date)
+                .getResultList();
+
+        return questions.isEmpty() ? null : questions.getFirst();
+    }
+
+
 
     private Question createRandomQuestionForGroup(EntityGroup group, LocalDate date) {
         List<Question> possibleQuestions = entityManager.createQuery("SELECT q " +
@@ -58,6 +68,20 @@ public class QuestionRepository {
         GroupQuestion groupQuestion = new GroupQuestion(question, group, date);
         entityManager.persist(groupQuestion);
     }
+
+    @Transactional
+    public void answerQuestion(Player player, Player answer, LocalDate date) {
+        GroupQuestion question = getGroupQuestionForDate(date, player.getGroup());
+        GroupQuestionAnswer answerQuestion = new GroupQuestionAnswer(player, answer, question);
+        entityManager.persist(answerQuestion);
+    }
+
+    public List<GroupQuestionAnswer> getAnswersForQuestion(LocalDate date, EntityGroup group) {
+        GroupQuestion question = getGroupQuestionForDate(date, group);
+        return entityManager.createQuery("SELECT gqa FROM GroupQuestionAnswer gqa WHERE groupQuestion = :question", GroupQuestionAnswer.class)
+                .setParameter("question", question).getResultList();
+    }
+
 
     public Question getQuestionById(Long id) throws NotFoundException {
         Question requestedQuestion = entityManager.find(Question.class, id);

@@ -30,6 +30,12 @@ public class GroupQuestionAnswer {
     public GroupQuestionAnswer() {
     }
 
+    public GroupQuestionAnswer(Player answeringPlayer, Player answer, GroupQuestion groupQuestion) {
+        this.answeringPlayer = answeringPlayer;
+        this.answer = answer;
+        this.groupQuestion = groupQuestion;
+    }
+
     public Long getId() {
         return id;
     }

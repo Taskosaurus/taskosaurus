@@ -7,6 +7,18 @@ Content-Type: application/json
   "name": "Isabella"
 }
 
+###
+
+POST localhost:8080/api/question/answerDailyQuestion
+Content-Type: application/json
+
+{
+  "playerId": 1,
+  "answerId": 1
+}
+
+
+
 ### Valid date
 
 POST localhost:8080/api/question/getDailyQuestion
