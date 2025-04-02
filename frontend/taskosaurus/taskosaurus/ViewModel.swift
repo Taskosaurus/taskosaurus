@@ -65,8 +65,15 @@ class ViewModel: ObservableObject {
         }
     }
     
-    // Dummy-Frage abrufen
-    func getQuestion() {
-        self.question = Question(id: 1, question: "Wer würde sich eher eine Glatze schneiden?")
-    }
+    // Holen der täglichen Frage
+        func getQuestion(playerId: Int) {
+            service.fetchDailyQuestion(playerId: playerId) { result in
+                switch result {
+                case .success(let question):
+                    self.question = question
+                case .failure(let error):
+                    print("Fehler beim Abrufen der Frage: \(error.localizedDescription)")
+                }
+            }
+        }
 }

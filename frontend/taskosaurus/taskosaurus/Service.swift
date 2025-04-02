@@ -125,4 +125,32 @@ class NetworkService {
             }.resume()
         }
     }
+    func fetchDailyQuestion(playerId: Int, completion: @escaping (Result<Question, Error>) -> Void) {
+            guard let url = URL(string: "\(baseURL)/api/question/getDailyQuestion") else { return }
+            
+            let requestData = ["id": playerId]  // Hier wird die Player ID übergeben
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try? JSONEncoder().encode(requestData)
+            
+            URLSession.shared.dataTask(with: request) { data, _, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                guard let data = data else {
+                    completion(.failure(URLError(.badServerResponse)))
+                    return
+                }
+                do {
+                    let question = try JSONDecoder().decode(Question.self, from: data)
+                    DispatchQueue.main.async {
+                        completion(.success(question))
+                    }
+                } catch {
+                    completion(.failure(error))
+                }
+            }.resume()
+        }
 }
