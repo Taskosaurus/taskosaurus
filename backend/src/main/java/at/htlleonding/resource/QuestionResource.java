@@ -41,8 +41,9 @@ public class QuestionResource {
         }
 
         EntityGroup group;
+        Player player;
         try {
-            Player player = playerRepository.getPlayerById(request.id());
+            player = playerRepository.getPlayerById(request.id());
             group = (EntityGroup) groupResource.getJoinedGroup(player).getEntity();
         } catch (NotFoundException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorMessageDto("Player or Group couldn't be found!")).build();
@@ -55,7 +56,9 @@ public class QuestionResource {
                         a.getAnswer().getName()
                 )).toList();
 
-        DailyQuestionResponseDto response = new DailyQuestionResponseDto(requestedDate, question.getQuestion(), answers);
+        boolean hasAnswered = questionRepository.playerHasAnsweredQuestion(player, group, requestedDate);
+
+        DailyQuestionResponseDto response = new DailyQuestionResponseDto(hasAnswered, requestedDate, question.getQuestion(), answers);
 
         return Response.status(Response.Status.OK).entity(response).build();
     }

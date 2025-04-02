@@ -82,6 +82,15 @@ public class QuestionRepository {
                 .setParameter("question", question).getResultList();
     }
 
+    public boolean playerHasAnsweredQuestion(Player player, EntityGroup group, LocalDate date) {
+        List<GroupQuestionAnswer> answers = getAnswersForQuestion(date, group);
+        boolean answered = false;
+        for (GroupQuestionAnswer answer : answers) {
+            if(answer.getAnsweringPlayer().equals(player)) answered = true;
+        }
+        return answered;
+    }
+
 
     public Question getQuestionById(Long id) throws NotFoundException {
         Question requestedQuestion = entityManager.find(Question.class, id);
