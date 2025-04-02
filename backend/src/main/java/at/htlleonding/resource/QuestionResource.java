@@ -6,8 +6,10 @@ import at.htlleonding.dto.GroupNameDto;
 import at.htlleonding.dto.PlayerNameDto;
 import at.htlleonding.model.EntityGroup;
 import at.htlleonding.model.Player;
+import at.htlleonding.model.Question;
 import at.htlleonding.repository.GroupRepository;
 import at.htlleonding.repository.PlayerRepository;
+import at.htlleonding.repository.QuestionRepository;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -20,14 +22,13 @@ import java.time.format.DateTimeParseException;
 @Path("/api/question/")
 public class QuestionResource {
     @Inject
+    QuestionRepository questionRepository;
+    @Inject
     PlayerRepository playerRepository;
-
-    @GET
-    @Path("list")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getAll() {
-        return Response.status(Response.Status.OK).entity(playerRepository.getAllPlayers()).build();
-    }
+    @Inject
+    GroupRepository groupRepository;
+    @Inject
+    GroupResource groupResource;
 
     @POST
     @Path("getDailyQuestion")
@@ -37,10 +38,18 @@ public class QuestionResource {
         LocalDate requestedDate = request.date() == null ? LocalDate.now() : request.date();
 
         if (requestedDate.isAfter(LocalDate.now())) {
-            return Response.status(Response.Status.OK).entity(new ErrorMessageDto("Date can't be later than today!")).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorMessageDto("Date can't be later than today!")).build();
         }
 
-        String question = "Successful! Localdate: " + requestedDate;
+        EntityGroup group;
+        try {
+            Player player = playerRepository.getPlayerById(request.id());
+            group = (EntityGroup) groupResource.getJoinedGroup(player).getEntity();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorMessageDto("Player or Group couldn't be found!")).build();
+        }
+
+        Question question = questionRepository.getQuestionForDate(requestedDate, group);
 
         /*
          * TODO: get question from database and return it

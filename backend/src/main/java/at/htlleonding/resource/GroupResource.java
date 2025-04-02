@@ -74,7 +74,7 @@ public class GroupResource {
     @Path("getJoinedGroups")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getJoinedGroup(Player[] players) {
+    public Response getJoinedGroups(Player[] players) {
         try {
             List<EntityGroup> groups = new LinkedList<>();
 
