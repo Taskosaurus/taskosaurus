@@ -1,23 +1,20 @@
 package at.htlleonding.resource;
 
-import at.htlleonding.dto.DailyQuestionRequestDto;
-import at.htlleonding.dto.ErrorMessageDto;
-import at.htlleonding.dto.GroupNameDto;
-import at.htlleonding.dto.PlayerNameDto;
-import at.htlleonding.model.EntityGroup;
-import at.htlleonding.model.Player;
-import at.htlleonding.model.Question;
+import at.htlleonding.dto.*;
+import at.htlleonding.model.*;
 import at.htlleonding.repository.GroupRepository;
 import at.htlleonding.repository.PlayerRepository;
 import at.htlleonding.repository.QuestionRepository;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 
 import javax.swing.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
 @Path("/api/question/")
 public class QuestionResource {
@@ -29,6 +26,8 @@ public class QuestionResource {
     GroupRepository groupRepository;
     @Inject
     GroupResource groupResource;
+    @Inject
+    Request request;
 
     @POST
     @Path("getDailyQuestion")
@@ -50,35 +49,33 @@ public class QuestionResource {
         }
 
         Question question = questionRepository.getQuestionForDate(requestedDate, group);
+        List<GroupQuestionAnswerDto> answers = questionRepository.getAnswersForQuestion(requestedDate, group).stream()
+                .map(a -> new GroupQuestionAnswerDto(
+                        a.getAnswer().getId(),
+                        a.getAnswer().getName()
+                )).toList();
 
-        /*
-         * TODO: get question from database and return it
-         * TODO: also get the answers of the question that are already present
-         * TODO: if date is today and there is no entry for it yet, get a random question that hasn't been answered yet
-         * TODO: next to questions and answers, also return if the user has already answered this question
-          */
+        DailyQuestionResponseDto response = new DailyQuestionResponseDto(requestedDate, question.getQuestion(), answers);
 
-        return Response.status(Response.Status.OK).entity(question).build();
+        return Response.status(Response.Status.OK).entity(response).build();
     }
 
     @POST
     @Path("answerDailyQuestion")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response answerQuestion(DailyQuestionRequestDto request) {
-        LocalDate requestedDate = request.date() == null ? LocalDate.now() : request.date();
+    public Response answerQuestion(DailyQuestionAnswerDto answer) {
+        LocalDate requestedDate = answer.date() == null ? LocalDate.now() : answer.date();
 
-        /*
-         * TODO: check if there is a question for the group at the requested date
-         */
+        Player answeringPlayer;
+        try {
+            answeringPlayer = playerRepository.getPlayerById(answer.playerId());
+            Player answeredPlayer = playerRepository.getPlayerById(answer.playerId());
+            questionRepository.answerQuestion(answeringPlayer, answeredPlayer, requestedDate);
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorMessageDto("Player or Group couldn't be found!")).build();
+        }
 
-        String question = "Successful! Localdate: " + requestedDate;
-
-        /*
-         * TODO: create entry in the question answers table
-         * TODO: return the new answers that are already present for this question
-         */
-
-        return Response.status(Response.Status.OK).entity(question).build();
+        return getQuestion(new DailyQuestionRequestDto(answeringPlayer.getId(), answeringPlayer.getName(), requestedDate));
     }
 }
