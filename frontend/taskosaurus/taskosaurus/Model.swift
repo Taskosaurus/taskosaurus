@@ -17,7 +17,14 @@ struct Question: Codable {
     var answered: Bool
     var date: String
     var question: String
-    var answers: [Player]
+    var answers: [CollectedAnswer]
+}
+
+struct CollectedAnswer: Codable {
+    var answeringId: Int
+    var answeredId: Int
+    var answeredName: String
+    var count: Int
 }
 
 struct Answer: Codable {

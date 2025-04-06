@@ -121,31 +121,18 @@ struct GroupOverviewView: View {
             .padding()
             .disabled(selectedPlayer == nil)
         } else {
-            var playerCountDict: [String: Int] = [:]
-            /*for player in viewModel.question!.answers {
-                playerCountDict[player.id, default: 0] += 1
+            if let question = viewModel.question {
+            
+                Chart {
+                    ForEach(question.answers, id: \.answeredId) { item in
+                        BarMark(
+                            x: .value("Shape Type", item.answeredName),
+                            y: .value("Total Count", item.count)
+                        )
+                    }
+                }
             }
 
-            // Step 2: Convert the dictionary to an array of tuples with (name, count)
-            let nameCountArray = playerCountDict.map { (name, count) in
-                (name, count)
-            }
-
-            Chart {
-                
-                BarMark(
-                    x: .value("Shape Type", data[0].type),
-                    y: .value("Total Count", data[0].count)
-                )
-                BarMark(
-                     x: .value("Shape Type", data[1].type),
-                     y: .value("Total Count", data[1].count)
-                )
-                BarMark(
-                     x: .value("Shape Type", data[2].type),
-                     y: .value("Total Count", data[2].count)
-                )
-            }*/
         }
     }
 }
