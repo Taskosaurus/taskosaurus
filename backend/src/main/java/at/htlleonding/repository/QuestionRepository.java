@@ -1,5 +1,6 @@
 package at.htlleonding.repository;
 
+import at.htlleonding.dto.GroupQuestionAnswerCollectedDto;
 import at.htlleonding.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -76,17 +77,19 @@ public class QuestionRepository {
         entityManager.persist(answerQuestion);
     }
 
-    public List<GroupQuestionAnswer> getAnswersForQuestion(LocalDate date, EntityGroup group) {
+    public List<GroupQuestionAnswerCollectedDto> getAnswersForQuestion(LocalDate date, EntityGroup group) {
         GroupQuestion question = getGroupQuestionForDate(date, group);
-        return entityManager.createQuery("SELECT gqa FROM GroupQuestionAnswer gqa WHERE groupQuestion = :question", GroupQuestionAnswer.class)
-                .setParameter("question", question).getResultList();
+        return entityManager.createQuery("SELECT new at.htlleonding.dto.GroupQuestionAnswerCollectedDto(" +
+                        "gqa.answeringPlayer.id, gqa.answer.id, gqa.answer.name, count(gqa.answer)) " +
+                        "FROM GroupQuestionAnswer gqa WHERE gqa.groupQuestion = :question GROUP BY gqa.answer",
+                        GroupQuestionAnswerCollectedDto.class).setParameter("question", question).getResultList();
     }
 
     public boolean playerHasAnsweredQuestion(Player player, EntityGroup group, LocalDate date) {
-        List<GroupQuestionAnswer> answers = getAnswersForQuestion(date, group);
+        List<GroupQuestionAnswerCollectedDto> answers = getAnswersForQuestion(date, group);
         boolean answered = false;
-        for (GroupQuestionAnswer answer : answers) {
-            if(answer.getAnsweringPlayer().equals(player)) answered = true;
+        for (GroupQuestionAnswerCollectedDto answer : answers) {
+            if(answer.answeringId().equals(player.getId())) answered = true;
         }
         return answered;
     }

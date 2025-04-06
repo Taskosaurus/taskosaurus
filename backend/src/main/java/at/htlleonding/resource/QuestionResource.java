@@ -50,11 +50,7 @@ public class QuestionResource {
         }
 
         Question question = questionRepository.getQuestionForDate(requestedDate, group);
-        List<GroupQuestionAnswerDto> answers = questionRepository.getAnswersForQuestion(requestedDate, group).stream()
-                .map(a -> new GroupQuestionAnswerDto(
-                        a.getAnswer().getId(),
-                        a.getAnswer().getName()
-                )).toList();
+        List<GroupQuestionAnswerCollectedDto> answers = questionRepository.getAnswersForQuestion(requestedDate, group);
 
         boolean hasAnswered = questionRepository.playerHasAnsweredQuestion(player, group, requestedDate);
 
