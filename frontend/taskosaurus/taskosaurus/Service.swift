@@ -128,7 +128,7 @@ class NetworkService {
     func fetchDailyQuestion(playerId: Int, completion: @escaping (Result<Question, Error>) -> Void) {
             guard let url = URL(string: "\(baseURL)/api/question/getDailyQuestion") else { return }
             
-            let requestData = ["id": playerId]  // Hier wird die Player ID übergeben
+            let requestData = ["id": playerId]  
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -153,4 +153,48 @@ class NetworkService {
                 }
             }.resume()
         }
+    func answerDailyQuestion(selectedPlayer: Player, playerAnswered: Player, question: Question, completion: @escaping (Result<Question, Error>) -> Void) {
+        guard let url = URL(string: "\(baseURL)/api/question/answerDailyQuestion") else { return }
+        
+        let requestData = Answer(playerId: selectedPlayer.id!, answerId: playerAnswered.id!, date: question.date)
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONEncoder().encode(requestData)
+        
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            // Check the response code and print it
+            if let response = response as? HTTPURLResponse {
+                print("HTTP Status Code: \(response.statusCode)") // Should be 200
+            }
+            
+            // Check if data is nil or not
+            if let data = data {
+                // Print the raw data as a string to see what you're getting
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("Raw Data: \(jsonString)")
+                } else {
+                    print("Failed to convert data to string.")
+                }
+                
+                // Proceed with decoding if data is present
+                do {
+                    let question = try JSONDecoder().decode(Question.self, from: data)
+                    DispatchQueue.main.async {
+                        completion(.success(question))
+                    }
+                } catch {
+                    completion(.failure(error))
+                }
+            } else {
+                completion(.failure(URLError(.badServerResponse)))
+            }
+        }.resume()
+    }
 }

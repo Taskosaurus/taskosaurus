@@ -76,4 +76,18 @@ class ViewModel: ObservableObject {
                 }
             }
         }
+    func answerQuestion(player: Player, answeredPlayer: Player, question: Question) {
+        print(player)
+        print(answeredPlayer)
+        print(question)
+        service.answerDailyQuestion(selectedPlayer: player, playerAnswered: answeredPlayer, question: question) { result in
+            switch result {
+            case .success(let question):
+                self.question = question
+            case .failure(let error):
+                print("Fehler beim Beantworten der Frage: \(error.localizedDescription)")
+            }
+        }
+    }
+
 }
