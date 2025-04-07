@@ -13,11 +13,26 @@ struct Group: Identifiable, Codable {
     var players: [Player]?
 }
 
-struct Question: Identifiable, Codable {
-    var id: Int?
+struct Question: Codable {
+    var answered: Bool
+    var date: String
     var question: String
+    var answers: [CollectedAnswer]
 }
 
+struct CollectedAnswer: Codable {
+    var answeringId: Int
+    var answeredId: Int
+    var answeredName: String
+    var count: Int
+}
+
+struct Answer: Codable {
+    var playerId: Int
+    var answerId: Int
+    var date: String
+    
+}
 struct Model {
     var groups: [Group] = []
 }
