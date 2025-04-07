@@ -29,6 +29,15 @@ public class QuestionResource {
     @Inject
     Request request;
 
+    @GET
+    @Path("list")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getQuestions() {
+        List<Question> questions = questionRepository.getAllQuestions();
+
+        return Response.status(Response.Status.OK).entity(questions).build();
+    }
+
     @POST
     @Path("getDailyQuestion")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -69,7 +78,7 @@ public class QuestionResource {
         Player answeringPlayer;
         try {
             answeringPlayer = playerRepository.getPlayerById(answer.playerId());
-            Player answeredPlayer = playerRepository.getPlayerById(answer.playerId());
+            Player answeredPlayer = playerRepository.getPlayerById(answer.answerId());
             questionRepository.answerQuestion(answeringPlayer, answeredPlayer, requestedDate);
         } catch (NotFoundException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorMessageDto("Player or Group couldn't be found!")).build();

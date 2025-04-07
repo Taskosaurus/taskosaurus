@@ -19,6 +19,16 @@ Content-Type: application/json
 
 ###
 
+POST localhost:8080/api/player/create
+Content-Type: application/json
+
+{
+  "name": "Thomas"
+}
+
+
+###
+
 POST localhost:8080/api/group/join/1
 Content-Type: application/json
 
@@ -26,4 +36,15 @@ Content-Type: application/json
   "id": 1,
   "name": "Isabella"
 }
+
+###
+
+POST localhost:8080/api/group/join/1
+Content-Type: application/json
+
+{
+  "id": 2,
+  "name": "Thomas"
+}
+
 
