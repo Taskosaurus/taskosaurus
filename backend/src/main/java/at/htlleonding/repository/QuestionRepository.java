@@ -81,7 +81,7 @@ public class QuestionRepository {
         GroupQuestion question = getGroupQuestionForDate(date, group);
         return entityManager.createQuery("SELECT new at.htlleonding.dto.GroupQuestionAnswerCollectedDto(" +
                         "gqa.answeringPlayer.id, gqa.answer.id, gqa.answer.name, count(gqa.answer)) " +
-                        "FROM GroupQuestionAnswer gqa WHERE gqa.groupQuestion = :question GROUP BY gqa.answer",
+                        "FROM GroupQuestionAnswer gqa WHERE gqa.groupQuestion = :question GROUP BY gqa.answer, gqa.answeringPlayer",
                         GroupQuestionAnswerCollectedDto.class).setParameter("question", question).getResultList();
     }
 
