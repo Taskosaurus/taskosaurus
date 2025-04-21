@@ -11,7 +11,7 @@ public class EntityGroup {
     public static final String GET_ALL_GROUPS = "Group.getAll";
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     String name;
     String link;

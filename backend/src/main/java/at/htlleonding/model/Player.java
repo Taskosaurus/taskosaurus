@@ -9,7 +9,7 @@ public class Player {
     public static final String GET_ALL_PLAYERS = "Player.getAll";
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     String name;
 
