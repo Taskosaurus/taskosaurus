@@ -1,6 +1,7 @@
 import SwiftUI
 
-struct PlayerView: View {
+//kommt weg
+struct PlayerCreationView: View {
     @ObservedObject var viewModel: ViewModel
     @State private var playerName = ""
     var group: Group

@@ -20,8 +20,8 @@ struct GroupDetailView: View {
             PlayerListView(group:group)
 
             // Spieler hinzufügen
-            PlayerView(viewModel: viewModel, group: group)
-                .padding()
+            //PlayerView(viewModel: viewModel, group: group)
+                //.padding()
 
             Spacer()
         }
