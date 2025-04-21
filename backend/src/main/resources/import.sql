@@ -38,13 +38,13 @@ INSERT INTO Player (name, group_id, id) VALUES('Tobi', 2, 13);
 
 
 -- Insert a GroupQuestion using today's date
-INSERT INTO GroupQuestion (question_id, group_id, date, id)
-VALUES (7, 1, CURRENT_DATE, 1);
+INSERT INTO GroupQuestion (question_id, group_id, date)
+VALUES (7, 1, CURRENT_DATE);
 
-INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id, id)
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id)
 VALUES
-    (1, 2, 1, 1),
-    (2, 4, 1, 2),
-    (3, 5, 1, 3),
-    (4, 2, 1, 4),
-    (5, 4, 1, 5);
+    (1, 2, 1),
+    (2, 2, 1),
+    (3, 5, 1),
+    (4, 2, 1),
+    (5, 4, 1);
