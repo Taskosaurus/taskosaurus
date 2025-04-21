@@ -8,16 +8,17 @@ struct GameView: View {
     @State private var selectedPlayer: Player?
     @State private var votes: [Player: Int] = [:]
     @State private var hasVoted = false
+    @State private var receivedQuestion: Question?
 
     var body: some View {
+        
         VStack {
             questionSection() // Handle optional question safely
-            Spacer()
             
-            if let players = group.players, let question = viewModel.question, !players.isEmpty && !question.answered {
+            if let players = group.players, let question = receivedQuestion, !players.isEmpty && !question.answered {
                 playerListSection(players: players)
                 voteButton(players: players)
-            } else if let question = viewModel.question, question.answered {
+            } else if let question = receivedQuestion, question.answered {
                 voteResultsChart(question: question)
             } else {
                 Text("Keine Mitglieder vorhanden")
@@ -35,9 +36,13 @@ struct GameView: View {
             }
         }
         .onAppear {
-            if let firstPlayer = group.players?.first {
-                viewModel.getQuestion(playerId: firstPlayer.id!)
-            }
+            
+            Task {
+                if let firstPlayer = group.players?.first {
+                    receivedQuestion = await viewModel.getQuestion(playerId: firstPlayer.id!)
+                }
+             }
+            print(receivedQuestion)
         }
     }
 
@@ -46,7 +51,7 @@ struct GameView: View {
     @ViewBuilder
     private func questionSection() -> some View {
         // Safely unwrap ⁠ viewModel.question ⁠ here
-        if let question = viewModel.question {
+        if let question = receivedQuestion {
             Text(question.question)
                 .font(.title2)
                 .fontWeight(.semibold)
@@ -105,11 +110,17 @@ struct GameView: View {
 
     @ViewBuilder
     private func voteButton(players: [Player]) -> some View {
-        if let question = viewModel.question, !viewModel.question!.answered {
+        if let question = receivedQuestion, !receivedQuestion!.answered {
             Button(action: {
-                // Safely unwrap selectedPlayer before calling answerQuestion
-                if let selected = selectedPlayer {
-                    viewModel.answerQuestion(player: players[0], answeredPlayer: selected, question: question)
+                Task {
+                    if let selected = selectedPlayer,
+                       let updatedQuestion = await viewModel.answerQuestion(
+                           player: players[0],
+                           answeredPlayer: selected,
+                           question: question
+                       ) {
+                        receivedQuestion = updatedQuestion
+                    }
                 }
             }) {
                 Text("Abstimmen")

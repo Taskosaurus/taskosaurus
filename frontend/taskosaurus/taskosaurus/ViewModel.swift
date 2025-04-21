@@ -3,7 +3,6 @@ import Foundation
 class ViewModel: ObservableObject {
     @Published var groups: [Group] = []
     @Published var player: Player?
-    @Published var question: Question?
     
     private let questionService = QuestionService()
     private let gameService = GameService()
@@ -69,23 +68,32 @@ class ViewModel: ObservableObject {
     }
     
     // Holen der täglichen Frage
-    func getQuestion(playerId: Int) {
-        questionService.fetchDailyQuestion(playerId: playerId) { result in
-            switch result {
-            case .success(let question):
-                self.question = question
-            case .failure(let error):
-                print("Fehler beim Abrufen der Frage: \(error.localizedDescription)")
+    func getQuestion(playerId: Int) async -> Question? {
+        return await withCheckedContinuation { continuation in
+            questionService.fetchDailyQuestion(playerId: playerId) { result in
+                switch result {
+                case .success(let question):
+                    continuation.resume(returning: question)
+                case .failure(_):
+                    continuation.resume(returning: nil)
+                }
             }
         }
     }
-    func answerQuestion(player: Player, answeredPlayer: Player, question: Question) {
-        questionService.answerDailyQuestion(selectedPlayer: player, playerAnswered: answeredPlayer, question: question) { result in
-            switch result {
-            case .success(let question):
-                self.question = question
-            case .failure(let error):
-                print("Fehler beim Beantworten der Frage: \(error.localizedDescription)")
+    func answerQuestion(player: Player, answeredPlayer: Player, question: Question) async -> Question? {
+        return await withCheckedContinuation { continuation in
+            questionService.answerDailyQuestion(
+                selectedPlayer: player,
+                playerAnswered: answeredPlayer,
+                question: question
+            ) { result in
+                switch result {
+                case .success(let updatedQuestion):
+                    continuation.resume(returning: updatedQuestion)
+                case .failure(let error):
+                    print("Fehler beim Beantworten: \(error.localizedDescription)")
+                    continuation.resume(returning: nil)
+                }
             }
         }
     }
