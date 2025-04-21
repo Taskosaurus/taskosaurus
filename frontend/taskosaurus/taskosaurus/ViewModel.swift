@@ -5,11 +5,14 @@ class ViewModel: ObservableObject {
     @Published var player: Player?
     @Published var question: Question?
     
-    private let service = NetworkService()
+    private let questionService = QuestionService()
+    private let gameService = GameService()
+    private let playerService = PlayerService()
+    
     
     // Gruppen abrufen
     func fetchGroups() {
-        service.fetchGroups { result in
+        gameService.fetchGroups { result in
             switch result {
             case .success(let groups):
                 self.groups = groups
@@ -18,18 +21,18 @@ class ViewModel: ObservableObject {
             }
         }
     }
-
+    
     // Gruppe erstellen
     func createGroup(name: String, completion: @escaping (Bool) -> Void) {
-        service.createGroup(name: name) { result in
+        gameService.createGroup(name: name) { result in
             DispatchQueue.main.async {
                 switch result {
-                    case .success():
-                        self.fetchGroups()
-                        completion(true)
-                    case .failure(let error):
-                        print("Fehler beim Erstellen der Gruppe: \(error.localizedDescription)")
-                        completion(false)
+                case .success():
+                    self.fetchGroups()
+                    completion(true)
+                case .failure(let error):
+                    print("Fehler beim Erstellen der Gruppe: \(error.localizedDescription)")
+                    completion(false)
                 }
             }
         }
@@ -37,7 +40,7 @@ class ViewModel: ObservableObject {
     
     // Spieler erstellen
     func createPlayer(name: String, group: Group) {
-        service.createPlayer(name: name) { result in
+        playerService.createPlayer(name: name) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let player):
@@ -52,7 +55,7 @@ class ViewModel: ObservableObject {
     
     //beim spieler erstellen, gleich Gruppe zuweisen
     func joinGroup(player: Player, group: Group) {
-        service.joinGroup(player: player, group: group) { result in
+        gameService.joinGroup(player: player, group: group) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success():
@@ -66,21 +69,18 @@ class ViewModel: ObservableObject {
     }
     
     // Holen der täglichen Frage
-        func getQuestion(playerId: Int) {
-            service.fetchDailyQuestion(playerId: playerId) { result in
-                switch result {
-                case .success(let question):
-                    self.question = question
-                case .failure(let error):
-                    print("Fehler beim Abrufen der Frage: \(error.localizedDescription)")
-                }
+    func getQuestion(playerId: Int) {
+        questionService.fetchDailyQuestion(playerId: playerId) { result in
+            switch result {
+            case .success(let question):
+                self.question = question
+            case .failure(let error):
+                print("Fehler beim Abrufen der Frage: \(error.localizedDescription)")
             }
         }
+    }
     func answerQuestion(player: Player, answeredPlayer: Player, question: Question) {
-        print(player)
-        print(answeredPlayer)
-        print(question)
-        service.answerDailyQuestion(selectedPlayer: player, playerAnswered: answeredPlayer, question: question) { result in
+        questionService.answerDailyQuestion(selectedPlayer: player, playerAnswered: answeredPlayer, question: question) { result in
             switch result {
             case .success(let question):
                 self.question = question
@@ -89,5 +89,4 @@ class ViewModel: ObservableObject {
             }
         }
     }
-
 }

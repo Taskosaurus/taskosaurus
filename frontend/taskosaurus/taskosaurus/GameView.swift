@@ -1,7 +1,7 @@
 import SwiftUI
 import Charts
 
-struct GroupOverviewView: View {
+struct GameView: View {
     @ObservedObject var viewModel: ViewModel
     var group: Group
 
@@ -14,9 +14,11 @@ struct GroupOverviewView: View {
             questionSection() // Handle optional question safely
             Spacer()
             
-            if let players = group.players, !players.isEmpty {
+            if let players = group.players, let question = viewModel.question, !players.isEmpty && !question.answered {
                 playerListSection(players: players)
                 voteButton(players: players)
+            } else if let question = viewModel.question, question.answered {
+                voteResultsChart(question: question)
             } else {
                 Text("Keine Mitglieder vorhanden")
                     .foregroundColor(.gray)
@@ -120,19 +122,35 @@ struct GroupOverviewView: View {
             }
             .padding()
             .disabled(selectedPlayer == nil)
-        } else {
-            if let question = viewModel.question {
+        }
+    }
+    @ViewBuilder
+    private func voteResultsChart(question: Question) -> some View {
+        VStack {
+            Text("Umfrageergebnisse")
+                .font(.headline)
+                .padding(.bottom, 8)
             
-                Chart {
-                    ForEach(question.answers, id: \.answeredId) { item in
-                        BarMark(
-                            x: .value("Shape Type", item.answeredName),
-                            y: .value("Total Count", item.count)
-                        )
-                    }
+            let chart = Chart {
+                ForEach(question.answers, id: \.answeredId) { item in
+                    BarMark(
+                        x: .value("Votes", item.count),
+                        y: .value("Player", item.answeredName)
+                    )
                 }
             }
-
+            .chartXAxis {
+                AxisMarks(position: .bottom)
+            }
+            .chartYAxis {
+                AxisMarks(position: .leading)
+            }
+            
+            chart
+                .frame(height: 250)
+                .padding()
+            
+            Spacer()
         }
     }
 }
