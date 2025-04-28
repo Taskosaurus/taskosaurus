@@ -7,13 +7,13 @@ struct GroupDetailView: View {
     var body: some View {
         VStack(spacing: 20) {
             // Titel der Gruppe
-            Text("Gruppe: " + group.name)
+            Text("Spiel: " + group.name)
                 .font(.title)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
                 .padding(.top, 10)
 
-            Text("Mitglieder dieser Gruppe")
+            Text("Mitglieder dieses Spieles")
                 .font(.subheadline)
                 .foregroundColor(.black)
 

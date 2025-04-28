@@ -2,11 +2,43 @@ import Foundation
 
 class ViewModel: ObservableObject {
     @Published var groups: [Group] = []
-    @Published var player: Player?
-    
-    private let questionService = QuestionService()
-    private let gameService = GameService()
-    private let playerService = PlayerService()
+        @Published var player: Player?
+        
+        @Published var answeredGroups: [Group] = []
+        @Published var unAnsweredGroups: [Group] = []
+        
+        private let questionService = QuestionService()
+        private let gameService = GameService()
+        private let playerService = PlayerService()
+        
+    func loadQuestionsForGroups() async {
+        var answered: [Group] = []
+        var unanswered: [Group] = []
+        
+        for group in groups {
+            guard let firstPlayer = group.players?.first,
+                  let playerId = firstPlayer.id else {
+                continue // wenn kein Player da ist, einfach überspringen
+            }
+            
+            if let question = await getQuestion(playerId: playerId) {
+                if question.answered {
+                    answered.append(group)
+                } else {
+                    unanswered.append(group)
+                }
+            } else {
+                // Falls keine Frage geladen -> Kannst entscheiden: wo hinschieben oder ignorieren
+                unanswered.append(group)
+            }
+        }
+        
+        DispatchQueue.main.async {
+            self.answeredGroups = answered
+            self.unAnsweredGroups = unanswered
+        }
+    }
+
     
     
     // Gruppen abrufen
@@ -15,6 +47,7 @@ class ViewModel: ObservableObject {
             switch result {
             case .success(let groups):
                 self.groups = groups
+                
             case .failure(let error):
                 print("Fehler beim Laden der Gruppen: \(error.localizedDescription)")
             }
@@ -26,7 +59,7 @@ class ViewModel: ObservableObject {
         gameService.createGroup(name: name) { result in
             DispatchQueue.main.async {
                 switch result {
-                case .success():
+                case .success(let group):
                     self.fetchGroups()
                     completion(true)
                 case .failure(let error):
@@ -38,7 +71,7 @@ class ViewModel: ObservableObject {
     }
     
     // Spieler erstellen
-    func createPlayer(name: String, group: Group) {
+    func createPlayer(name: String, group: Group, completion: @escaping (Bool) -> Void) {
         playerService.createPlayer(name: name) { result in
             DispatchQueue.main.async {
                 switch result {

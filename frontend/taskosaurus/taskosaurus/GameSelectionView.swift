@@ -2,33 +2,41 @@ import SwiftUI
 
 struct GameSelectionView: View {
     @ObservedObject var viewModel: ViewModel
-
+    
     var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading) {
-                HStack {
-                    Text("Gruppen")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    Spacer()
-                    
-                    NavigationLink(destination: GroupCreationView(viewModel: viewModel)) {
-                        Image(systemName: "plus.square")
-                            .font(.title)
+        List {
+            if !viewModel.unAnsweredGroups.isEmpty {
+                Section {
+                    ForEach(viewModel.unAnsweredGroups) { group in
+                        NavigationLink(destination: GameView(viewModel: viewModel, group: group)) {
+                            Text(group.name)
+                        }
                     }
+                } header: {
+                    Text("Nicht beantwortet")
+                        .font(.headline)
+                        .textCase(.none)
                 }
-                .padding(.horizontal)
-                
-                List(viewModel.groups) { group in
+            }
+
+            Section {
+                ForEach(viewModel.answeredGroups) { group in
                     NavigationLink(destination: GameView(viewModel: viewModel, group: group)) {
                         Text(group.name)
                     }
                 }
+            } header: {
+                Text("Beantwortet")
+                    .font(.headline)
+                    .textCase(.none)
             }
         }
+        .listStyle(.insetGrouped)
+        .navigationTitle("Spiele")
         .onAppear {
-            viewModel.fetchGroups()
+            Task {
+                await viewModel.loadQuestionsForGroups()
+            }
         }
     }
 }

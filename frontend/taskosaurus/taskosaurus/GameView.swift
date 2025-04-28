@@ -27,6 +27,8 @@ struct GameView: View {
             }
         }
         .navigationTitle(group.name)
+        .navigationBarTitleDisplayMode(.inline)
+        
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationLink(destination: GroupDetailView(viewModel: viewModel, group: group)) {
