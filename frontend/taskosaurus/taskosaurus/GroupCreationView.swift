@@ -102,7 +102,6 @@ struct GroupCreationView: View {
             return
         }
         
-        // Erstelle die Gruppe und gib sie zurück
         viewModel.createGroup(name: groupName) { groupSuccess in
             DispatchQueue.main.async {
                 self.groupCreationSuccess = groupSuccess
@@ -110,7 +109,6 @@ struct GroupCreationView: View {
                     self.lastCreatedGroup = groupName
                     self.groupName = "" // Eingabefeld leeren
                     
-                    // Jetzt Spieler erstellen und der Gruppe zuweisen
                     let group: Group = viewModel.groups[viewModel.groups.count - 1]
                     let createdPlayerName = self.playerName
                     viewModel.createPlayer(name: createdPlayerName, group: group) { playerSuccess in     DispatchQueue.main.async {
@@ -119,7 +117,6 @@ struct GroupCreationView: View {
                                 self.lastCreatedPlayer = createdPlayerName
                                 self.playerName = "" // Eingabefeld leeren
                                 
-                                // Automatisch nach 0.8 Sekunden zurück
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                                     dismiss()
                                 }

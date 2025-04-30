@@ -144,8 +144,10 @@ struct GameView: View {
                 .font(.headline)
                 .padding(.bottom, 8)
             
-            let chart = Chart {
-                ForEach(question.answers, id: \.answeredId) { item in
+            let sortedAnswers = question.answers.sorted { $0.count > $1.count } //absteigende sortierung
+
+            Chart {
+                ForEach(sortedAnswers, id: \.answeredId) { item in
                     BarMark(
                         x: .value("Votes", item.count),
                         y: .value("Player", item.answeredName)
@@ -158,12 +160,11 @@ struct GameView: View {
             .chartYAxis {
                 AxisMarks(position: .leading)
             }
-            
-            chart
-                .frame(height: 250)
-                .padding()
+            .frame(height: 250)
+            .padding()
             
             Spacer()
         }
     }
+
 }
