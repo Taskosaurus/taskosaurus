@@ -13,7 +13,7 @@ class QuestionService {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = try? JSONEncoder().encode(requestData)
             
-            URLSession.shared.dataTask(with: request) { data, _, error in
+            URLSession.shared.dataTask(with: request) { data, response, error in
                 if let error = error {
                     completion(.failure(error))
                     return
@@ -24,6 +24,7 @@ class QuestionService {
                 }
                 do {
                     let question = try JSONDecoder().decode(Question.self, from: data)
+                    print(question)
                     DispatchQueue.main.async {
                         completion(.success(question))
                     }

@@ -109,19 +109,23 @@ class ViewModel: ObservableObject {
     }
 
     
-    // Holen der täglichen Frage
     func getQuestion(playerId: Int) async -> Question? {
         return await withCheckedContinuation { continuation in
             questionService.fetchDailyQuestion(playerId: playerId) { result in
                 switch result {
                 case .success(let question):
-                    continuation.resume(returning: question)
+                    // Sortiere die Antworten direkt nach der count-Eigenschaft
+                    let sortedAnswers = question.answers.sorted { $0.count > $1.count }
+                    var sortedQuestion = question
+                    sortedQuestion.answers = sortedAnswers
+                    continuation.resume(returning: sortedQuestion)
                 case .failure(_):
                     continuation.resume(returning: nil)
                 }
             }
         }
     }
+
     func answerQuestion(player: Player, answeredPlayer: Player, question: Question) async -> Question? {
         return await withCheckedContinuation { continuation in
             questionService.answerDailyQuestion(

@@ -42,9 +42,9 @@ struct GameView: View {
             Task {
                 if let firstPlayer = group.players?.first {
                     receivedQuestion = await viewModel.getQuestion(playerId: firstPlayer.id!)
+                    
                 }
              }
-            print(receivedQuestion)
         }
     }
 
@@ -143,8 +143,22 @@ struct GameView: View {
             Text("Umfrageergebnisse")
                 .font(.headline)
                 .padding(.bottom, 8)
-            
-            let sortedAnswers = question.answers.sorted { $0.count > $1.count } //absteigende sortierung
+
+            // Schritt 1: Gruppieren nach answeredId
+            let grouped = Dictionary(grouping: question.answers, by: { $0.answeredId })
+
+            // Schritt 2: Aggregierte Antworten erzeugen
+            let aggregatedAnswers = grouped.map { (answeredId, answers) in
+                CollectedAnswer(
+                    answeringId: 0, // irrelevant für Chart
+                    answeredId: answeredId,
+                    answeredName: answers.first?.answeredName ?? "Unbekannt",
+                    count: answers.count
+                )
+            }
+
+            // Schritt 3: Sortieren nach Anzahl der Stimmen (absteigend)
+            let sortedAnswers = aggregatedAnswers.sorted { $0.count > $1.count }
 
             Chart {
                 ForEach(sortedAnswers, id: \.answeredId) { item in
@@ -162,9 +176,12 @@ struct GameView: View {
             }
             .frame(height: 250)
             .padding()
-            
+
             Spacer()
         }
     }
+
+
+
 
 }
