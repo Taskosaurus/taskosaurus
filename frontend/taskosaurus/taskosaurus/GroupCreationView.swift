@@ -4,11 +4,9 @@ struct GroupCreationView: View {
     @ObservedObject var viewModel: ViewModel
     @State private var groupName = ""
     @State private var playerName = ""
-    @State private var groupCreationSuccess: Bool? = nil
-    @State private var playerCreationSuccess: Bool? = nil
-    @State private var lastCreatedGroup: String? = nil
-    @State private var lastCreatedPlayer: String? = nil
-    @Environment(\.dismiss) private var dismiss // Zum Schließen der View
+    @State private var creationSuccess: Bool? = nil
+    @State private var feedbackMessage: String? = nil
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -22,74 +20,52 @@ struct GroupCreationView: View {
                 .foregroundColor(.gray)
                 .padding(.bottom, 15)
             
-            // Eingabefeld für den Gruppennamen
-            HStack {
-                TextField("Spielname", text: $groupName)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .overlay(RoundedRectangle(cornerRadius: 7)
-                        .stroke(groupCreationSuccess == false ? Color.red : Color.clear, lineWidth: 1))
-                
-                Button(action: {
-                    createGroupAndPlayer()
-                }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title)
-                        .foregroundColor(.blue)
-                        .padding()
+            // Gruppennamen-Eingabe
+            TextField("Spielname", text: $groupName)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .overlay(RoundedRectangle(cornerRadius: 7)
+                    .stroke(creationSuccess == false ? Color.red : Color.clear, lineWidth: 1))
+            
+            // Spielernamen-Eingabe
+            TextField("Gib deinen Namen ein:", text: $playerName)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .overlay(RoundedRectangle(cornerRadius: 7)
+                    .stroke(creationSuccess == false ? Color.red : Color.clear, lineWidth: 1))
+            
+            // Rückmeldung (immer Platz reserviert)
+            ZStack {
+                if let message = feedbackMessage {
+                    Text(message)
+                        .foregroundColor(creationSuccess == true ? .green : .red)
+                        .font(.footnote)
+                        .multilineTextAlignment(.center)
+                        .transition(.opacity)
+                } else {
+                    Text(" ") // Platzhalter für gleichbleibende Höhe
+                        .font(.footnote)
+                        .opacity(0)
                 }
             }
+            .frame(height: 20) // feste Höhe für Stabilität
+            .padding(.top, 5)
             
-            // Erfolgsmeldung für Gruppe
-            if let lastGroup = lastCreatedGroup, groupCreationSuccess == true {
-                Text("Spiel: \(lastGroup) wurde erfolgreich erstellt")
-                    .foregroundColor(.green)
-                    .font(.footnote)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 5)
-            }
-            
-            // Fehler bei der Gruppen-Erstellung
-            if groupCreationSuccess == false {
-                Text("Fehler beim Erstellen des Spiels.")
-                    .foregroundColor(.red)
-                    .fontWeight(.bold)
-                    .padding(.top, 5)
-            }
-            
-            // Eingabefeld für den Spielernamen
-            HStack {
-                TextField("Gib deinen Namen ein:", text: $playerName)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .overlay(RoundedRectangle(cornerRadius: 7)
-                        .stroke(playerCreationSuccess == false ? Color.red : Color.clear, lineWidth: 1))
-                
-                Button(action: {
-                    createGroupAndPlayer()
-                }) {
+            // Button
+            Button(action: {
+                createGroupAndPlayer()
+            }) {
+                HStack {
                     Image(systemName: "plus.circle.fill")
-                        .font(.title)
-                        .foregroundColor(.blue)
-                        .padding()
+                    Text("Spiel & Spieler erstellen")
                 }
+                .font(.title2)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
             }
-            
-            // Erfolgsmeldung für Spieler
-            if let lastPlayer = lastCreatedPlayer, playerCreationSuccess == true {
-                Text("Spieler: \(lastPlayer) wurde erfolgreich erstellt und der Gruppe zugewiesen")
-                    .foregroundColor(.green)
-                    .font(.footnote)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 5)
-            }
-            
-            // Fehler bei der Spieler-Erstellung
-            if playerCreationSuccess == false {
-                Text("Fehler beim Erstellen des Spielers.")
-                    .foregroundColor(.red)
-                    .fontWeight(.bold)
-                    .padding(.top, 5)
-            }
-            
+            .padding(.top)
+
             Spacer()
         }
         .padding()
@@ -97,38 +73,43 @@ struct GroupCreationView: View {
     
     private func createGroupAndPlayer() {
         guard !groupName.isEmpty, !playerName.isEmpty else {
-            groupCreationSuccess = false
-            playerCreationSuccess = false
+            creationSuccess = false
+            feedbackMessage = "Bitte alle Felder ausfüllen."
             return
         }
         
-        // Erstelle die Gruppe und gib sie zurück
         viewModel.createGroup(name: groupName) { groupSuccess in
             DispatchQueue.main.async {
-                self.groupCreationSuccess = groupSuccess
                 if groupSuccess {
-                    self.lastCreatedGroup = groupName
-                    self.groupName = "" // Eingabefeld leeren
-                    
-                    // Jetzt Spieler erstellen und der Gruppe zuweisen
-                    let group: Group = viewModel.groups[viewModel.groups.count - 1]
-                    let createdPlayerName = self.playerName
-                    viewModel.createPlayer(name: createdPlayerName, group: group) { playerSuccess in     DispatchQueue.main.async {
-                            self.playerCreationSuccess = playerSuccess
-                            if playerSuccess {
-                                self.lastCreatedPlayer = createdPlayerName
-                                self.playerName = "" // Eingabefeld leeren
+                    viewModel.fetchGroups {
+                        guard let group = viewModel.groups.last else {
+                            creationSuccess = false
+                            feedbackMessage = "Gruppe wurde erstellt, aber konnte nicht gefunden werden."
+                            return
+                        }
+                        
+                        viewModel.createPlayer(name: playerName, group: group) { playerSuccess in
+                            DispatchQueue.main.async {
+                                creationSuccess = playerSuccess
+                                feedbackMessage = playerSuccess
+                                    ? "Spiel \(groupName) wurde erfolgreich erstellt"
+                                    : "Spiel wurde erstellt, aber Spieler konnte nicht hinzugefügt werden."
                                 
-                                // Automatisch nach 0.8 Sekunden zurück
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                                    dismiss()
+                                if playerSuccess {
+                                    groupName = ""
+                                    playerName = ""
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                                        dismiss()
+                                    }
                                 }
                             }
                         }
                     }
+                } else {
+                    creationSuccess = false
+                    feedbackMessage = "Gruppe konnte nicht erstellt werden."
                 }
             }
         }
     }
 }
-

@@ -41,25 +41,26 @@ class ViewModel: ObservableObject {
 
     
     
-    // Gruppen abrufen
-    func fetchGroups() {
+    func fetchGroups(completion: (() -> Void)? = nil) {
         gameService.fetchGroups { result in
-            switch result {
-            case .success(let groups):
-                self.groups = groups
-                
-            case .failure(let error):
-                print("Fehler beim Laden der Gruppen: \(error.localizedDescription)")
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let groups):
+                    self.groups = groups
+                case .failure(let error):
+                    print("Fehler beim Laden der Gruppen: \(error.localizedDescription)")
+                }
+                completion?()
             }
         }
     }
+
     
-    // Gruppe erstellen
     func createGroup(name: String, completion: @escaping (Bool) -> Void) {
         gameService.createGroup(name: name) { result in
             DispatchQueue.main.async {
                 switch result {
-                case .success(let group):
+                case .success():
                     self.fetchGroups()
                     completion(true)
                 case .failure(let error):
@@ -70,35 +71,43 @@ class ViewModel: ObservableObject {
         }
     }
     
-    // Spieler erstellen
     func createPlayer(name: String, group: Group, completion: @escaping (Bool) -> Void) {
-        playerService.createPlayer(name: name) { result in
+        playerService.createPlayer(name: name) { (result: Result<Player, Error>) in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let player):
+                    print("test")
                     self.player = player
-                    self.joinGroup(player: self.player!, group: group)
+                    self.joinGroup(player: player, group: group)
+                    completion(true)
                 case .failure(let error):
                     print("Fehler beim Erstellen des Spielers: \(error.localizedDescription)")
+                    completion(false)
                 }
             }
         }
     }
+
     
-    //beim spieler erstellen, gleich Gruppe zuweisen
     func joinGroup(player: Player, group: Group) {
         gameService.joinGroup(player: player, group: group) { result in
             DispatchQueue.main.async {
                 switch result {
-                case .success():
-                    print("success")
-                    self.fetchGroups()
+                case .success(let updatedGroup):
+                    print("Player successfully joined group.")
+                    // Replace old group in groups list
+                    if let index = self.groups.firstIndex(where: { $0.id == updatedGroup.id }) {
+                        self.groups[index] = updatedGroup
+                    } else {
+                        self.groups.append(updatedGroup)
+                    }
                 case .failure(let error):
                     print("Fehler beim joinen: \(error.localizedDescription)")
                 }
             }
         }
     }
+
     
     // Holen der täglichen Frage
     func getQuestion(playerId: Int) async -> Question? {
