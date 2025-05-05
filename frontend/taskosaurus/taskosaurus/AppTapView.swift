@@ -40,7 +40,7 @@ struct AppTabView: View {
             
             // Tab 2: Wer würde eher
             NavigationStack {
-                GameSelectionView(viewModel: viewModel) 
+                WhoWouldRatherView(viewModel: viewModel) 
             }
             .tabItem {
                 Label(GameTab.whoWouldRather.rawValue, systemImage: GameTab.whoWouldRather.icon)
