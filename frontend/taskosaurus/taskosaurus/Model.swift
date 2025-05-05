@@ -20,7 +20,6 @@ struct Question: Codable {
 }
 
 struct CollectedAnswer: Codable {
-    var answeringId: Int
     var answeredId: Int
     var answeredName: String
     var count: Int
