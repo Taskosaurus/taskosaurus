@@ -6,13 +6,6 @@ struct WhoWouldRatherView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                // Logo als zentrales Element
-                Image("AppLogo") // Füge dein Logo zu den Assets hinzu
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 120)
-                    .padding(.top, 40)
-                
                 Spacer()
                 
                 // Haupt-CTA Button mit Animation
