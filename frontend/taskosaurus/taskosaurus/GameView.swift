@@ -11,10 +11,17 @@ struct GameView: View {
     @State private var receivedQuestion: Question?
 
     var body: some View {
-        
         VStack {
-            questionSection() // Handle optional question safely
+            HStack {
+                Text("Bereits abgestimmt: ").foregroundColor(.gray)
+                if let players = group.players, let question = receivedQuestion {
+                    VoteStatusView(answeredCount: question.answers.count, totalCount: players.count)
+                }
+            }
             
+
+            questionSection()
+
             if let players = group.players, let question = receivedQuestion, !players.isEmpty && !question.answered {
                 playerListSection(players: players)
                 voteButton(players: players)
@@ -28,7 +35,6 @@ struct GameView: View {
         }
         .navigationTitle(group.name)
         .navigationBarTitleDisplayMode(.inline)
-        
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationLink(destination: GroupDetailView(viewModel: viewModel, group: group)) {
@@ -38,13 +44,11 @@ struct GameView: View {
             }
         }
         .onAppear {
-            
             Task {
                 if let firstPlayer = group.players?.first {
                     receivedQuestion = await viewModel.getQuestion(playerId: firstPlayer.id!)
-                    
                 }
-             }
+            }
         }
     }
 
