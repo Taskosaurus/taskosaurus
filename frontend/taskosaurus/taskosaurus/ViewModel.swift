@@ -2,16 +2,30 @@ import Foundation
 
 class ViewModel: ObservableObject {
     @Published var groups: [Group] = []
-        @Published var player: Player?
+    @Published var player: Player?
         
-        @Published var answeredGroups: [Group] = []
-        @Published var unAnsweredGroups: [Group] = []
-        @Published var latestQuestions: [Int: Question] = [:]
+    @Published var answeredGroups: [Group] = []
+    @Published var unAnsweredGroups: [Group] = []
+    @Published var latestQuestions: [Int: Question] = [:]
 
-        
-        private let questionService = QuestionService()
-        private let gameService = GameService()
-        private let playerService = PlayerService()
+    private let questionService = QuestionService()
+    private let gameService = GameService()
+    private let playerService = PlayerService()
+    
+    
+    func createAndSaveUser(playerName: String) async -> Player? {
+        if let createdPlayer = await createPlayer(name: playerName) {
+            DispatchQueue.main.async {
+                self.player = createdPlayer
+            }
+            return createdPlayer
+        } else {
+            return nil
+        }
+    }
+
+
+    
         
     func loadQuestionsForGroups() async {
         var answered: [Group] = []
@@ -78,22 +92,20 @@ class ViewModel: ObservableObject {
         }
     }
     
-    func createPlayer(name: String, group: Group, completion: @escaping (Bool) -> Void) {
-        playerService.createPlayer(name: name) { (result: Result<Player, Error>) in
-            DispatchQueue.main.async {
+    func createPlayer(name: String) async -> Player? {
+        await withCheckedContinuation { continuation in
+            playerService.createPlayer(name: name) { result in
                 switch result {
                 case .success(let player):
-                    print("test")
-                    self.player = player
-                    self.joinGroup(player: player, group: group)
-                    completion(true)
+                    continuation.resume(returning: player)
                 case .failure(let error):
                     print("Fehler beim Erstellen des Spielers: \(error.localizedDescription)")
-                    completion(false)
+                    continuation.resume(returning: nil)
                 }
             }
         }
     }
+
 
     
     func joinGroup(player: Player, group: Group) {

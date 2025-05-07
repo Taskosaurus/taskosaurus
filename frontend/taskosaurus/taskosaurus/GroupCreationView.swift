@@ -81,30 +81,7 @@ struct GroupCreationView: View {
         viewModel.createGroup(name: groupName) { groupSuccess in
             DispatchQueue.main.async {
                 if groupSuccess {
-                    viewModel.fetchGroups {
-                        guard let group = viewModel.groups.last else {
-                            creationSuccess = false
-                            feedbackMessage = "Gruppe wurde erstellt, aber konnte nicht gefunden werden."
-                            return
-                        }
-                        
-                        viewModel.createPlayer(name: playerName, group: group) { playerSuccess in
-                            DispatchQueue.main.async {
-                                creationSuccess = playerSuccess
-                                feedbackMessage = playerSuccess
-                                    ? "Spiel \(groupName) wurde erfolgreich erstellt"
-                                    : "Spiel wurde erstellt, aber Spieler konnte nicht hinzugefügt werden."
-                                
-                                if playerSuccess {
-                                    groupName = ""
-                                    playerName = ""
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                                        dismiss()
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    viewModel.fetchGroups()
                 } else {
                     creationSuccess = false
                     feedbackMessage = "Gruppe konnte nicht erstellt werden."
