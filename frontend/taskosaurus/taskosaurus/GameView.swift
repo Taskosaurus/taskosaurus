@@ -140,30 +140,7 @@ struct GameView: View {
     @ViewBuilder
     private func voteResultsChart(question: Question) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            let votedPlayersCount = question.answers.count
-            let totalPlayersCount = group.players?.count ?? 0
-            let voteProgress = "\(votedPlayersCount)/\(totalPlayersCount)"
-
-            Text("Abgestimmt: \(voteProgress)")
-                .font(.subheadline)
-                .foregroundColor(.gray)
-                .padding(.horizontal)
-
-            Text("Umfrageergebnisse")
-                .font(.headline)
-                .padding(.horizontal)
-
-            let grouped = Dictionary(grouping: question.answers, by: { $0.answeredId })
-            let aggregatedAnswers = grouped.map { (answeredId, answers) in
-                CollectedAnswer(
-                    answeringId: 0,
-                    answeredId: answeredId,
-                    answeredName: answers.first?.answeredName ?? "Unbekannt",
-                    count: answers.count
-                )
-            }
-
-            let sortedAnswers = aggregatedAnswers.sorted { $0.count > $1.count }
+            let sortedAnswers = question.answers.sorted { $0.count > $1.count }
 
             Chart {
                 ForEach(sortedAnswers, id: \.answeredId) { item in
