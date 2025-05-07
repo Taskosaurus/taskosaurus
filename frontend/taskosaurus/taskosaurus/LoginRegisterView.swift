@@ -5,6 +5,8 @@ struct LoginRegisterView: View {
     @State private var isLoginMode: Bool = true
     @State private var isLoading: Bool = false
     
+    @ObservedObject var viewModel: ViewModel
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -53,6 +55,8 @@ struct LoginRegisterView: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 20)
                     
+                    Text("playerId: \(viewModel.playerId)")
+                    
                     Spacer()
                 }
                 .padding()
@@ -69,8 +73,16 @@ struct LoginRegisterView: View {
             isLoading = false
             if isLoginMode {
                 print("Anmelden mit Name: \(name)")
+                
+                
             } else {
                 print("Registrieren mit Name: \(name)")
+                Task{
+                    if let player = await viewModel.createAndSaveUser(playerName: name){
+                        print(player)
+                    }
+                }
+                
             }
         }
     }

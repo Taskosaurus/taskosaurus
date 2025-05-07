@@ -25,7 +25,7 @@ enum GameTab: String, CaseIterable {
 
 struct AppTabView: View {
     @State private var selectedTab: GameTab = .whoWouldRather
-    @StateObject private var viewModel = ViewModel() // 👈 Zentrales ViewModel für die App
+    @StateObject private var viewModel = ViewModel()
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -49,7 +49,7 @@ struct AppTabView: View {
             
             // Tab 3: Kiss Marry Kill
             NavigationStack {
-                KissMarryKillView()
+                LoginRegisterView(viewModel: viewModel)
             }
             .tabItem {
                 Label(GameTab.kissMarryKill.rawValue, systemImage: GameTab.kissMarryKill.icon)
@@ -65,12 +65,5 @@ struct TruthOrDareView: View {
     var body: some View {
         Text("Wahrheit oder Pflicht View")
             .navigationTitle("Wahrheit oder Pflicht")
-    }
-}
-
-struct KissMarryKillView: View {
-    var body: some View {
-        LoginRegisterView()
-        
     }
 }

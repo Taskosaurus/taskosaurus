@@ -2,7 +2,8 @@ import Foundation
 
 class ViewModel: ObservableObject {
     @Published var groups: [Group] = []
-    @Published private var player = UserDefaults.standard.object(forKey: "player")
+    @Published var playerId: Int = 0
+    @Published var player: Player?
         
     @Published var answeredGroups: [Group] = []
     @Published var unAnsweredGroups: [Group] = []
@@ -12,12 +13,19 @@ class ViewModel: ObservableObject {
     private let gameService = GameService()
     private let playerService = PlayerService()
     
+    init() {
+        let id = UserDefaults.standard.integer(forKey: "playerId")
+        if id != 0 {
+            self.playerId = id;
+        }
+    }
     
     func createAndSaveUser(playerName: String) async -> Player? {
         if let createdPlayer = await createPlayer(name: playerName) {
             DispatchQueue.main.async {
                 self.player = createdPlayer
-                UserDefaults.standard.set(self.player, forKey: "player")
+                self.playerId = createdPlayer.id ?? 0
+                UserDefaults.standard.set(self.playerId, forKey: "playerId")
             }
             return createdPlayer
         } else {
