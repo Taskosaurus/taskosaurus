@@ -24,7 +24,7 @@ class QuestionService {
                 }
                 do {
                     let question = try JSONDecoder().decode(Question.self, from: data)
-                    print(question)
+                    //print(question)
                     DispatchQueue.main.async {
                         completion(.success(question))
                     }
@@ -58,7 +58,7 @@ class QuestionService {
             if let data = data {
                 // Print the raw data as a string to see what you're getting
                 if let jsonString = String(data: data, encoding: .utf8) {
-                    print("Raw Data: \(jsonString)")
+                   // print("Raw Data: \(jsonString)")
                 } else {
                     print("Failed to convert data to string.")
                 }
