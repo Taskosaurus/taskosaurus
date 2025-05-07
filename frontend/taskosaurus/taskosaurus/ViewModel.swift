@@ -6,6 +6,8 @@ class ViewModel: ObservableObject {
         
         @Published var answeredGroups: [Group] = []
         @Published var unAnsweredGroups: [Group] = []
+        @Published var latestQuestions: [Int: Question] = [:]
+
         
         private let questionService = QuestionService()
         private let gameService = GameService()
@@ -14,30 +16,35 @@ class ViewModel: ObservableObject {
     func loadQuestionsForGroups() async {
         var answered: [Group] = []
         var unanswered: [Group] = []
-        
+
         for group in groups {
             guard let firstPlayer = group.players?.first,
-                  let playerId = firstPlayer.id else {
-                continue // wenn kein Player da ist, einfach überspringen
+                  let playerId = firstPlayer.id,
+                  let groupId = group.id else {
+                continue
             }
-            
+
             if let question = await getQuestion(playerId: playerId) {
+                DispatchQueue.main.async {
+                    self.latestQuestions[groupId] = question
+                }
+
                 if question.answered {
                     answered.append(group)
                 } else {
                     unanswered.append(group)
                 }
             } else {
-                // Falls keine Frage geladen -> Kannst entscheiden: wo hinschieben oder ignorieren
                 unanswered.append(group)
             }
         }
-        
+
         DispatchQueue.main.async {
             self.answeredGroups = answered
             self.unAnsweredGroups = unanswered
         }
     }
+
 
     
     

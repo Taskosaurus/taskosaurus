@@ -11,10 +11,17 @@ struct GameView: View {
     @State private var receivedQuestion: Question?
 
     var body: some View {
-        
         VStack {
-            questionSection() // Handle optional question safely
+            HStack {
+                Text("Bereits abgestimmt: ").foregroundColor(.gray)
+                if let players = group.players, let question = receivedQuestion {
+                    VoteStatusView(answeredCount: question.answers.count, totalCount: players.count)
+                }
+            }
             
+
+            questionSection()
+
             if let players = group.players, let question = receivedQuestion, !players.isEmpty && !question.answered {
                 playerListSection(players: players)
                 voteButton(players: players)
@@ -28,7 +35,6 @@ struct GameView: View {
         }
         .navigationTitle(group.name)
         .navigationBarTitleDisplayMode(.inline)
-        
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationLink(destination: GroupDetailView(viewModel: viewModel, group: group)) {
@@ -38,13 +44,11 @@ struct GameView: View {
             }
         }
         .onAppear {
-            
             Task {
                 if let firstPlayer = group.players?.first {
                     receivedQuestion = await viewModel.getQuestion(playerId: firstPlayer.id!)
-                    
                 }
-             }
+            }
         }
     }
 
@@ -140,30 +144,7 @@ struct GameView: View {
     @ViewBuilder
     private func voteResultsChart(question: Question) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            let votedPlayersCount = question.answers.count
-            let totalPlayersCount = group.players?.count ?? 0
-            let voteProgress = "\(votedPlayersCount)/\(totalPlayersCount)"
-
-            Text("Abgestimmt: \(voteProgress)")
-                .font(.subheadline)
-                .foregroundColor(.gray)
-                .padding(.horizontal)
-
-            Text("Umfrageergebnisse")
-                .font(.headline)
-                .padding(.horizontal)
-
-            let grouped = Dictionary(grouping: question.answers, by: { $0.answeredId })
-            let aggregatedAnswers = grouped.map { (answeredId, answers) in
-                CollectedAnswer(
-                    answeringId: 0,
-                    answeredId: answeredId,
-                    answeredName: answers.first?.answeredName ?? "Unbekannt",
-                    count: answers.count
-                )
-            }
-
-            let sortedAnswers = aggregatedAnswers.sorted { $0.count > $1.count }
+            let sortedAnswers = question.answers.sorted { $0.count > $1.count }
 
             Chart {
                 ForEach(sortedAnswers, id: \.answeredId) { item in

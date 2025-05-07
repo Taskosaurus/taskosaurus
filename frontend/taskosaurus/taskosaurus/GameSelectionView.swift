@@ -2,14 +2,14 @@ import SwiftUI
 
 struct GameSelectionView: View {
     @ObservedObject var viewModel: ViewModel
-    
+
     var body: some View {
         List {
             if !viewModel.unAnsweredGroups.isEmpty {
                 Section {
                     ForEach(viewModel.unAnsweredGroups) { group in
                         NavigationLink(destination: GameView(viewModel: viewModel, group: group)) {
-                            Text(group.name)
+                            groupRow(group: group)
                         }
                     }
                 } header: {
@@ -22,7 +22,7 @@ struct GameSelectionView: View {
             Section {
                 ForEach(viewModel.answeredGroups) { group in
                     NavigationLink(destination: GameView(viewModel: viewModel, group: group)) {
-                        Text(group.name)
+                        groupRow(group: group)
                     }
                 }
             } header: {
@@ -36,6 +36,19 @@ struct GameSelectionView: View {
         .onAppear {
             Task {
                 await viewModel.loadQuestionsForGroups()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func groupRow(group: Group) -> some View {
+        HStack {
+            Text(group.name)
+            Spacer()
+
+            if let question = viewModel.latestQuestions[group.id ?? -1],
+               let total = group.players?.count {
+                VoteStatusView(answeredCount: question.answers.count, totalCount: total)
             }
         }
     }

@@ -2,44 +2,68 @@ import SwiftUI
 
 struct WhoWouldRatherView: View {
     @ObservedObject var viewModel: ViewModel
-
+    
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading) {
-                NavigationView {
-                            VStack {
-                                NavigationLink(destination: GameSelectionView(viewModel: viewModel) ) {
-                                    Text("Spielen")
-                                        .font(.title)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                        .padding()
-                                        .frame(maxWidth: .infinity)
-                                        .background(Color.blue)
-                                        .cornerRadius(12)
-                                        .shadow(radius: 8)
-                                        .padding(.horizontal)
-                                }
-                                NavigationLink(destination: GroupCreationView(viewModel: viewModel)) {
-                                    Text("Spiel erstellen")
-                                        .font(.headline)
-                                        .fontWeight(.regular)
-                                        .foregroundColor(.black)
-                                        .padding(.vertical, 10)
-                                        .padding(.horizontal, 20)
-                                        .background(Color.gray.opacity(0.2))
-                                        .cornerRadius(8)
-                                }
-                                .padding(.horizontal, 40)
-
-
-                            }
-                            
-                        }
-                .navigationTitle("Wer würde eher?")
+            VStack(spacing: 24) {
+                // Logo als zentrales Element
+                Image("AppLogo") // Füge dein Logo zu den Assets hinzu
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 120)
+                    .padding(.top, 40)
                 
+                Spacer()
+                
+                // Haupt-CTA Button mit Animation
+                NavigationLink(destination: GameSelectionView(viewModel: viewModel)) {
+                    Label {
+                        Text("Spielen")
+                            .font(.title2.weight(.semibold))
+                    } icon: {
+                        Image(systemName: "gamecontroller.fill")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color.blue.gradient) // Gradient für modernen Look
+                    .foregroundColor(.white)
+                    .cornerRadius(14)
+                    .shadow(color: Color.blue.opacity(0.3), radius: 10, y: 5)
+                }
+                .padding(.horizontal, 40)
+                .buttonStyle(.plain)
+                
+                // Sekundärer Button
+                NavigationLink(destination: GroupCreationView(viewModel: viewModel)) {
+                    Label {
+                        Text("Spiel erstellen")
+                            .font(.headline.weight(.medium))
+                    } icon: {
+                        Image(systemName: "plus.square.fill")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color(.secondarySystemBackground))
+                    .foregroundColor(.blue) // Akzentfarbe
+                    .cornerRadius(14)
+                }
+                .padding(.horizontal, 40)
+                .buttonStyle(.plain)
+                
+                Spacer()
+                Spacer()
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Wer würde eher?")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                }
             }
         }
+        .tint(.blue) // Globale Akzentfarbe
         .onAppear {
             viewModel.fetchGroups()
         }
