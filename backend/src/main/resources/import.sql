@@ -1,4 +1,3 @@
--- Add Questions
 INSERT INTO Question (question) VALUES ('Wer würde am ehesten versuchen in einer Fremdsprache zu kommunizieren, indem er einfach deutsche Wörter mit einem Akzent ausspricht?');
 INSERT INTO Question (question) VALUES ('Wer von uns würde am wenigsten das Haus verlassen, wenn der Handyakku fast leer ist, und deshalb lieber zu spät kommen?');
 INSERT INTO Question (question) VALUES ('Wer lebt am stärksten nach dem Motto "Man lebt nur einmal im Leben"?');
@@ -13,64 +12,65 @@ INSERT INTO Question (question) VALUES ('Wer könnte die beste TikTok-Tanzperfor
 INSERT INTO Question (question) VALUES ('Wen würde man öffentlich am wenigsten als "politisch korrekt" einstufen?');
 INSERT INTO Question (question) VALUES ('Ganz alleine in einem leeren Raum: Wer würde am schnellsten die Nerven verlieren?');
 
-
--- test data
 INSERT INTO GroupEntity (name) VALUES ('Familie');
 INSERT INTO GroupEntity (name) VALUES ('4AHITM');
 INSERT INTO GroupEntity (name) VALUES ('Die 5 Freunde');
 INSERT INTO GroupEntity (name) VALUES ('Die 3 ???');
 
--- Group 1 (Familie)
-INSERT INTO Player (name, group_id) VALUES('Isabella', 1);
-INSERT INTO Player (name, group_id) VALUES('Max', 1);
-INSERT INTO Player (name, group_id) VALUES('Herbert', 1);
-INSERT INTO Player (name, group_id) VALUES('Frederike', 1);
-INSERT INTO Player (name, group_id) VALUES('Gertrude', 1);
+INSERT INTO Player (name) VALUES('Isabella');
+INSERT INTO Player (name) VALUES('Max');
+INSERT INTO Player (name) VALUES('Herbert');
+INSERT INTO Player (name) VALUES('Frederike');
+INSERT INTO Player (name) VALUES('Gertrude');
+INSERT INTO Player (name) VALUES('Thomas');
+INSERT INTO Player (name) VALUES('Kinga');
+INSERT INTO Player (name) VALUES('Timon');
+INSERT INTO Player (name) VALUES('Lien');
+INSERT INTO Player (name) VALUES('Stefanie');
+INSERT INTO Player (name) VALUES('Christof');
+INSERT INTO Player (name) VALUES('Tobi');
+INSERT INTO Player (name) VALUES('Timmy');
+INSERT INTO Player (name) VALUES('Georgina');
+INSERT INTO Player (name) VALUES('Julian');
+INSERT INTO Player (name) VALUES('Anne');
+INSERT INTO Player (name) VALUES('Peter');
+INSERT INTO Player (name) VALUES('Bob');
 
--- Group 2 (4AHITM)
-INSERT INTO Player (name, group_id) VALUES('Isabella', 2);
-INSERT INTO Player (name, group_id) VALUES('Thomas', 2);
-INSERT INTO Player (name, group_id) VALUES('Kinga', 2);
-INSERT INTO Player (name, group_id) VALUES('Timon', 2);
-INSERT INTO Player (name, group_id) VALUES('Lien', 2);
-INSERT INTO Player (name, group_id) VALUES('Stefanie', 2);
-INSERT INTO Player (name, group_id) VALUES('Christof', 2);
-INSERT INTO Player (name, group_id) VALUES('Tobi', 2);
+INSERT INTO Player_Group (player_id, group_id) VALUES (1, 1);
+INSERT INTO Player_Group (player_id, group_id) VALUES (2, 1);
+INSERT INTO Player_Group (player_id, group_id) VALUES (3, 1);
+INSERT INTO Player_Group (player_id, group_id) VALUES (4, 1);
+INSERT INTO Player_Group (player_id, group_id) VALUES (5, 1);
+INSERT INTO Player_Group (player_id, group_id) VALUES (1, 2);
+INSERT INTO Player_Group (player_id, group_id) VALUES (6, 2);
+INSERT INTO Player_Group (player_id, group_id) VALUES (7, 2);
+INSERT INTO Player_Group (player_id, group_id) VALUES (8, 2);
+INSERT INTO Player_Group (player_id, group_id) VALUES (9, 2);
+INSERT INTO Player_Group (player_id, group_id) VALUES (10, 2);
+INSERT INTO Player_Group (player_id, group_id) VALUES (11, 2);
+INSERT INTO Player_Group (player_id, group_id) VALUES (12, 2);
+INSERT INTO Player_Group (player_id, group_id) VALUES (1, 3);
+INSERT INTO Player_Group (player_id, group_id) VALUES (13, 3);
+INSERT INTO Player_Group (player_id, group_id) VALUES (14, 3);
+INSERT INTO Player_Group (player_id, group_id) VALUES (15, 3);
+INSERT INTO Player_Group (player_id, group_id) VALUES (16, 3);
+INSERT INTO Player_Group (player_id, group_id) VALUES (1, 4);
+INSERT INTO Player_Group (player_id, group_id) VALUES (17, 4);
+INSERT INTO Player_Group (player_id, group_id) VALUES (18, 4);
 
--- Group 3 (5 Freunde)
-INSERT INTO Player (name, group_id) VALUES('Isabella', 3);
-INSERT INTO Player (name, group_id) VALUES('Timmy', 3);
-INSERT INTO Player (name, group_id) VALUES('Georgina', 3);
-INSERT INTO Player (name, group_id) VALUES('Julian', 3);
-INSERT INTO Player (name, group_id) VALUES('Anne', 3);
+INSERT INTO GroupQuestion (question_id, group_id, date) VALUES (7, 1, CURRENT_DATE);
+INSERT INTO GroupQuestion (question_id, group_id, date) VALUES (9, 2, CURRENT_DATE);
 
--- Group 4 (3 ???)
-INSERT INTO Player (name, group_id) VALUES('Isabella', 4);
-INSERT INTO Player (name, group_id) VALUES('Peter', 4);
-INSERT INTO Player (name, group_id) VALUES('Bob', 4);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (1, 2, 1);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (2, 2, 1);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (3, 5, 1);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (4, 2, 1);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (5, 4, 1);
 
--- Insert a GroupQuestion using today's date
-INSERT INTO GroupQuestion (question_id, group_id, date)
-VALUES (7, 1, CURRENT_DATE);
-
-INSERT INTO GroupQuestion (question_id, group_id, date)
-VALUES (9, 2, CURRENT_DATE);
-
-INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id)
-VALUES
-    (1, 2, 1),
-    (2, 2, 1),
-    (3, 5, 1),
-    (4, 2, 1),
-    (5, 4, 1);
-
-INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id)
-VALUES
-    (11, 12, 2),
-    (7, 11, 2),
-    (8, 12, 2),
-    (9, 6, 2),
-    (10, 8, 2),
-    (12, 12, 2),
-    (13, 8, 2);
-
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (11, 12, 2);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (7, 11, 2);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (8, 12, 2);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (9, 6, 2);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (10, 8, 2);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (12, 12, 2);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (13, 8, 2);

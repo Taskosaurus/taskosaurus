@@ -16,8 +16,8 @@ public class EntityGroup {
     String name;
     String link;
 
-    @OneToMany(mappedBy = "group")
-    @JsonIgnoreProperties({ "group" })
+    @ManyToMany(mappedBy = "groups")
+    @JsonIgnoreProperties({ "groups" })
     List<Player> players;
 
     public EntityGroup(String name) {

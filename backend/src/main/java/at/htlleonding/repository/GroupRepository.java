@@ -42,7 +42,7 @@ public class GroupRepository {
 
     @Transactional
     public Player addPlayerToGroup(Player player, EntityGroup group) throws NotFoundException {
-        player.setGroup(group);
+        player.getGroups().add(group);
         return em.merge(player);
     }
 }

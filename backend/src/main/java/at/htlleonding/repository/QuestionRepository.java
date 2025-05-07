@@ -71,8 +71,8 @@ public class QuestionRepository {
     }
 
     @Transactional
-    public void answerQuestion(Player player, Player answer, LocalDate date) {
-        GroupQuestion question = getGroupQuestionForDate(date, player.getGroup());
+    public void answerQuestion(Player player, Player answer, EntityGroup group, LocalDate date) {
+        GroupQuestion question = getGroupQuestionForDate(date, group);
         GroupQuestionAnswer answerQuestion = new GroupQuestionAnswer(player, answer, question);
         entityManager.persist(answerQuestion);
     }

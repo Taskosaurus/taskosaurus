@@ -3,6 +3,8 @@ package at.htlleonding.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @NamedQuery(name= Player.GET_ALL_PLAYERS, query="SELECT p from Player p")
 public class Player {
@@ -13,9 +15,14 @@ public class Player {
     Long id;
     String name;
 
-    @ManyToOne
+    @ManyToMany
+    @JoinTable(
+            name="player_group",
+            joinColumns = @JoinColumn(name="player_id"),
+            inverseJoinColumns = @JoinColumn(name="group_id")
+    )
     @JsonIgnoreProperties({ "players" })
-    EntityGroup group;
+    List<EntityGroup> groups;
 
     public Player(String name) {
         this.name = name;
@@ -40,11 +47,11 @@ public class Player {
         this.name = name;
     }
 
-    public EntityGroup getGroup() {
-        return group;
+    public List<EntityGroup> getGroups() {
+        return groups;
     }
 
-    public void setGroup(EntityGroup group) {
-        this.group = group;
+    public void setGroup(List<EntityGroup> group) {
+        this.groups = group;
     }
 }

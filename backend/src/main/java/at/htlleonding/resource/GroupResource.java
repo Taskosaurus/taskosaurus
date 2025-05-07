@@ -56,35 +56,14 @@ public class GroupResource {
     }
 
     @POST
-    @Path("getJoinedGroup")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getJoinedGroup(Player player) {
-        try {
-            Player validatedPlayer = playerRepository.getPlayerById(player.getId());
-            EntityGroup validatedGroup = groupRepository.getGroupById(validatedPlayer.getGroup().getId());
-
-            return Response.status(Response.Status.OK).entity(validatedGroup).build();
-        } catch (NotFoundException e) {
-            return Response.status(Response.Status.NOT_FOUND).entity(new ErrorMessageDto(e.getMessage())).build();
-        }
-    }
-
-    @POST
     @Path("getJoinedGroups")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getJoinedGroups(Player[] players) {
+    public Response getJoinedGroups(Player player) {
         try {
-            List<EntityGroup> groups = new LinkedList<>();
+            Player validatedPlayer = playerRepository.getPlayerById(player.getId());
 
-            for (Player player : players) {
-                Player validatedPlayer = playerRepository.getPlayerById(player.getId());
-                EntityGroup validatedGroup = groupRepository.getGroupById(validatedPlayer.getGroup().getId());
-                groups.add(validatedGroup);
-            }
-            
-            return Response.status(Response.Status.OK).entity(groups).build();
+            return Response.status(Response.Status.OK).entity(validatedPlayer.getGroups()).build();
         } catch (NotFoundException e) {
             return Response.status(Response.Status.NOT_FOUND).entity(new ErrorMessageDto(e.getMessage())).build();
         }
