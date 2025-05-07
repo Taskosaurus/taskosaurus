@@ -2,16 +2,38 @@ import Foundation
 
 class ViewModel: ObservableObject {
     @Published var groups: [Group] = []
-        @Published var player: Player?
+    @Published var playerId: Int = 0
+    @Published var player: Player?
         
-        @Published var answeredGroups: [Group] = []
-        @Published var unAnsweredGroups: [Group] = []
-        @Published var latestQuestions: [Int: Question] = [:]
+    @Published var answeredGroups: [Group] = []
+    @Published var unAnsweredGroups: [Group] = []
+    @Published var latestQuestions: [Int: Question] = [:]
 
-        
-        private let questionService = QuestionService()
-        private let gameService = GameService()
-        private let playerService = PlayerService()
+    private let questionService = QuestionService()
+    private let gameService = GameService()
+    private let playerService = PlayerService()
+    
+    init() {
+        let id = UserDefaults.standard.integer(forKey: "playerId")
+        if id != 0 {
+            self.playerId = id;
+        }
+    }
+    
+    func createAndSaveUser(playerName: String) async -> Player? {
+        if let createdPlayer = await createPlayer(name: playerName) {
+            DispatchQueue.main.async {
+                self.player = createdPlayer
+                self.playerId = createdPlayer.id ?? 0
+                UserDefaults.standard.set(self.playerId, forKey: "playerId")
+            }
+            return createdPlayer
+        } else {
+            return nil
+        }
+    }
+
+    
         
     func loadQuestionsForGroups() async {
         var answered: [Group] = []
@@ -24,7 +46,7 @@ class ViewModel: ObservableObject {
                 continue
             }
 
-            if let question = await getQuestion(playerId: playerId) {
+            if let question = await getQuestion(playerId: playerId, groupId: groupId) {
                 DispatchQueue.main.async {
                     self.latestQuestions[groupId] = question
                 }
@@ -78,22 +100,20 @@ class ViewModel: ObservableObject {
         }
     }
     
-    func createPlayer(name: String, group: Group, completion: @escaping (Bool) -> Void) {
-        playerService.createPlayer(name: name) { (result: Result<Player, Error>) in
-            DispatchQueue.main.async {
+    func createPlayer(name: String) async -> Player? {
+        await withCheckedContinuation { continuation in
+            playerService.createPlayer(name: name) { result in
                 switch result {
                 case .success(let player):
-                    print("test")
-                    self.player = player
-                    self.joinGroup(player: player, group: group)
-                    completion(true)
+                    continuation.resume(returning: player)
                 case .failure(let error):
                     print("Fehler beim Erstellen des Spielers: \(error.localizedDescription)")
-                    completion(false)
+                    continuation.resume(returning: nil)
                 }
             }
         }
     }
+
 
     
     func joinGroup(player: Player, group: Group) {
@@ -116,9 +136,9 @@ class ViewModel: ObservableObject {
     }
 
     
-    func getQuestion(playerId: Int) async -> Question? {
+    func getQuestion(playerId: Int, groupId: Int) async -> Question? {
         return await withCheckedContinuation { continuation in
-            questionService.fetchDailyQuestion(playerId: playerId) { result in
+            questionService.fetchDailyQuestion(playerId: playerId, groupId: groupId) { result in
                 switch result {
                 case .success(let question):
                     // Sortiere die Antworten direkt nach der count-Eigenschaft
@@ -133,11 +153,12 @@ class ViewModel: ObservableObject {
         }
     }
 
-    func answerQuestion(player: Player, answeredPlayer: Player, question: Question) async -> Question? {
+    func answerQuestion(player: Player, answeredPlayer: Player, groupId: Int, question: Question) async -> Question? {
         return await withCheckedContinuation { continuation in
             questionService.answerDailyQuestion(
                 selectedPlayer: player,
                 playerAnswered: answeredPlayer,
+                groupId: groupId,
                 question: question
             ) { result in
                 switch result {
