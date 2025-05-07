@@ -33,4 +33,13 @@ public class PlayerResource {
 
         return Response.status(Response.Status.OK).entity(createdPlayer).build();
     }
+
+    @GET
+    @Path("get/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getById(@PathParam("id") Long id) {
+        Player player = playerRepository.getPlayerById(id);
+
+        return Response.status(Response.Status.OK).entity(player).build();
+    }
 }
