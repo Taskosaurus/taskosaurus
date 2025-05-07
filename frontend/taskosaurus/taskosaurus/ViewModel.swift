@@ -16,9 +16,13 @@ class ViewModel: ObservableObject {
     init() {
         let id = UserDefaults.standard.integer(forKey: "playerId")
         if id != 0 {
-            self.playerId = id;
+            self.playerId = id
+            Task {
+                self.loadPlayerFromId(id)
+            }
         }
     }
+
     
     func createAndSaveUser(playerName: String) async -> Player? {
         if let createdPlayer = await createPlayer(name: playerName) {
@@ -30,6 +34,19 @@ class ViewModel: ObservableObject {
             return createdPlayer
         } else {
             return nil
+        }
+    }
+
+    func loadPlayerFromId(_ id: Int) {
+        playerService.getPlayer(by: id) { result in
+            switch result {
+            case .success(let loadedPlayer):
+                DispatchQueue.main.async {
+                    self.player = loadedPlayer
+                }
+            case .failure(let error):
+                print("Fehler beim Laden des Spielers: \(error.localizedDescription)")
+            }
         }
     }
 
