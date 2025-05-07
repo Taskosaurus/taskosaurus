@@ -70,7 +70,7 @@ struct TruthOrDareView: View {
 
 struct KissMarryKillView: View {
     var body: some View {
-        Text("Kiss Marry Kill View")
-            .navigationTitle("Kiss Marry Kill")
+        LoginRegisterView()
+        
     }
 }
