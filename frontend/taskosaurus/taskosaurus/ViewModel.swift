@@ -2,7 +2,7 @@ import Foundation
 
 class ViewModel: ObservableObject {
     @Published var groups: [Group] = []
-    @Published var player: Player?
+    @Published private var player = UserDefaults.standard.object(forKey: "player")
         
     @Published var answeredGroups: [Group] = []
     @Published var unAnsweredGroups: [Group] = []
@@ -17,13 +17,13 @@ class ViewModel: ObservableObject {
         if let createdPlayer = await createPlayer(name: playerName) {
             DispatchQueue.main.async {
                 self.player = createdPlayer
+                UserDefaults.standard.set(self.player, forKey: "player")
             }
             return createdPlayer
         } else {
             return nil
         }
     }
-
 
     
         
