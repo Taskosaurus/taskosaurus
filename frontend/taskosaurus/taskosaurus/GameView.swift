@@ -45,8 +45,8 @@ struct GameView: View {
         }
         .onAppear {
             Task {
-                if let firstPlayer = group.players?.first {
-                    receivedQuestion = await viewModel.getQuestion(playerId: firstPlayer.id!)
+                if let firstPlayer = group.players?.first, let groupId = group.id {
+                    receivedQuestion = await viewModel.getQuestion(playerId: firstPlayer.id!, groupId: groupId)
                 }
             }
         }
@@ -119,10 +119,11 @@ struct GameView: View {
         if let question = receivedQuestion, !receivedQuestion!.answered {
             Button(action: {
                 Task {
-                    if let selected = selectedPlayer,
+                    if let selected = selectedPlayer, let selectedGroupId = group.id,
                        let updatedQuestion = await viewModel.answerQuestion(
                            player: players[0],
                            answeredPlayer: selected,
+                           groupId: selectedGroupId,
                            question: question
                        ) {
                         receivedQuestion = updatedQuestion

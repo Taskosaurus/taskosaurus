@@ -28,6 +28,7 @@ struct CollectedAnswer: Codable {
 struct Answer: Codable {
     var playerId: Int
     var answerId: Int
+    var groupId: Int
     var date: String
     
 }

@@ -24,7 +24,7 @@ class ViewModel: ObservableObject {
                 continue
             }
 
-            if let question = await getQuestion(playerId: playerId) {
+            if let question = await getQuestion(playerId: playerId, groupId: groupId) {
                 DispatchQueue.main.async {
                     self.latestQuestions[groupId] = question
                 }
@@ -116,9 +116,9 @@ class ViewModel: ObservableObject {
     }
 
     
-    func getQuestion(playerId: Int) async -> Question? {
+    func getQuestion(playerId: Int, groupId: Int) async -> Question? {
         return await withCheckedContinuation { continuation in
-            questionService.fetchDailyQuestion(playerId: playerId) { result in
+            questionService.fetchDailyQuestion(playerId: playerId, groupId: groupId) { result in
                 switch result {
                 case .success(let question):
                     // Sortiere die Antworten direkt nach der count-Eigenschaft
@@ -133,11 +133,12 @@ class ViewModel: ObservableObject {
         }
     }
 
-    func answerQuestion(player: Player, answeredPlayer: Player, question: Question) async -> Question? {
+    func answerQuestion(player: Player, answeredPlayer: Player, groupId: Int, question: Question) async -> Question? {
         return await withCheckedContinuation { continuation in
             questionService.answerDailyQuestion(
                 selectedPlayer: player,
                 playerAnswered: answeredPlayer,
+                groupId: groupId,
                 question: question
             ) { result in
                 switch result {

@@ -4,10 +4,10 @@ class QuestionService {
     
     let baseURL = "http://localhost:8080/api/question"
 
-    func fetchDailyQuestion(playerId: Int, completion: @escaping (Result<Question, Error>) -> Void) {
+    func fetchDailyQuestion(playerId: Int, groupId: Int, completion: @escaping (Result<Question, Error>) -> Void) {
             guard let url = URL(string: "\(baseURL)/getDailyQuestion") else { return }
             
-            let requestData = ["id": playerId]  
+        let requestData = ["id": playerId, "groupId": groupId]
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -33,10 +33,10 @@ class QuestionService {
                 }
             }.resume()
         }
-    func answerDailyQuestion(selectedPlayer: Player, playerAnswered: Player, question: Question, completion: @escaping (Result<Question, Error>) -> Void) {
+    func answerDailyQuestion(selectedPlayer: Player, playerAnswered: Player, groupId: Int, question: Question, completion: @escaping (Result<Question, Error>) -> Void) {
         guard let url = URL(string: "\(baseURL)/answerDailyQuestion") else { return }
         
-        let requestData = Answer(playerId: selectedPlayer.id!, answerId: playerAnswered.id!, date: question.date)
+        let requestData = Answer(playerId: selectedPlayer.id!, answerId: playerAnswered.id!, groupId: groupId, date: question.date)
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
