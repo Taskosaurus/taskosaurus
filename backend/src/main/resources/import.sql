@@ -61,8 +61,8 @@ INSERT INTO Player_Group (player_id, group_id) VALUES (18, 4);
 INSERT INTO GroupQuestion (question_id, group_id, date) VALUES (7, 1, CURRENT_DATE);
 INSERT INTO GroupQuestion (question_id, group_id, date) VALUES (9, 2, CURRENT_DATE);
 
-INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (1, 2, 1);
-INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (2, 2, 1);
+--INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (1, 2, 1);
+--INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (2, 2, 1);
 INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (3, 5, 1);
 INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (4, 2, 1);
 INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (5, 4, 1);
