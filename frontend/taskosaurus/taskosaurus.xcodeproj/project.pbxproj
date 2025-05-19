@@ -29,9 +29,22 @@
 		505A3A132D919511009BF601 /* taskosaurusUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = taskosaurusUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4A724E692DDB775100AFFAF5 /* Exceptions for "taskosaurus" folder in "taskosaurus" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 505A39F82D919510009BF601 /* taskosaurus */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		505A39FB2D919510009BF601 /* taskosaurus */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4A724E692DDB775100AFFAF5 /* Exceptions for "taskosaurus" folder in "taskosaurus" target */,
+			);
 			path = taskosaurus;
 			sourceTree = "<group>";
 		};
@@ -380,6 +393,8 @@
 				DEVELOPMENT_ASSET_PATHS = "\"taskosaurus/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = taskosaurus/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -409,6 +424,8 @@
 				DEVELOPMENT_ASSET_PATHS = "\"taskosaurus/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = taskosaurus/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
