@@ -30,8 +30,9 @@ public class GroupRepository {
 
 
     @Transactional
-    public EntityGroup createGroupFromDto(GroupNameDto group) {
+    public EntityGroup createGroupFromDto(GroupNameDto group, Player player) {
         EntityGroup createdGroup = new EntityGroup(group.name());
+        createdGroup.getPlayers().add(player);
         em.persist(createdGroup);
 
         String link = "/api/group/join/" + createdGroup.getId();

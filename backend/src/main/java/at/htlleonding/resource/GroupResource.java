@@ -34,9 +34,14 @@ public class GroupResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response create(GroupNameDto group) {
-        EntityGroup createdGroup = groupRepository.createGroupFromDto(group);
+        try {
+            Player player = playerRepository.getPlayerById(group.playerId());
+            EntityGroup createdGroup = groupRepository.createGroupFromDto(group, player);
+            return Response.status(Response.Status.OK).entity(createdGroup).build();
+        } catch (NotFoundException e) {
+            return Response.status(400).entity(new ErrorMessageDto(e.getMessage())).build();
+        }
 
-        return Response.status(Response.Status.OK).entity(createdGroup).build();
     }
 
     @POST
