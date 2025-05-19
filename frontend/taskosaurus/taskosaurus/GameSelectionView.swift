@@ -48,7 +48,7 @@ struct GameSelectionView: View {
 
             if let question = viewModel.latestQuestions[group.id ?? -1],
                let total = group.players?.count {
-                VoteStatusView(answeredCount: question.answers.count, totalCount: total)
+                VoteStatusView(answers: question.answers, totalCount: total)
             }
         }
     }

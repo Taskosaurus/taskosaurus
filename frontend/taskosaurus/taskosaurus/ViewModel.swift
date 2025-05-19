@@ -18,7 +18,7 @@ class ViewModel: ObservableObject {
         if id != 0 {
             self.playerId = id
             Task {
-                self.loadPlayerFromId(id)
+                self.loadPlayerFromId(2)
             }
         }
     }
@@ -88,15 +88,17 @@ class ViewModel: ObservableObject {
     
     
     func fetchGroups(completion: (() -> Void)? = nil) {
-        gameService.fetchGroups { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let groups):
-                    self.groups = groups
-                case .failure(let error):
-                    print("Fehler beim Laden der Gruppen: \(error.localizedDescription)")
+        if let player = self.player{
+            gameService.fetchGroups(player: player) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let groups):
+                        self.groups = groups
+                    case .failure(let error):
+                        print("Fehler beim Laden der Gruppen: \(error.localizedDescription)")
+                    }
+                    completion?()
                 }
-                completion?()
             }
         }
     }
