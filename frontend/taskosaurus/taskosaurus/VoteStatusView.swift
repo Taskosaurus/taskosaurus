@@ -9,10 +9,11 @@
 import SwiftUI
 
 struct VoteStatusView: View {
-    let answeredCount: Int
+    let answers: [CollectedAnswer]
     let totalCount: Int
 
     var body: some View {
+        let answeredCount = answers.reduce(0){$0 + $1.count}
         Text("\(answeredCount)/\(totalCount)")
             .font(.subheadline)
             .foregroundColor(.gray)

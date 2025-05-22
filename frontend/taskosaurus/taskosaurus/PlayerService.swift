@@ -42,4 +42,32 @@ class PlayerService {
             }
         }.resume()
     }
+    
+    func getPlayer(by id: Int, completion: @escaping (Result<Player, Error>) -> Void) {
+        guard let url = URL(string: "\(baseURL)/get/\(id)") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let data = data else {
+                completion(.failure(URLError(.badServerResponse)))
+                return
+            }
+            do {
+                let player = try JSONDecoder().decode(Player.self, from: data)
+                DispatchQueue.main.async {
+                    completion(.success(player))
+                }
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+
 }

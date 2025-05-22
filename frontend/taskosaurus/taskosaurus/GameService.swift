@@ -9,10 +9,17 @@ class GameService {
     let baseURL = "http://localhost:8080"
     
     // Gruppen abrufen
-    func fetchGroups(completion: @escaping (Result<[Group], Error>) -> Void) {
-        guard let url = URL(string: "\(baseURL)/api/group/list") else { return }
+    func fetchGroups(player: Player, completion: @escaping (Result<[Group], Error>) -> Void) {
+        guard let url = URL(string: "\(baseURL)/api/group/getJoinedGroups") else { return }
         
-        URLSession.shared.dataTask(with: url) { data, _, error in
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        request.httpBody = try? JSONEncoder().encode(player)
+        
+        
+        URLSession.shared.dataTask(with: request) { data, _, error in
             if let error = error {
                 completion(.failure(error))
                 return
