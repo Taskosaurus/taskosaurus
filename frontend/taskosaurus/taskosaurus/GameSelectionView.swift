@@ -4,6 +4,9 @@ struct GameSelectionView: View {
     @ObservedObject var viewModel: ViewModel
 
     var body: some View {
+        if let errorMessage = viewModel.errorMessage {
+            Text(errorMessage)
+        }
         List {
             if !viewModel.unAnsweredGroups.isEmpty {
                 Section {
@@ -18,17 +21,18 @@ struct GameSelectionView: View {
                         .textCase(.none)
                 }
             }
-
-            Section {
-                ForEach(viewModel.answeredGroups) { group in
-                    NavigationLink(destination: GameView(viewModel: viewModel, group: group)) {
-                        groupRow(group: group)
+            if !viewModel.answeredGroups.isEmpty {
+                Section {
+                    ForEach(viewModel.answeredGroups) { group in
+                        NavigationLink(destination: GameView(viewModel: viewModel, group: group)) {
+                            groupRow(group: group)
+                        }
                     }
+                } header: {
+                    Text("Beantwortet")
+                        .font(.headline)
+                        .textCase(.none)
                 }
-            } header: {
-                Text("Beantwortet")
-                    .font(.headline)
-                    .textCase(.none)
             }
         }
         .listStyle(.insetGrouped)
@@ -38,7 +42,9 @@ struct GameSelectionView: View {
                 await viewModel.loadQuestionsForGroups()
             }
         }
+        
     }
+   
 
     @ViewBuilder
     private func groupRow(group: Group) -> some View {

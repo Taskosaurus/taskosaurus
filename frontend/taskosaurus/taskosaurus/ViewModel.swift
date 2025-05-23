@@ -4,7 +4,7 @@ class ViewModel: ObservableObject {
     @Published var groups: [Group] = []
     @Published var playerId: Int = 0
     @Published var player: Player?
-        
+    @Published var errorMessage: String?
     @Published var answeredGroups: [Group] = []
     @Published var unAnsweredGroups: [Group] = []
     @Published var latestQuestions: [Int: Question] = [:]
@@ -14,7 +14,8 @@ class ViewModel: ObservableObject {
     private let playerService = PlayerService()
     
     init() {
-        let id = UserDefaults.standard.integer(forKey: "playerId")
+        var id = UserDefaults.standard.integer(forKey: "playerId")
+        id = 2
         if id != 0 {
             self.playerId = id
             Task {
@@ -46,6 +47,7 @@ class ViewModel: ObservableObject {
                 }
             case .failure(let error):
                 print("Fehler beim Laden des Spielers: \(error.localizedDescription)")
+                self.errorMessage = error.localizedDescription
             }
         }
     }
@@ -96,6 +98,7 @@ class ViewModel: ObservableObject {
                         self.groups = groups
                     case .failure(let error):
                         print("Fehler beim Laden der Gruppen: \(error.localizedDescription)")
+                        self.errorMessage = error.localizedDescription
                     }
                     completion?()
                 }
