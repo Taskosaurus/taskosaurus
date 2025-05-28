@@ -72,7 +72,7 @@ public class PlayerRepository {
         Player player = players.get(0);
 
         try {
-            if (verifyPassword(loginDto.password(), player.getPassword())) {
+            if (!verifyPassword(loginDto.password(), player.getPassword())) {
                 throw new IllegalArgumentException("Invalid username or password");
             }
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
