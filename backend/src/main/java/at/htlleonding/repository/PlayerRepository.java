@@ -61,7 +61,7 @@ public class PlayerRepository {
     @Transactional
     public Player login(PlayerNameDto loginDto) {
         List<Player> players = em.createQuery(
-                        "SELECT p FROM Player p WHERE p.name = :name", Player.class)
+                        "SELECT p FROM Player p LEFT JOIN FETCH p.groups WHERE p.name = :name", Player.class)
                 .setParameter("name", loginDto.name())
                 .getResultList();
 
@@ -76,11 +76,12 @@ public class PlayerRepository {
                 throw new IllegalArgumentException("Invalid username or password");
             }
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new IllegalArgumentException("Invalid username or password");
+            throw new RuntimeException("Password verification failed", e);
         }
 
         return player;
     }
+
 
     public static String hashPassword(String password, byte[] salt)
             throws NoSuchAlgorithmException, InvalidKeySpecException {
