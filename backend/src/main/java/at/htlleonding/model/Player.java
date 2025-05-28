@@ -14,6 +14,7 @@ public class Player {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     String name;
+    String password;
 
     @ManyToMany
     @JoinTable(
@@ -24,8 +25,9 @@ public class Player {
     @JsonIgnoreProperties({ "players" })
     List<EntityGroup> groups;
 
-    public Player(String name) {
+    public Player(String name, String password) {
         this.name = name;
+        this.password = password;
     }
 
     public Player() {
@@ -45,6 +47,14 @@ public class Player {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public List<EntityGroup> getGroups() {

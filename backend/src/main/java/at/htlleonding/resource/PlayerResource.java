@@ -29,9 +29,25 @@ public class PlayerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response create(PlayerNameDto player) {
-        Player createdPlayer = playerRepository.createPlayerFromDto(player);
+        try {
+            Player createdPlayer = playerRepository.createPlayerFromDto(player);
+            return Response.status(Response.Status.OK).entity(createdPlayer).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.OK).entity(new ErrorMessageDto(e.getMessage())).build();
+        }
+    }
 
-        return Response.status(Response.Status.OK).entity(createdPlayer).build();
+    @POST
+    @Path("login")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response login(PlayerNameDto player) {
+        try {
+            Player loggedInPlayer = playerRepository.login(player);
+            return Response.status(Response.Status.OK).entity(loggedInPlayer).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.OK).entity(new ErrorMessageDto(e.getMessage())).build();
+        }
     }
 
     @GET
