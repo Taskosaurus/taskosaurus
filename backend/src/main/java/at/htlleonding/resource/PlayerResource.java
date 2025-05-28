@@ -33,7 +33,7 @@ public class PlayerResource {
             Player createdPlayer = playerRepository.createPlayerFromDto(player);
             return Response.status(Response.Status.OK).entity(createdPlayer).build();
         } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.OK).entity(new ErrorMessageDto(e.getMessage())).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorMessageDto(e.getMessage())).build();
         }
     }
 
@@ -46,7 +46,7 @@ public class PlayerResource {
             Player loggedInPlayer = playerRepository.login(player);
             return Response.status(Response.Status.OK).entity(loggedInPlayer).build();
         } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.OK).entity(new ErrorMessageDto(e.getMessage())).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorMessageDto(e.getMessage())).build();
         }
     }
 
