@@ -10,6 +10,8 @@ struct Group: Identifiable, Codable {
     var name: String
     var link: String?
     var players: [Player]?
+    var count: Int?
+    var answered: Bool?
 }
 
 struct Question: Codable {

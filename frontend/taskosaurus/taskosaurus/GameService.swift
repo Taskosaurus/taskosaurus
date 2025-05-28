@@ -8,36 +8,60 @@ import Foundation
 class GameService {
     let baseURL = "http://localhost:8080"
     
-    // Gruppen abrufen
+    // Gruppen abrufen mit Debugging
     func fetchGroups(player: Player, completion: @escaping (Result<[Group], Error>) -> Void) {
-        guard let url = URL(string: "\(baseURL)/api/group/getJoinedGroups") else { return }
+        guard let url = URL(string: "\(baseURL)/api/group/getJoinedGroups") else {
+            print("❌ Ungültige URL für Gruppenabruf")
+            return
+        }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        request.httpBody = try? JSONEncoder().encode(player)
-        
-        
-        URLSession.shared.dataTask(with: request) { data, _, error in
+
+        do {
+            request.httpBody = try JSONEncoder().encode(player)
+        } catch {
+            print("❌ Fehler beim Codieren des Players: \(error)")
+            completion(.failure(error))
+            return
+        }
+
+        print("📤 Sende Gruppenabfrage an: \(url)")
+        print("📦 Request-Body:\n\(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "nil")")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
+                print("❌ Netzwerkfehler beim Abrufen der Gruppen: \(error)")
                 completion(.failure(error))
                 return
             }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 HTTP Statuscode: \(httpResponse.statusCode)")
+            }
+
             guard let data = data else {
+                print("⚠️ Keine Daten erhalten vom Server")
                 completion(.failure(URLError(.badServerResponse)))
                 return
             }
+
+            print("📥 Serverantwort (JSON):\n\(String(data: data, encoding: .utf8) ?? "Nicht darstellbar")")
+
             do {
                 let groups = try JSONDecoder().decode([Group].self, from: data)
+                print("✅ Erfolgreich Gruppen decodiert: \(groups.count) Gruppen gefunden")
                 DispatchQueue.main.async {
                     completion(.success(groups))
                 }
             } catch {
+                print("❌ Fehler beim Decodieren der Gruppen: \(error)")
                 completion(.failure(error))
             }
         }.resume()
     }
+
     
     // Gruppe erstellen (POST)
     func createGroup(name: String, completion: @escaping (Result<Void, Error>) -> Void) {

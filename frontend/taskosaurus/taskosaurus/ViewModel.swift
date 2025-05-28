@@ -18,14 +18,14 @@ class ViewModel: ObservableObject {
         if id != 0 {
             self.playerId = id
             Task {
-                self.loadPlayerFromId(2)
+                self.loadPlayerFromId(1)
             }
         }
     }
 
     
-    func createAndSaveUser(playerName: String) async -> Player? {
-        if let createdPlayer = await createPlayer(name: playerName) {
+    func createAndSaveUser(playerName: String, password: String) async -> Player? {
+        if let createdPlayer = await createPlayer(name: playerName, password: password) {
             DispatchQueue.main.async {
                 self.player = createdPlayer
                 self.playerId = createdPlayer.id ?? 0
@@ -119,12 +119,13 @@ class ViewModel: ObservableObject {
         }
     }
     
-    func createPlayer(name: String) async -> Player? {
+    func createPlayer(name: String, password: String) async -> Player? {
         await withCheckedContinuation { continuation in
-            playerService.createPlayer(name: name) { result in
+            playerService.createPlayer(name: name, password: password) { result in
                 switch result {
                 case .success(let player):
                     continuation.resume(returning: player)
+                    UserDefaults.standard.set(player.id, forKey: "playerId")
                 case .failure(let error):
                     print("Fehler beim Erstellen des Spielers: \(error.localizedDescription)")
                     continuation.resume(returning: nil)
@@ -133,7 +134,21 @@ class ViewModel: ObservableObject {
         }
     }
 
-
+    func loginPlayer(name: String, password: String) async -> Player? {
+        await withCheckedContinuation { continuation in
+            playerService.loginPlayer(name: name, password: password) { result in
+                switch result {
+                case .success(let player):
+                    continuation.resume(returning: player)
+                    self.player = player
+                    UserDefaults.standard.set(player.id, forKey: "playerId")
+                case .failure(let error):
+                    print("Fehler beim LOGIN des Spielers: \(error.localizedDescription)")
+                    continuation.resume(returning: nil)
+                }
+            }
+        }
+    }
     
     func joinGroup(player: Player, group: Group) {
         gameService.joinGroup(player: player, group: group) { result in
@@ -190,5 +205,7 @@ class ViewModel: ObservableObject {
             }
         }
     }
+    
+    
 }
 

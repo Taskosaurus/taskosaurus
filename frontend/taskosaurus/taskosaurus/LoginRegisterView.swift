@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LoginRegisterView: View {
     @State private var name: String = ""
+    @State private var password: String = ""
     @State private var isLoginMode: Bool = true
     @State private var isLoading: Bool = false
     
@@ -34,11 +35,17 @@ struct LoginRegisterView: View {
                         TextField("Dein Name", text: $name)
                             .textFieldStyle(ModernTextFieldStyle())
                         
-                        // weitere Felder hinzufügen (Passwort)
+                        SecureField("Passwort", text: $password)
+                            .textFieldStyle(ModernTextFieldStyle())
+                        
+                        if !isLoginMode {
+                            SecureField("Passwort wiederholen", text: .constant(""))
+                                .textFieldStyle(ModernTextFieldStyle())
+                                // Später kannst du hier ein @State für Wiederholung ergänzen
+                        }
                     }
                     .padding(.horizontal, 24)
                     
-                    // Action Button
                     Button(action: handleAuth) {
                         HStack {
                             if isLoading {
@@ -68,21 +75,22 @@ struct LoginRegisterView: View {
     
     private func handleAuth() {
         isLoading = true
-        // Simuliere Netzwerkanfrage
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             isLoading = false
             if isLoginMode {
-                print("Anmelden mit Name: \(name)")
-                
-                
-            } else {
-                print("Registrieren mit Name: \(name)")
-                Task{
-                    if let player = await viewModel.createAndSaveUser(playerName: name){
+                Task {
+                    if let player = await viewModel.loginPlayer(name: name, password: password) {
                         print(player)
                     }
                 }
-                
+                print("Anmelden mit Name: \(name), Passwort: \(password)")
+            } else {
+                print("Registrieren mit Name: \(name), Passwort: \(password)")
+                Task {
+                    if let player = await viewModel.createAndSaveUser(playerName: name, password: password) {
+                        print(player)
+                    }
+                }
             }
         }
     }
@@ -121,4 +129,3 @@ struct ModernButtonStyle: ButtonStyle {
             .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
-
