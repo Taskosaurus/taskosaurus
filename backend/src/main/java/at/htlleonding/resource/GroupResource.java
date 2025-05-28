@@ -1,8 +1,6 @@
 package at.htlleonding.resource;
 
-import at.htlleonding.dto.ErrorMessageDto;
-import at.htlleonding.dto.GroupNameDto;
-import at.htlleonding.dto.PlayerNameDto;
+import at.htlleonding.dto.*;
 import at.htlleonding.model.Player;
 import at.htlleonding.repository.GroupRepository;
 import at.htlleonding.model.EntityGroup;
@@ -11,7 +9,9 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.hibernate.annotations.Fetch;
 
+import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,6 +21,8 @@ public class GroupResource {
     GroupRepository groupRepository;
     @Inject
     PlayerRepository playerRepository;
+    @Inject
+    QuestionResource questionResource;
 
     @GET
     @Path("list")
@@ -67,8 +69,18 @@ public class GroupResource {
     public Response getJoinedGroups(Player player) {
         try {
             Player validatedPlayer = playerRepository.getPlayerById(player.getId());
+            List<EntityGroup> groups = validatedPlayer.getGroups();
 
-            return Response.status(Response.Status.OK).entity(validatedPlayer.getGroups()).build();
+            List<FetchedGroupDto> fetchedGroups = new LinkedList<>();
+            for (EntityGroup group : groups) {
+                DailyQuestionRequestDto request = new DailyQuestionRequestDto(validatedPlayer.getId(), validatedPlayer.getName(),
+                        group.getId(), LocalDate.now());
+                DailyQuestionResponseDto response = (DailyQuestionResponseDto) questionResource.getQuestion(request).getEntity();
+                fetchedGroups.add(new FetchedGroupDto(group.getId(), group.getName(), group.getLink(), group.getPlayers(),
+                        response.answers().size(), response.answered()));
+            }
+
+            return Response.status(Response.Status.OK).entity(fetchedGroups).build();
         } catch (NotFoundException e) {
             return Response.status(Response.Status.NOT_FOUND).entity(new ErrorMessageDto(e.getMessage())).build();
         }
