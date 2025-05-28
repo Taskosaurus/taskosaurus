@@ -15,7 +15,7 @@ struct GameView: View {
             HStack {
                 Text("Bereits abgestimmt: ").foregroundColor(.gray)
                 if let players = group.players, let question = receivedQuestion {
-                    VoteStatusView(answeredCount: question.answers.count, totalCount: players.count)
+                    VoteStatusView(answers: question.answers, totalCount: players.count)
                 }
             }
             

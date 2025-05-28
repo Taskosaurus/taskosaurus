@@ -55,7 +55,7 @@ struct LoginRegisterView: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 20)
                     
-                    Text("playerId: \(viewModel.playerId)")
+                    Text("playerId: \(viewModel.player)")
                     
                     Spacer()
                 }
