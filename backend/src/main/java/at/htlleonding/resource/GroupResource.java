@@ -21,8 +21,6 @@ public class GroupResource {
     GroupRepository groupRepository;
     @Inject
     PlayerRepository playerRepository;
-    @Inject
-    QuestionResource questionResource;
 
     @GET
     @Path("list")
@@ -70,6 +68,8 @@ public class GroupResource {
         try {
             Player validatedPlayer = playerRepository.getPlayerById(player.getId());
             List<EntityGroup> groups = validatedPlayer.getGroups();
+
+            QuestionResource questionResource = new QuestionResource();
 
             List<FetchedGroupDto> fetchedGroups = new LinkedList<>();
             for (EntityGroup group : groups) {
