@@ -43,7 +43,7 @@ public class GroupResource {
     @Path("join/{id}/{playerName}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response joinGroup(@PathParam("playerName") String playerName, @PathParam("id") Long id) {
+    public Response joinGroup(@PathParam("id") Long id,  @PathParam("playerName") String playerName) {
         try {
             EntityGroup validatedGroup = groupRepository.getGroupById(id);
             Player validatedPlayer = playerRepository.getPlayerByName(playerName);
