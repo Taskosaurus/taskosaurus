@@ -140,20 +140,25 @@ class ViewModel: ObservableObject {
     }
 
     func generateQRCodeForGroup(playername: String, group: Group) -> UIImage? {
-        var url = "\(group.link)/\(playername)"
+        if let link = group.link{
+            let url = "\(link)/\(playername)"
         
-        let data = Data(url.utf8)
-        let filter = CIFilter.qrCodeGenerator()
-        filter.setValue(data, forKey: "inputMessage")
-
-        if let outputImage = filter.outputImage {
-            let transform = CGAffineTransform(scaleX: 10, y: 10)
-            let scaledImage = outputImage.transformed(by: transform)
-            return UIImage(ciImage: scaledImage)
+            let data = Data(url.utf8)
+            
+            if let filter = CIFilter(name: "CIQRCodeGenerator") {
+                filter.setValue(data, forKey: "inputMessage")
+                let transform = CGAffineTransform(scaleX: 10, y: 10)
+                
+                if let output = filter.outputImage?.transformed(by: transform) {
+                    let context = CIContext(options: nil)
+                    if let cgImage = context.createCGImage(output, from: output.extent) {
+                        return UIImage(cgImage: cgImage)
+                    }
+                }
+            }
         }
-
-        return nil
-    }
+            return nil
+        }
     
     func joinGroup(player: Player, group: Group) {
         gameService.joinGroup(player: player, group: group) { result in

@@ -57,8 +57,5 @@ struct WhoWouldRatherView: View {
             }
         }
         .tint(.blue) // Globale Akzentfarbe
-        .onAppear {
-            viewModel.fetchGroups()
-        }
     }
 }

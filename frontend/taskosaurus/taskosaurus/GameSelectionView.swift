@@ -41,6 +41,7 @@ struct GameSelectionView: View {
             Task {
                 await viewModel.loadQuestionsForGroups()
             }
+            viewModel.fetchGroups()
         }
         
     }
