@@ -34,7 +34,7 @@ public class GroupRepository {
         EntityGroup createdGroup = new EntityGroup(group.name());
         em.persist(createdGroup);
 
-        String link = "/api/group/join/" + createdGroup.getId();
+        String link = "http://192.168.201.135:8080/api/group/join/" + createdGroup.getId();
         createdGroup.setLink(link);
 
         return createdGroup;
