@@ -39,14 +39,14 @@ public class GroupResource {
         return Response.status(Response.Status.OK).entity(createdGroup).build();
     }
 
-    @POST
-    @Path("join/{id}")
+    @GET
+    @Path("join/{id}/{playerName}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response joinGroup(Player player, @PathParam("id") Long id) {
+    public Response joinGroup(@PathParam("playerName") String playerName, @PathParam("id") Long id) {
         try {
             EntityGroup validatedGroup = groupRepository.getGroupById(id);
-            Player validatedPlayer = playerRepository.getPlayerById(player.getId());
+            Player validatedPlayer = playerRepository.getPlayerByName(playerName);
             Player mergedPlayer = groupRepository.addPlayerToGroup(validatedPlayer, validatedGroup);
 
             return Response.status(Response.Status.OK).entity(mergedPlayer).build();

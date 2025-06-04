@@ -28,6 +28,12 @@ public class PlayerRepository {
         return requestedPlayer;
     }
 
+    public Player getPlayerByName(String name) {
+        Player player = em.createQuery("SELECT p FROM Player p WHERE p.name = " + name, Player.class).getSingleResult();
+        if (player == null) throw new NotFoundException("Player with name " + name + " not found");
+        return player;
+    }
+
     @Transactional
     public Player createPlayerFromDto(PlayerNameDto player) {
         Player createdPlayer = new Player(player.name());
