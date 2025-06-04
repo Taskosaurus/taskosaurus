@@ -1,4 +1,7 @@
 import Foundation
+import UIKit
+import CoreImage
+import CoreImage.CIFilterBuiltins
 
 class ViewModel: ObservableObject {
     @Published var groups: [Group] = []
@@ -136,7 +139,21 @@ class ViewModel: ObservableObject {
         }
     }
 
+    func generateQRCodeForGroup(playername: String, group: Group) -> UIImage? {
+        var url = "\(group.link)/\(playername)"
+        
+        let data = Data(url.utf8)
+        let filter = CIFilter.qrCodeGenerator()
+        filter.setValue(data, forKey: "inputMessage")
 
+        if let outputImage = filter.outputImage {
+            let transform = CGAffineTransform(scaleX: 10, y: 10)
+            let scaledImage = outputImage.transformed(by: transform)
+            return UIImage(ciImage: scaledImage)
+        }
+
+        return nil
+    }
     
     func joinGroup(player: Player, group: Group) {
         gameService.joinGroup(player: player, group: group) { result in
