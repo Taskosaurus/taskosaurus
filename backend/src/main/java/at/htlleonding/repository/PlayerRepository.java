@@ -29,7 +29,8 @@ public class PlayerRepository {
     }
 
     public Player getPlayerByName(String name) {
-        Player player = em.createQuery("SELECT p FROM Player p WHERE p.name = " + name, Player.class).getSingleResult();
+        Player player = em.createQuery("SELECT p FROM Player p WHERE p.name = :name", Player.class)
+                .setParameter("name", name).getSingleResult();
         if (player == null) throw new NotFoundException("Player with name " + name + " not found");
         return player;
     }
