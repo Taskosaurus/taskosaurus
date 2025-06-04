@@ -12,10 +12,10 @@ INSERT INTO Question (question) VALUES ('Wer könnte die beste TikTok-Tanzperfor
 INSERT INTO Question (question) VALUES ('Wen würde man öffentlich am wenigsten als "politisch korrekt" einstufen?');
 INSERT INTO Question (question) VALUES ('Ganz alleine in einem leeren Raum: Wer würde am schnellsten die Nerven verlieren?');
 
-INSERT INTO GroupEntity (name, link) VALUES ('Familie', '1');
-INSERT INTO GroupEntity (name, link) VALUES ('4AHITM', '2');
-INSERT INTO GroupEntity (name, link) VALUES ('Die 5 Freunde', '3');
-INSERT INTO GroupEntity (name, link) VALUES ('Die 3 ???', '4');
+INSERT INTO GroupEntity (id, name, link) VALUES (1, 'Familie', 'http://192.168.201.135:8080/api/group/join/1');
+INSERT INTO GroupEntity (id, name, link) VALUES (2, '4AHITM', 'http://192.168.201.135:8080/api/group/join/2');
+INSERT INTO GroupEntity (id, name, link) VALUES (3, 'Die 5 Freunde', 'http://192.168.201.135:8080/api/group/join/3');
+INSERT INTO GroupEntity (id, name, link) VALUES (4, 'Die 3 ???', 'http://192.168.201.135:8080/api/group/join/4');
 
 INSERT INTO Player (name) VALUES('Isabella');
 INSERT INTO Player (name) VALUES('Max');
