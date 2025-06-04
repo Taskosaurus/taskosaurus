@@ -19,7 +19,7 @@ class ViewModel: ObservableObject {
         if id != 0 {
             self.playerId = id
             Task {
-                self.loadPlayerFromId(2)
+                self.loadPlayerFromId(1)
             }
         }
     }

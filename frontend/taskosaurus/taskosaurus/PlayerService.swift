@@ -9,7 +9,7 @@ import Foundation
 
 class PlayerService {
     
-    let baseURL = "http://localhost:8080/api/player"
+    let baseURL = "http://192.168.201.135:8080/api/player"
     
     // Spieler erstellen (POST)
     func createPlayer(name: String, completion: @escaping (Result<Player, Error>) -> Void) {
