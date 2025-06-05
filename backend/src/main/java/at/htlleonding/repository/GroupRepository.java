@@ -31,28 +31,10 @@ public class GroupRepository {
 
 
     @Transactional
-    public EntityGroup createGroupFromDto(Player player, GroupNameDto group) {
-        if (player == null) {
-            throw new IllegalArgumentException("Player darf nicht null sein");
-        }
-        if (group == null || group.name() == null || group.name().isEmpty()) {
-            throw new IllegalArgumentException("Gruppenname darf nicht leer sein");
-        }
-
+    public EntityGroup createGroupFromDto(GroupNameDto group) {
         EntityGroup createdGroup = new EntityGroup(group.name());
 
-        if (player.getGroups() == null) {
-            player.setGroup(new ArrayList<>());
-        }
-        if (createdGroup.getPlayers() == null) {
-            createdGroup.setPlayers(new ArrayList<>());
-        }
-
-        player.getGroups().add(createdGroup);
-        createdGroup.getPlayers().add(player);
-
         em.persist(createdGroup);
-        em.merge(player);
 
         String link = "http://192.168.201.135:8080/api/group/join/" + createdGroup.getId();
         createdGroup.setLink(link);
