@@ -40,15 +40,14 @@ class GameService {
     }
     
     // Gruppe erstellen (POST)
-    func createGroup(name: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let url = URL(string: "\(baseURL)/api/group/create") else { return }
+    func createGroup(player: Player, name: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "\(baseURL)/api/group/create/\(name)") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let group = Group(id: nil, name: name, link: nil, players: [])
-        request.httpBody = try? JSONEncoder().encode(group)
+        request.httpBody = try? JSONEncoder().encode(player)
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {

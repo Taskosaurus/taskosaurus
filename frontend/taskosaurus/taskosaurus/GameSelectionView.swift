@@ -38,11 +38,7 @@ struct GameSelectionView: View {
         .listStyle(.insetGrouped)
         .navigationTitle("Spiele")
         .onAppear {
-            viewModel.fetchGroups {
-                Task {
-                    await viewModel.loadQuestionsForGroups()
-                }
-            }
+            viewModel.startAutoRefresh()
         }
 
         

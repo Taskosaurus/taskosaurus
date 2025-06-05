@@ -5,7 +5,7 @@ struct Player: Codable, Identifiable, Hashable {
     var name: String
 }
 
-struct Group: Identifiable, Codable {
+struct Group: Identifiable, Codable, Hashable {
     var id: Int?
     var name: String
     var link: String?

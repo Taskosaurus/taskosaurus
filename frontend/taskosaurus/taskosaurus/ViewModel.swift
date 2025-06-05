@@ -26,6 +26,32 @@ class ViewModel: ObservableObject {
             }
         }
     }
+    
+    private var refreshTimer: Timer?
+
+    func startAutoRefresh() {
+        self.fetchGroups {
+            Task {
+                await self.loadQuestionsForGroups()
+            }
+        }
+
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            self.fetchGroups {
+                Task {
+                    await self.loadQuestionsForGroups()
+                }
+            }
+        }
+    }
+
+    func stopAutoRefresh() {
+        refreshTimer?.invalidate()
+        refreshTimer = nil
+    }
+
+
 
     
     func createAndSaveUser(playerName: String) async -> Player? {
@@ -110,20 +136,29 @@ class ViewModel: ObservableObject {
     }
 
     
-    func createGroup(name: String, completion: @escaping (Bool) -> Void) {
-        gameService.createGroup(name: name) { result in
+    func createGroup(name: String, completion: @escaping (Result<Group, Error>) -> Void) {
+        guard let player = self.player else {
+            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Kein Spieler vorhanden"])))
+            return
+        }
+        gameService.createGroup(player: player, name: name) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success():
-                    self.fetchGroups()
-                    completion(true)
+                    self.fetchGroups {
+                        if let createdGroup = self.groups.first(where: { $0.name == name }) {
+                            completion(.success(createdGroup))
+                        } else {
+                            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Gruppe nicht gefunden"])))
+                        }
+                    }
                 case .failure(let error):
-                    print("Fehler beim Erstellen der Gruppe: \(error.localizedDescription)")
-                    completion(false)
+                    completion(.failure(error))
                 }
             }
         }
     }
+
     
     func createPlayer(name: String) async -> Player? {
         await withCheckedContinuation { continuation in
