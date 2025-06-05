@@ -37,11 +37,12 @@ public class GroupResource {
         try {
             Player validatedPlayer = playerRepository.getPlayerById(player.getId());
             EntityGroup createdGroup = groupRepository.createGroupFromDto(validatedPlayer, new GroupNameDto(name));
-        } catch (NotFoundException e) {
 
+            return Response.status(Response.Status.OK).entity(createdGroup).build();
+        } catch (NotFoundException e) {
+            return Response.status(Response.Status.NOT_FOUND).entity(new ErrorMessageDto(e.getMessage())).build();
         }
 
-        return Response.status(Response.Status.OK).entity(createdGroup).build();
     }
 
     @GET
