@@ -9,6 +9,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
@@ -31,9 +32,25 @@ public class GroupRepository {
 
     @Transactional
     public EntityGroup createGroupFromDto(Player player, GroupNameDto group) {
+        if (player == null) {
+            throw new IllegalArgumentException("Player darf nicht null sein");
+        }
+        if (group == null || group.name() == null || group.name().isEmpty()) {
+            throw new IllegalArgumentException("Gruppenname darf nicht leer sein");
+        }
+
         EntityGroup createdGroup = new EntityGroup(group.name());
+
+        if (player.getGroups() == null) {
+            player.setGroup(new ArrayList<>());
+        }
+        if (createdGroup.getPlayers() == null) {
+            createdGroup.setPlayers(new ArrayList<>());
+        }
+
         player.getGroups().add(createdGroup);
         createdGroup.getPlayers().add(player);
+
         em.persist(createdGroup);
         em.merge(player);
 
@@ -42,6 +59,7 @@ public class GroupRepository {
 
         return createdGroup;
     }
+
 
     @Transactional
     public Player addPlayerToGroup(Player player, EntityGroup group) throws NotFoundException {
