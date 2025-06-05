@@ -30,9 +30,12 @@ public class GroupRepository {
 
 
     @Transactional
-    public EntityGroup createGroupFromDto(GroupNameDto group) {
+    public EntityGroup createGroupFromDto(Player player, GroupNameDto group) {
         EntityGroup createdGroup = new EntityGroup(group.name());
+        player.getGroups().add(createdGroup);
+        createdGroup.getPlayers().add(player);
         em.persist(createdGroup);
+        em.merge(player);
 
         String link = "http://192.168.201.135:8080/api/group/join/" + createdGroup.getId();
         createdGroup.setLink(link);

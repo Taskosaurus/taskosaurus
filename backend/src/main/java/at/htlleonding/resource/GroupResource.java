@@ -30,11 +30,16 @@ public class GroupResource {
     }
 
     @POST
-    @Path("create")
+    @Path("create/{name}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response create(GroupNameDto group) {
-        EntityGroup createdGroup = groupRepository.createGroupFromDto(group);
+    public Response create(Player player, @PathParam("name") String name) {
+        try {
+            Player validatedPlayer = playerRepository.getPlayerById(player.getId());
+            EntityGroup createdGroup = groupRepository.createGroupFromDto(validatedPlayer, new GroupNameDto(name));
+        } catch (NotFoundException e) {
+
+        }
 
         return Response.status(Response.Status.OK).entity(createdGroup).build();
     }
