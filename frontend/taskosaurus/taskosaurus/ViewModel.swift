@@ -22,7 +22,7 @@ class ViewModel: ObservableObject {
         if id != 0 {
             self.playerId = id
             Task {
-                self.loadPlayerFromId(1)
+                self.loadPlayerFromId(2)
             }
         }
     }
@@ -87,25 +87,24 @@ class ViewModel: ObservableObject {
         var answered: [Group] = []
         var unanswered: [Group] = []
 
+        let playerId = self.playerId;
+
         for group in groups {
-            guard let firstPlayer = group.players?.first,
-                  let playerId = firstPlayer.id,
-                  let groupId = group.id else {
-                continue
-            }
-
-            if let question = await getQuestion(playerId: playerId, groupId: groupId) {
-                DispatchQueue.main.async {
-                    self.latestQuestions[groupId] = question
-                }
-
-                if question.answered {
-                    answered.append(group)
+            if let groupId = group.id {
+            
+                if let question = await getQuestion(playerId: playerId, groupId: groupId) {
+                    DispatchQueue.main.async {
+                        self.latestQuestions[groupId] = question
+                    }
+                    
+                    if question.answered {
+                        answered.append(group)
+                    } else {
+                        unanswered.append(group)
+                    }
                 } else {
                     unanswered.append(group)
                 }
-            } else {
-                unanswered.append(group)
             }
         }
 
