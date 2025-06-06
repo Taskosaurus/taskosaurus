@@ -18,12 +18,13 @@ class ViewModel: ObservableObject {
     
     init() {
         var id = UserDefaults.standard.integer(forKey: "playerId")
-        id = 2
         if id != 0 {
             self.playerId = id
             Task {
                 self.loadPlayerFromId(id)
             }
+        } else {
+            loadPlayerFromId(1)
         }
     }
     
@@ -51,7 +52,11 @@ class ViewModel: ObservableObject {
         refreshTimer = nil
     }
 
-
+    func loginWithId(_ id: Int) {
+        self.playerId = id
+        UserDefaults.standard.set(id, forKey: "playerId")
+        self.loadPlayerFromId(id)
+    }
 
     
     func createAndSaveUser(playerName: String) async -> Player? {
