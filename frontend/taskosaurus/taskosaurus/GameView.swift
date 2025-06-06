@@ -119,9 +119,9 @@ struct GameView: View {
         if let question = receivedQuestion, !receivedQuestion!.answered {
             Button(action: {
                 Task {
-                    if let selected = selectedPlayer, let selectedGroupId = group.id,
+                    if let selected = selectedPlayer, let selectedGroupId = group.id, let answeringPlayer = viewModel.player,
                        let updatedQuestion = await viewModel.answerQuestion(
-                           player: players[0],
+                           player: answeringPlayer,
                            answeredPlayer: selected,
                            groupId: selectedGroupId,
                            question: question
