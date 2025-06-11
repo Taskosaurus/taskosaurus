@@ -60,7 +60,7 @@ struct GroupCreationView: View {
             }
             .padding()
             .navigationDestination(item: $navigateToGroup) { group in
-                GroupDetailView(viewModel: viewModel, group: group)
+                GroupDetailView(viewModel: viewModel, groupId: group.id!)
             }
         }
     }

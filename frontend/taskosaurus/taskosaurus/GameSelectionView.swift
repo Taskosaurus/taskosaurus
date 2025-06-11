@@ -11,7 +11,7 @@ struct GameSelectionView: View {
             if !viewModel.unAnsweredGroups.isEmpty {
                 Section {
                     ForEach(viewModel.unAnsweredGroups) { group in
-                        NavigationLink(destination: GameView(viewModel: viewModel, group: group)) {
+                        NavigationLink(destination: GameView(viewModel: viewModel, groupId: group.id!)) {
                             groupRow(group: group)
                         }
                     }
@@ -24,9 +24,10 @@ struct GameSelectionView: View {
             if !viewModel.answeredGroups.isEmpty {
                 Section {
                     ForEach(viewModel.answeredGroups) { group in
-                        NavigationLink(destination: GameView(viewModel: viewModel, group: group)) {
+                        NavigationLink(destination: GameView(viewModel: viewModel, groupId: group.id!)) {
                             groupRow(group: group)
                         }
+
                     }
                 } header: {
                     Text("Beantwortet")

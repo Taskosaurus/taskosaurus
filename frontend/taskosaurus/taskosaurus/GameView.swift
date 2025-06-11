@@ -3,49 +3,59 @@ import Charts
 
 struct GameView: View {
     @ObservedObject var viewModel: ViewModel
-    var group: Group
+    let groupId: Int
 
     @State private var selectedPlayer: Player?
-    @State private var votes: [Player: Int] = [:]
     @State private var hasVoted = false
     @State private var receivedQuestion: Question?
 
+    private var currentGroup: Group? {
+        viewModel.groups.first(where: { $0.id == groupId })
+    }
+
     var body: some View {
         VStack {
-            HStack {
-                Text("Bereits abgestimmt: ").foregroundColor(.gray)
-                if let players = group.players, let question = receivedQuestion {
-                    VoteStatusView(answers: question.answers, totalCount: players.count)
+            if let group = currentGroup {
+                HStack {
+                    Text("Bereits abgestimmt: ").foregroundColor(.gray)
+                    if let players = group.players, let question = receivedQuestion {
+                        VoteStatusView(answers: question.answers, totalCount: players.count)
+                    }
                 }
-            }
-            
 
-            questionSection()
+                questionSection()
 
-            if let players = group.players, let question = receivedQuestion, !players.isEmpty && !question.answered {
-                playerListSection(players: players)
-                voteButton(players: players)
-            } else if let question = receivedQuestion, question.answered {
-                voteResultsChart(question: question)
+                if let players = group.players, let question = receivedQuestion, !players.isEmpty && !question.answered {
+                    playerListSection(players: players)
+                    voteButton(players: players, group: group)
+                } else if let question = receivedQuestion, question.answered {
+                    voteResultsChart(question: question)
+                } else {
+                    Text("Keine Mitglieder vorhanden")
+                        .foregroundColor(.gray)
+                        .padding()
+                }
             } else {
-                Text("Keine Mitglieder vorhanden")
-                    .foregroundColor(.gray)
+                Text("Gruppe nicht gefunden")
+                    .foregroundColor(.red)
                     .padding()
             }
         }
-        .navigationTitle(group.name)
+        .navigationTitle(currentGroup?.name ?? "Gruppe")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: GroupDetailView(viewModel: viewModel, group: group)) {
-                    Image(systemName: "person.3.sequence")
-                        .font(.title2)
+            if let group = currentGroup {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: GroupDetailView(viewModel: viewModel, groupId: group.id!)) {
+                        Image(systemName: "person.3.sequence")
+                            .font(.title2)
+                    }
                 }
             }
         }
         .onAppear {
             Task {
-                if let firstPlayer = group.players?.first, let groupId = group.id {
+                if let group = currentGroup, let firstPlayer = group.players?.first, let groupId = group.id {
                     receivedQuestion = await viewModel.getQuestion(playerId: firstPlayer.id!, groupId: groupId)
                 }
             }
@@ -56,7 +66,6 @@ struct GameView: View {
 
     @ViewBuilder
     private func questionSection() -> some View {
-        // Safely unwrap ⁠ viewModel.question ⁠ here
         if let question = receivedQuestion {
             Text(question.question)
                 .font(.title2)
@@ -92,12 +101,12 @@ struct GameView: View {
                         .font(.headline)
                         .foregroundColor(.white)
                 )
-            
+
             Text(player.name)
                 .font(.body)
                 .foregroundColor(.primary)
                 .padding(.leading, 10)
-            
+
             Spacer()
         }
         .padding()
@@ -115,15 +124,16 @@ struct GameView: View {
     }
 
     @ViewBuilder
-    private func voteButton(players: [Player]) -> some View {
-        if let question = receivedQuestion, !receivedQuestion!.answered {
+    private func voteButton(players: [Player], group: Group) -> some View {
+        if let question = receivedQuestion, !question.answered {
             Button(action: {
                 Task {
-                    if let selected = selectedPlayer, let selectedGroupId = group.id, let answeringPlayer = viewModel.player,
+                    if let selected = selectedPlayer,
+                       let answeringPlayer = viewModel.player,
                        let updatedQuestion = await viewModel.answerQuestion(
                            player: answeringPlayer,
                            answeredPlayer: selected,
-                           groupId: selectedGroupId,
+                           groupId: group.id ?? 0,
                            question: question
                        ) {
                         receivedQuestion = updatedQuestion
@@ -142,6 +152,7 @@ struct GameView: View {
             .disabled(selectedPlayer == nil)
         }
     }
+
     @ViewBuilder
     private func voteResultsChart(question: Question) -> some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -166,6 +177,4 @@ struct GameView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
-
 }
-
