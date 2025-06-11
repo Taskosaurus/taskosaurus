@@ -1,6 +1,5 @@
 import SwiftUI
 
-// Haupt-TabView mit weißer TabBar
 struct AppTabView: View {
     @StateObject private var viewModel = ViewModel()
     
@@ -9,24 +8,31 @@ struct AppTabView: View {
             // Tab 1 - Hauptscreen
             NavigationStack {
                 WhoWouldRatherView(viewModel: viewModel)
-                    .padding(.bottom, 18) // 👈 Extra Abstand zur TabBar
             }
             .tabItem {
-                Label("Wer würde eher", systemImage: "person.2.fill")
+                Label("Spielen", systemImage: "gamecontroller.fill")
             }
             
             // Tab 2 - Einstellungen
             NavigationStack {
                 SettingsView(viewModel: viewModel)
-                    .padding(.bottom, 8) // Optional auch hier
             }
             .tabItem {
-                Label("Einstellungen", systemImage: "gearshape")
+                Label("Einstellungen", systemImage: "gearshape.fill")
             }
         }
-        .tint(.blue) // Farbe für aktive Tab-Icons
-        .toolbarBackground(.visible, for: .tabBar) // TabBar sichtbar machen
-        .toolbarBackground(Color.white, for: .tabBar) // TabBar weiß machen
-        .toolbarColorScheme(.light, for: .tabBar) // iOS helles Farbschema
+        .tint(.blue)
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarBackground(Color.white, for: .tabBar)
+        .toolbarColorScheme(.light, for: .tabBar)
+    }
+}
+
+// Button style bleibt gleich
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1)
+            .animation(.interactiveSpring(response: 0.3, dampingFraction: 0.5), value: configuration.isPressed)
     }
 }
