@@ -4,35 +4,24 @@ struct GameSelectionView: View {
     @ObservedObject var viewModel: ViewModel
 
     var body: some View {
-        if let errorMessage = viewModel.errorMessage {
-            Text(errorMessage)
-        }
         List {
             if !viewModel.unAnsweredGroups.isEmpty {
-                Section {
+                Section(header: Text("Nicht beantwortet")) {
                     ForEach(viewModel.unAnsweredGroups) { group in
                         NavigationLink(destination: GameView(viewModel: viewModel, groupId: group.id!)) {
-                            groupRow(group: group)
+                            groupRow(group: group, icon: "circle.dotted", color: .blue)
                         }
                     }
-                } header: {
-                    Text("Nicht beantwortet")
-                        .font(.headline)
-                        .textCase(.none)
                 }
             }
+
             if !viewModel.answeredGroups.isEmpty {
-                Section {
+                Section(header: Text("Beantwortet")) {
                     ForEach(viewModel.answeredGroups) { group in
                         NavigationLink(destination: GameView(viewModel: viewModel, groupId: group.id!)) {
-                            groupRow(group: group)
+                            groupRow(group: group, icon: "checkmark.circle.fill", color: .blue)
                         }
-
                     }
-                } header: {
-                    Text("Beantwortet")
-                        .font(.headline)
-                        .textCase(.none)
                 }
             }
         }
@@ -41,15 +30,17 @@ struct GameSelectionView: View {
         .onAppear {
             viewModel.startAutoRefresh()
         }
-
-        
     }
-   
 
-    @ViewBuilder
-    private func groupRow(group: Group) -> some View {
+    private func groupRow(group: Group, icon: String, color: Color) -> some View {
         HStack {
+            Image(systemName: icon)
+                .foregroundColor(color)
+                .imageScale(.medium)
+
             Text(group.name)
+                .font(.body)
+
             Spacer()
 
             if let question = viewModel.latestQuestions[group.id ?? -1],
