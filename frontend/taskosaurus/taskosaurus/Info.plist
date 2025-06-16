@@ -2,17 +2,24 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>publication-undertake.gl.at.ply.gg:45004
-publication-undertake.gl.at.ply.gg:45004</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
-	</dict>
+    <!-- Kamera-Zugriff für QR-Code-Scanner -->
+    <key>NSCameraUsageDescription</key>
+    <string>Diese App benötigt Zugriff auf die Kamera, um QR-Codes zu scannen.</string>
+
+    <!-- HTTP-Ausnahme für spezifische Domain -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>publication-undertake.gl.at.ply.gg</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
 </dict>
 </plist>
+

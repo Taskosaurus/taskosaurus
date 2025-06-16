@@ -2,6 +2,8 @@ import SwiftUI
 
 struct GameSelectionView: View {
     @ObservedObject var viewModel: ViewModel
+    @State private var showScanner = false
+    @State private var scannedCode: String?
 
     var body: some View {
         List {
@@ -32,21 +34,33 @@ struct GameSelectionView: View {
             }
         }
         // QR-Code-Button
-                    Button(action: {
-                        print("QR Code scannen lassen")
-                    }) {
-                        HStack {
-                            Image(systemName: "qrcode.viewfinder")
-                            Text("QR Code scannen lassen")
-                                .bold()
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .padding([.horizontal, .bottom])
-                    }
+        Button(action: {
+            showScanner = true
+        }) {
+            HStack {
+                Image(systemName: "qrcode.viewfinder")
+                Text("QR Code scannen lassen")
+                    .bold()
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            .padding([.horizontal, .bottom])
+        }
+        .sheet(isPresented: $showScanner) {
+            QRScannerView(
+                onFound: { code in
+                    scannedCode = code
+                    showScanner = false
+                    print("QR Code erkannt: \(code)")
+                },
+                onCancel: {
+                    showScanner = false
+                }
+            )
+        }
         .listStyle(.insetGrouped)
         .navigationTitle("Spiele")
         .onAppear {
