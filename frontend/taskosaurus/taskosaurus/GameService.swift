@@ -5,27 +5,35 @@
 //  Created by Isabella Baumann on 21.04.25.
 //
 import Foundation
+
 class GameService {
-    let baseURL = "http://192.168.201.135:8080"
+    let baseURL = "http://localhost:8080"
     
-    // Gruppen abrufen
+    // Gruppen abrufen – Fehler sauber über completion weitergeben
     func fetchGroups(player: Player, completion: @escaping (Result<[Group], Error>) -> Void) {
-        guard let url = URL(string: "\(baseURL)/api/group/getJoinedGroups") else { return }
-        
+        guard let url = URL(string: "\(baseURL)/api/group/getJoinedGroups") else {
+            DispatchQueue.main.async {
+                completion(.failure(URLError(.badURL)))
+            }
+            return
+        }
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
         request.httpBody = try? JSONEncoder().encode(player)
-        
         
         URLSession.shared.dataTask(with: request) { data, _, error in
             if let error = error {
-                completion(.failure(error))
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
                 return
             }
             guard let data = data else {
-                completion(.failure(URLError(.badServerResponse)))
+                DispatchQueue.main.async {
+                    completion(.failure(URLError(.badServerResponse)))
+                }
                 return
             }
             do {
@@ -34,76 +42,85 @@ class GameService {
                     completion(.success(groups))
                 }
             } catch {
-                completion(.failure(error))
-            }
-        }.resume()
-    }
-    
-    // Gruppe erstellen (POST)
-    func createGroup(player: Player, name: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let url = URL(string: "\(baseURL)/api/group/create/\(name)") else { return }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        request.httpBody = try? JSONEncoder().encode(player)
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            
-            // Debugging der Antwort
-            if let data = data {
-                if let responseString = String(data: data, encoding: .utf8) {
-                    print("Antwort vom Server: \(responseString)")
-                }
-            }
-            
-            guard let data = data else {
-                completion(.failure(URLError(.badServerResponse)))
-                return
-            }
-            
-            do {
-                let group = try JSONDecoder().decode(Group.self, from: data)
                 DispatchQueue.main.async {
-                    completion(.success(()))
+                    completion(.failure(error))
                 }
-            } catch {
-                // Verbessere die Fehlerbehandlung, um genauere Informationen zu liefern
-                print("Fehler beim Dekodieren der Antwort: \(error.localizedDescription)")
-                completion(.failure(error))
             }
         }.resume()
     }
-    
-    func joinGroup(player: Player, group: Group, completion: @escaping (Result<Group, Error>) -> Void) {
-        guard let link = group.link, let url = URL(string: "\(baseURL)\(link)") else { return }
+
+    // Gruppe erstellen – Fehler sauber über completion weitergeben
+    func createGroup(player: Player, name: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "\(baseURL)/api/group/create/\(name)") else {
+            DispatchQueue.main.async {
+                completion(.failure(URLError(.badURL)))
+            }
+            return
+        }
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
         request.httpBody = try? JSONEncoder().encode(player)
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            print(response)
+        URLSession.shared.dataTask(with: request) { data, _, error in
             if let error = error {
                 DispatchQueue.main.async {
                     completion(.failure(error))
                 }
                 return
             }
-            
+
             guard let data = data else {
                 DispatchQueue.main.async {
                     completion(.failure(URLError(.badServerResponse)))
                 }
                 return
             }
-            
+
+            do {
+                _ = try JSONDecoder().decode(Group.self, from: data)
+                DispatchQueue.main.async {
+                    completion(.success(()))
+                }
+            } catch {
+                print("Fehler beim Dekodieren der Antwort: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+            }
+        }.resume()
+    }
+
+    // Gruppe beitreten – Fehler sauber über completion weitergeben
+    func joinGroup(player: Player, group: Group, completion: @escaping (Result<Group, Error>) -> Void) {
+        guard let link = group.link, let url = URL(string: "\(baseURL)\(link)") else {
+            DispatchQueue.main.async {
+                completion(.failure(URLError(.badURL)))
+            }
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONEncoder().encode(player)
+        
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            if let error = error {
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+                return
+            }
+
+            guard let data = data else {
+                DispatchQueue.main.async {
+                    completion(.failure(URLError(.badServerResponse)))
+                }
+                return
+            }
+
             do {
                 let updatedGroup = try JSONDecoder().decode(Group.self, from: data)
                 DispatchQueue.main.async {

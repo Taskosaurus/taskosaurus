@@ -7,6 +7,7 @@ struct GameView: View {
 
     @State private var selectedPlayer: Player?
     @State private var receivedQuestion: Question?
+    @State private var showConnectionError = false
 
     private var currentGroup: Group? {
         viewModel.groups.first(where: { $0.id == groupId })
@@ -14,36 +15,42 @@ struct GameView: View {
 
     var body: some View {
         ZStack {
-            Color(.systemGray6)  // Darker background
-                .ignoresSafeArea()
+            Color(.systemGray6).ignoresSafeArea()
+            VStack(spacing: 0) {
+                if !viewModel.hasConnection {
+                    // Verbindung unterbrochen:
+                    ErrorView(viewModel: viewModel)
+                } else {
+                    VStack(spacing: 16) {
+                        if let group = currentGroup {
+                            headerSection(group: group)
+                            questionSection()
 
-            VStack(spacing: 16) {
-                if let group = currentGroup {
-                    headerSection(group: group)
-                    questionSection()
-
-                    ZStack {
-                        if let players = group.players,
-                           let question = receivedQuestion,
-                           !question.answered,
-                           !players.isEmpty {
-                            votingSection(players: players, group: group)
-                        } else if let question = receivedQuestion, question.answered {
-                            resultsSection(question: question)
+                            ZStack {
+                                if let players = group.players,
+                                   let question = receivedQuestion,
+                                   !question.answered,
+                                   !players.isEmpty {
+                                    votingSection(players: players, group: group)
+                                } else if let question = receivedQuestion, question.answered {
+                                    resultsSection(question: question)
+                                } else {
+                                    Text("Keine Mitglieder vorhanden")
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .frame(maxHeight: .infinity, alignment: .top)
+                            .padding(.horizontal)
                         } else {
-                            Text("Keine Mitglieder vorhanden")
-                                .foregroundColor(.secondary)
+                            Text("Gruppe nicht gefunden")
+                                .foregroundColor(.red)
+                                .padding()
                         }
                     }
-                    .frame(maxHeight: .infinity, alignment: .top)
-                    .padding(.horizontal)
-                } else {
-                    Text("Gruppe nicht gefunden")
-                        .foregroundColor(.red)
-                        .padding()
+                    .padding(.top)
                 }
             }
-            .padding(.top)
+            .animation(.easeInOut(duration: 0.3), value: viewModel.hasConnection)
         }
         .navigationTitle(currentGroup?.name ?? "Gruppe")
         .navigationBarTitleDisplayMode(.inline)
@@ -63,6 +70,18 @@ struct GameView: View {
                    let firstPlayer = group.players?.first,
                    let groupId = group.id {
                     receivedQuestion = await viewModel.getQuestion(playerId: firstPlayer.id!, groupId: groupId)
+                }
+            }
+        }
+        // Kinga: Wenn Verbindung wieder da ist, neu laden
+        .onReceive(viewModel.$hasConnection) { hasConnection in
+            if hasConnection {
+                Task {
+                    if let group = currentGroup,
+                       let firstPlayer = group.players?.first,
+                       let groupId = group.id {
+                        receivedQuestion = await viewModel.getQuestion(playerId: firstPlayer.id!, groupId: groupId)
+                    }
                 }
             }
         }
@@ -99,7 +118,7 @@ struct GameView: View {
                 .multilineTextAlignment(.center)
                 .padding()
         } else {
-            ProgressView("Lade Frage...")
+            ProgressView("Lade Frage…")
                 .padding()
         }
     }
@@ -162,7 +181,7 @@ struct GameView: View {
         }
         .padding()
         .frame(maxWidth: .infinity)
-        .background(Color.white) // <-- hier jetzt weiß statt grau
+        .background(Color.white)
         .cornerRadius(10)
         .shadow(radius: 2)
         .overlay(
@@ -173,7 +192,6 @@ struct GameView: View {
             selectedPlayer = player
         }
     }
-
 
     @ViewBuilder
     private func resultsSection(question: Question) -> some View {
@@ -202,3 +220,4 @@ struct GameView: View {
         .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
     }
 }
+
