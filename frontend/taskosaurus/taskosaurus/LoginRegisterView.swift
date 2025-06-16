@@ -68,7 +68,6 @@ struct LoginRegisterView: View {
                 }
                 .padding()
             }
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationBarHidden(true)
         }
     }

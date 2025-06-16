@@ -6,9 +6,6 @@ struct WhoWouldRatherView: View {
     
     var body: some View {
         ZStack {
-            // Weißer Hintergrund
-            Color.white
-                .ignoresSafeArea()
             
             VStack(spacing: 0) {
                 Spacer() // Push content down
@@ -72,7 +69,6 @@ struct WhoWouldRatherView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Color.white)
                         .foregroundColor(.blue)
                         .cornerRadius(16)
                         .overlay(
@@ -84,7 +80,6 @@ struct WhoWouldRatherView: View {
                     .buttonStyle(ScaleButtonStyle())
                 }
                 .padding(20)
-                .background(Color(.systemGroupedBackground))
                 .cornerRadius(28)
                 .padding(.horizontal, 24)
                 .padding(.bottom, 24)
@@ -92,9 +87,6 @@ struct WhoWouldRatherView: View {
         }
         .navigationTitle("Wer würde eher?")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarBackground(Color.white, for: .navigationBar)
-        .toolbarColorScheme(.light, for: .navigationBar)
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isPulsing.toggle()
