@@ -7,7 +7,7 @@
 import Foundation
 
 class GameService {
-    let baseURL = "http://localhost:8080"
+    let baseURL = "http://192.168.137.135:8080"
     
     // Gruppen abrufen – Fehler sauber über completion weitergeben
     func fetchGroups(player: Player, completion: @escaping (Result<[Group], Error>) -> Void) {
