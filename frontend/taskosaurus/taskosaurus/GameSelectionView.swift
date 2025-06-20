@@ -39,7 +39,7 @@ struct GameSelectionView: View {
         }) {
             HStack {
                 Image(systemName: "qrcode.viewfinder")
-                Text("QR Code scannen lassen")
+                Text("QR Code scannen")
                     .bold()
             }
             .frame(maxWidth: .infinity)
