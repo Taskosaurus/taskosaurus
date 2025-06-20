@@ -3,82 +3,161 @@ import Charts
 
 struct GameView: View {
     @ObservedObject var viewModel: ViewModel
-    var group: Group
+    let groupId: Int
 
     @State private var selectedPlayer: Player?
-    @State private var votes: [Player: Int] = [:]
-    @State private var hasVoted = false
     @State private var receivedQuestion: Question?
+    @State private var showConnectionError = false
+
+    private var currentGroup: Group? {
+        viewModel.groups.first(where: { $0.id == groupId })
+    }
 
     var body: some View {
-        VStack {
-            HStack {
-                Text("Bereits abgestimmt: ").foregroundColor(.gray)
-                if let players = group.players, let question = receivedQuestion {
-                    VoteStatusView(answers: question.answers, totalCount: players.count)
+        ZStack {
+            Color(.systemGray6).ignoresSafeArea()
+            VStack(spacing: 0) {
+                if !viewModel.hasConnection {
+                    // Verbindung unterbrochen:
+                    ErrorView(viewModel: viewModel)
+                } else {
+                    VStack(spacing: 16) {
+                        if let group = currentGroup {
+                            headerSection(group: group)
+                            questionSection()
+
+                            ZStack {
+                                if let players = group.players,
+                                   let question = receivedQuestion,
+                                   !question.answered,
+                                   !players.isEmpty {
+                                    votingSection(players: players, group: group)
+                                } else if let question = receivedQuestion, question.answered {
+                                    resultsSection(question: question)
+                                } else {
+                                    Text("Keine Mitglieder vorhanden")
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .frame(maxHeight: .infinity, alignment: .top)
+                            .padding(.horizontal)
+                        } else {
+                            Text("Gruppe nicht gefunden")
+                                .foregroundColor(.red)
+                                .padding()
+                        }
+                    }
+                    .padding(.top)
                 }
             }
-            
-
-            questionSection()
-
-            if let players = group.players, let question = receivedQuestion, !players.isEmpty && !question.answered {
-                playerListSection(players: players)
-                voteButton(players: players)
-            } else if let question = receivedQuestion, question.answered {
-                voteResultsChart(question: question)
-            } else {
-                Text("Keine Mitglieder vorhanden")
-                    .foregroundColor(.gray)
-                    .padding()
-            }
+            .animation(.easeInOut(duration: 0.3), value: viewModel.hasConnection)
         }
-        .navigationTitle(group.name)
+        .navigationTitle(currentGroup?.name ?? "Gruppe")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: GroupDetailView(viewModel: viewModel, group: group)) {
-                    Image(systemName: "person.3.sequence")
-                        .font(.title2)
+            if let group = currentGroup {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: GroupDetailView(viewModel: viewModel, groupId: group.id!)) {
+                        Image(systemName: "person.3.sequence")
+                            .font(.title2)
+                    }
                 }
             }
         }
         .onAppear {
             Task {
-                if let firstPlayer = group.players?.first, let groupId = group.id {
+                if let group = currentGroup,
+                   let firstPlayer = group.players?.first,
+                   let groupId = group.id {
                     receivedQuestion = await viewModel.getQuestion(playerId: firstPlayer.id!, groupId: groupId)
                 }
             }
         }
+        // Kinga: Wenn Verbindung wieder da ist, neu laden
+        .onReceive(viewModel.$hasConnection) { hasConnection in
+            if hasConnection {
+                Task {
+                    if let group = currentGroup,
+                       let firstPlayer = group.players?.first,
+                       let groupId = group.id {
+                        receivedQuestion = await viewModel.getQuestion(playerId: firstPlayer.id!, groupId: groupId)
+                    }
+                }
+            }
+        }
     }
 
-    // MARK: - View Sections
+    // MARK: - UI Sections
+
+    @ViewBuilder
+    private func headerSection(group: Group) -> some View {
+        if let question = receivedQuestion,
+           let total = group.players?.count {
+            let votes = question.answers.reduce(0) { $0 + $1.count }
+            let percent = Double(votes) / Double(max(total, 1))
+
+            VStack(spacing: 6) {
+                Text("Abgestimmt: \(votes)/\(total)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                ProgressView(value: percent)
+                    .progressViewStyle(LinearProgressViewStyle(tint: .accentColor))
+                    .frame(height: 6)
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal)
+        }
+    }
 
     @ViewBuilder
     private func questionSection() -> some View {
-        // Safely unwrap ⁠ viewModel.question ⁠ here
         if let question = receivedQuestion {
             Text(question.question)
-                .font(.title2)
-                .fontWeight(.semibold)
+                .font(.title2.weight(.semibold))
+                .multilineTextAlignment(.center)
                 .padding()
         } else {
-            Text("Lade Frage...")
-                .font(.title3)
-                .foregroundColor(.gray)
+            ProgressView("Lade Frage…")
                 .padding()
         }
     }
 
     @ViewBuilder
-    private func playerListSection(players: [Player]) -> some View {
-        ScrollView {
-            VStack(spacing: 10) {
-                ForEach(players) { player in
-                    playerRow(player)
+    private func votingSection(players: [Player], group: Group) -> some View {
+        VStack(spacing: 12) {
+            ScrollView {
+                VStack(spacing: 10) {
+                    ForEach(players) { player in
+                        playerRow(player)
+                    }
                 }
+                .padding(.top, 8)
             }
-            .padding(.horizontal)
+
+            Button(action: {
+                Task {
+                    if let selected = selectedPlayer,
+                       let answeringPlayer = viewModel.player,
+                       let updated = await viewModel.answerQuestion(
+                           player: answeringPlayer,
+                           answeredPlayer: selected,
+                           groupId: group.id ?? 0,
+                           question: receivedQuestion!
+                       ) {
+                        receivedQuestion = updated
+                    }
+                }
+            }) {
+                Text("Abstimmen")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(selectedPlayer != nil ? Color.accentColor : Color(.systemGray4))
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+            .disabled(selectedPlayer == nil)
         }
     }
 
@@ -92,17 +171,17 @@ struct GameView: View {
                         .font(.headline)
                         .foregroundColor(.white)
                 )
-            
+
             Text(player.name)
                 .font(.body)
                 .foregroundColor(.primary)
                 .padding(.leading, 10)
-            
+
             Spacer()
         }
         .padding()
         .frame(maxWidth: .infinity)
-        .background(Color(.systemGray6))
+        .background(Color.white)
         .cornerRadius(10)
         .shadow(radius: 2)
         .overlay(
@@ -115,57 +194,30 @@ struct GameView: View {
     }
 
     @ViewBuilder
-    private func voteButton(players: [Player]) -> some View {
-        if let question = receivedQuestion, !receivedQuestion!.answered {
-            Button(action: {
-                Task {
-                    if let selected = selectedPlayer, let selectedGroupId = group.id,
-                       let updatedQuestion = await viewModel.answerQuestion(
-                           player: players[0],
-                           answeredPlayer: selected,
-                           groupId: selectedGroupId,
-                           question: question
-                       ) {
-                        receivedQuestion = updatedQuestion
-                    }
-                }
-            }) {
-                Text("Abstimmen")
-                    .fontWeight(.bold)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(selectedPlayer != nil ? Color.blue : Color.gray)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .padding()
-            .disabled(selectedPlayer == nil)
-        }
-    }
-    @ViewBuilder
-    private func voteResultsChart(question: Question) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            let sortedAnswers = question.answers.sorted { $0.count > $1.count }
+    private func resultsSection(question: Question) -> some View {
+        let sorted = question.answers.sorted { $0.count > $1.count }
+
+        VStack(spacing: 16) {
+            Text("Ergebnisse")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             Chart {
-                ForEach(sortedAnswers, id: \.answeredId) { item in
+                ForEach(sorted, id: \.answeredId) { item in
                     BarMark(
-                        x: .value("Votes", item.count),
-                        y: .value("Player", item.answeredName)
+                        x: .value("Stimmen", item.count),
+                        y: .value("Spieler", item.answeredName)
                     )
+                    .foregroundStyle(Color.accentColor.gradient)
+                    .cornerRadius(6)
                 }
             }
-            .chartXAxis {
-                AxisMarks(position: .bottom)
-            }
-            .chartYAxis {
-                AxisMarks(position: .leading)
-            }
             .frame(height: 250)
-            .padding(.horizontal)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding()
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
     }
-
 }
 

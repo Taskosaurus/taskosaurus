@@ -2,7 +2,7 @@ import Foundation
 
 class QuestionService {
     
-    let baseURL = "http://192.168.201.135:8080/api/question"
+    let baseURL = "http://192.168.137.135:8080/api/question"
 
     func fetchDailyQuestion(playerId: Int, groupId: Int, completion: @escaping (Result<Question, Error>) -> Void) {
             guard let url = URL(string: "\(baseURL)/getDailyQuestion") else { return }

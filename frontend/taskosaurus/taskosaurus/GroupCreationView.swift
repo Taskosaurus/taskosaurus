@@ -11,56 +11,67 @@ struct GroupCreationView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Spiel erstellen")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding(.bottom, 5)
-                
-                Text("Erstelle dein eigenes Spiel.")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                    .padding(.bottom, 15)
-                
-                TextField("Spielname", text: $groupName)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .overlay(RoundedRectangle(cornerRadius: 7)
-                        .stroke(creationSuccess == false ? Color.red : Color.clear, lineWidth: 1))
-                
-                ZStack {
-                    if let message = feedbackMessage {
-                        Text(message)
-                            .foregroundColor(creationSuccess == true ? .green : .red)
-                            .font(.footnote)
+                if !viewModel.hasConnection {       //KInga
+                    Spacer()
+                    VStack(spacing: 16) {
+                        Text("Keine Verbindung zum Server")
+                            .foregroundColor(.black)
                             .multilineTextAlignment(.center)
-                            .transition(.opacity)
-                    } else {
-                        Text(" ").font(.footnote).opacity(0)
+                        ProgressView("Verbindung wird wiederhergestellt …")
                     }
-                }
-                .frame(height: 20)
-                .padding(.top, 5)
-                
-                Button(action: {
-                    createGroup()
-                }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Spiel erstellen")
-                    }
-                    .font(.title2)
-                    .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
+                    Spacer()        //
+                } else {
+                    Text("Spiel erstellen")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .padding(.bottom, 5)
+                    Text("Erstelle dein eigenes Spiel.")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .padding(.bottom, 15)
+                    
+                    TextField("Spielname", text: $groupName)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .overlay(RoundedRectangle(cornerRadius: 7)
+                            .stroke(creationSuccess == false ? Color.red : Color.clear, lineWidth: 1))
+                    
+                    ZStack {
+                        if let message = feedbackMessage {
+                            Text(message)
+                                .foregroundColor(creationSuccess == true ? .green : .red)
+                                .font(.footnote)
+                                .multilineTextAlignment(.center)
+                                .transition(.opacity)
+                        } else {
+                            Text(" ").font(.footnote).opacity(0)
+                        }
+                    }
+                    .frame(height: 20)
+                    .padding(.top, 5)
+                    
+                    Button(action: {
+                        createGroup()
+                    }) {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                            Text("Spiel erstellen")
+                        }
+                        .font(.title2)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
+                    .padding(.top)
+                    
+                    Spacer()
                 }
-                .padding(.top)
-                
-                Spacer()
             }
             .padding()
             .navigationDestination(item: $navigateToGroup) { group in
-                GroupDetailView(viewModel: viewModel, group: group)
+                GroupDetailView(viewModel: viewModel, groupId: group.id!)
             }
         }
     }
@@ -78,7 +89,7 @@ struct GroupCreationView: View {
                 case .success(let group):
                     self.creationSuccess = true
                     self.feedbackMessage = "Gruppe erfolgreich erstellt."
-                    self.navigateToGroup = group // Navigation auslösen
+                    self.navigateToGroup = group
                 case .failure(let error):
                     self.creationSuccess = false
                     self.feedbackMessage = "Fehler: \(error.localizedDescription)"
@@ -86,5 +97,5 @@ struct GroupCreationView: View {
             }
         }
     }
-
 }
+

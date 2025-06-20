@@ -8,6 +8,7 @@ struct LoginRegisterView: View {
     @State private var isLoading: Bool = false
     
     @ObservedObject var viewModel: ViewModel
+    @Environment(\.dismiss) private var dismiss  // <-- für Navigation zurück
     
     var body: some View {
         NavigationView {
@@ -33,7 +34,8 @@ struct LoginRegisterView: View {
                     .padding(.bottom, 20)
                     
                     VStack(spacing: 16) {
-                        TextField("Dein Name", text: $name)
+                        TextField(isLoginMode ? "Spieler-ID eingeben" : "Dein Name", text: $name)
+                            .keyboardType(isLoginMode ? .numberPad : .default)
                             .textFieldStyle(ModernTextFieldStyle())
                         
                         SecureField("Passwort", text: $password)
@@ -62,13 +64,10 @@ struct LoginRegisterView: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 20)
                     
-                    //Text("playerId: \(viewModel.player)")
-                    
                     Spacer()
                 }
                 .padding()
             }
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationBarHidden(true)
         }
     }
@@ -78,13 +77,23 @@ struct LoginRegisterView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             isLoading = false
             if isLoginMode {
-                print("Anmelden mit Name: \(name)")
-                // Login-Logik bleibt wie gehabt
+                print("Anmelden mit ID: \(name)")
+                if let id = Int(name) {
+                    UserDefaults.standard.set(id, forKey: "playerId")
+                    viewModel.playerId = id
+                    Task {
+                        await viewModel.loadPlayerFromId(id)
+                        dismiss() // <-- Zurück nach erfolgreichem Login
+                    }
+                } else {
+                    print("Ungültige ID")
+                }
             } else {
                 print("Registrieren mit Name: \(name)")
                 Task {
                     if let player = await viewModel.createAndSaveUser(playerName: name) {
                         print(player)
+                        dismiss() // <-- Zurück nach erfolgreicher Registrierung
                     }
                 }
             }

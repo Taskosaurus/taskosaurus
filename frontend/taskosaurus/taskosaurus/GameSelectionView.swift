@@ -2,53 +2,83 @@ import SwiftUI
 
 struct GameSelectionView: View {
     @ObservedObject var viewModel: ViewModel
+    @State private var showScanner = false
+    @State private var scannedCode: String?
 
     var body: some View {
-        if let errorMessage = viewModel.errorMessage {
-            Text(errorMessage)
-        }
         List {
-            if !viewModel.unAnsweredGroups.isEmpty {
-                Section {
-                    ForEach(viewModel.unAnsweredGroups) { group in
-                        NavigationLink(destination: GameView(viewModel: viewModel, group: group)) {
-                            groupRow(group: group)
+            if !viewModel.hasConnection {
+                // Verbindung unterbrochen:
+                ErrorView(viewModel: viewModel)
+            } else {
+                // Verbindung vorhanden:
+                if !viewModel.unAnsweredGroups.isEmpty {
+                    Section(header: Text("Nicht beantwortet")) {
+                        ForEach(viewModel.unAnsweredGroups) { group in
+                            NavigationLink(destination: GameView(viewModel: viewModel, groupId: group.id!)) {
+                                groupRow(group: group, icon: "circle.dotted", color: .blue)
+                            }
                         }
                     }
-                } header: {
-                    Text("Nicht beantwortet")
-                        .font(.headline)
-                        .textCase(.none)
                 }
-            }
-            if !viewModel.answeredGroups.isEmpty {
-                Section {
-                    ForEach(viewModel.answeredGroups) { group in
-                        NavigationLink(destination: GameView(viewModel: viewModel, group: group)) {
-                            groupRow(group: group)
+
+                if !viewModel.answeredGroups.isEmpty {
+                    Section(header: Text("Beantwortet")) {
+                        ForEach(viewModel.answeredGroups) { group in
+                            NavigationLink(destination: GameView(viewModel: viewModel, groupId: group.id!)) {
+                                groupRow(group: group, icon: "checkmark.circle.fill", color: .green)
+                            }
                         }
                     }
-                } header: {
-                    Text("Beantwortet")
-                        .font(.headline)
-                        .textCase(.none)
                 }
             }
+        }
+        // QR-Code-Button
+        Button(action: {
+            showScanner = true
+        }) {
+            HStack {
+                Image(systemName: "qrcode.viewfinder")
+                Text("QR Code scannen lassen")
+                    .bold()
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            .padding([.horizontal, .bottom])
+        }
+        .sheet(isPresented: $showScanner) {
+            QRScannerView(
+                onFound: { code in
+                    scannedCode = code
+                    showScanner = false
+                    print("QR Code erkannt: \(code)")
+                },
+                onCancel: {
+                    showScanner = false
+                }
+            )
         }
         .listStyle(.insetGrouped)
         .navigationTitle("Spiele")
         .onAppear {
+            // Nur automatisches Refresh starten – keine eigene Verbindungskontrolle mehr
             viewModel.startAutoRefresh()
         }
-
         
     }
-   
 
-    @ViewBuilder
-    private func groupRow(group: Group) -> some View {
+    private func groupRow(group: Group, icon: String, color: Color) -> some View {
         HStack {
+            Image(systemName: icon)
+                .foregroundColor(color)
+                .imageScale(.medium)
+
             Text(group.name)
+                .font(.body)
+
             Spacer()
 
             if let question = viewModel.latestQuestions[group.id ?? -1],
@@ -58,3 +88,4 @@ struct GameSelectionView: View {
         }
     }
 }
+
