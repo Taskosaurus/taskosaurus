@@ -36,7 +36,7 @@ public class GroupRepository {
 
         em.persist(createdGroup);
 
-        String link = "http://192.168.201.135:8080/api/group/join/" + createdGroup.getId();
+        String link = "http://192.168.137.135:8080/api/group/join/" + createdGroup.getId();
         createdGroup.setLink(link);
 
         return createdGroup;
