@@ -3,7 +3,7 @@ package at.htlleonding.taskosaurus.view.components
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
-import at.htlleonding.taskosaurus.model.Screen
+import at.htlleonding.taskosaurus.data.model.Screen
 import at.htlleonding.taskosaurus.view.utility.currentRouteHelper
 
 @Composable

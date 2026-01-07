@@ -60,4 +60,9 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation(libs.androidx.compose.material.icons.extended)
+
+    implementation(libs.retrofit) // Retrofit
+    implementation(libs.converter.gson) // JSON converter
+    implementation(libs.gson) // Optional: For Gson
+    implementation(libs.kotlinx.coroutines.android) // Coroutines
 }

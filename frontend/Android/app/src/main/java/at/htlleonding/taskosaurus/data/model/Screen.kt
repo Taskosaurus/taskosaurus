@@ -1,4 +1,4 @@
-package at.htlleonding.taskosaurus.model
+package at.htlleonding.taskosaurus.data.model
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
