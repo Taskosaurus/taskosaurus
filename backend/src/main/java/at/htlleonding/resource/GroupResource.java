@@ -26,7 +26,7 @@ public class GroupResource {
     @Path("list")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAll() {
-        return Response.status(400).entity(groupRepository.getAllGroups()).build();
+        return Response.status(200).entity(groupRepository.getAllGroups()).build();
     }
 
     @POST
