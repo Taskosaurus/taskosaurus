@@ -120,9 +120,10 @@ fun GameScreen(
                                         answeredPlayerId = player.id,
                                         onSuccess = {
                                             selectedPlayer = null
+                                            // TODO Sprint Demo: Zeige "Erfolgreich abgestimmt" Message
                                         },
                                         onError = { error ->
-                                            // Show error
+                                            // Zeige Error
                                         }
                                     )
                                 }
@@ -286,7 +287,7 @@ private fun PlayerCard(
 
 @Composable
 private fun ResultsSection(question: Question) {
-    val sortedAnswers = question.answers.sortedByDescending { it.count }
+   /* val sortedAnswers = question.answers.sortedByDescending { it.count }
     val maxCount = sortedAnswers.firstOrNull()?.count ?: 1
 
     Column(
@@ -322,6 +323,8 @@ private fun ResultsSection(question: Question) {
             }
         }
     }
+    */
+
 }
 
 @Composable
@@ -329,7 +332,7 @@ private fun ResultBar(
     name: String,
     count: Int,
     maxCount: Int
-) {
+) {/*
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -369,4 +372,5 @@ private fun ResultBar(
             )
         }
     }
+    */
 }

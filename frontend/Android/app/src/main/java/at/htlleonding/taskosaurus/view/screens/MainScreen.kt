@@ -3,9 +3,8 @@ package at.htlleonding.taskosaurus.view.screens
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -16,7 +15,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import at.htlleonding.taskosaurus.data.model.Screen
 import at.htlleonding.taskosaurus.view.components.MainNavigation
-import at.htlleonding.taskosaurus.view.screens.auth.LoginRegisterView
 import at.htlleonding.taskosaurus.view.screens.general.SettingsScreen
 import at.htlleonding.taskosaurus.view.screens.whoWouldRather.GameListScreen
 import at.htlleonding.taskosaurus.view.screens.whoWouldRather.GameScreen
@@ -28,16 +26,25 @@ fun MainScreen() {
     val navController = rememberNavController()
     val viewModel: ViewModel = viewModel()
 
-    // Check if player exists - if not, show login
-    val player by viewModel.player.collectAsState()
-    val startDestination = if (player == null) "auth" else Screen.Games.route
+    // Sprint Demo: Kein Login, direkt zu Games
+    val startDestination = Screen.Games.route
+
+    // 🔥 START AUTO-REFRESH SOFORT BEIM APP-START!
+    LaunchedEffect(Unit) {
+        viewModel.startAutoRefresh()
+    }
+
+    // Stop auto-refresh when leaving
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.stopAutoRefresh()
+        }
+    }
 
     Scaffold(
         bottomBar = {
-            // Only show bottom nav if logged in
-            if (player != null) {
-                MainNavigation(navController)
-            }
+            // Sprint Demo: Bottom Nav immer zeigen
+            MainNavigation(navController)
         }
     ) { paddingValues ->
         NavHost(
@@ -45,29 +52,12 @@ fun MainScreen() {
             startDestination = startDestination,
             modifier = Modifier.padding(paddingValues)
         ) {
-            // Auth Route
-            composable("auth") {
-                LoginRegisterView(
-                    viewModel = viewModel,
-                    onSuccess = {
-                        navController.navigate(Screen.Games.route) {
-                            popUpTo("auth") { inclusive = true }
-                        }
-                    }
-                )
-            }
-
             // Games Navigation
             navigation(
                 startDestination = "title",
                 route = Screen.Games.route
             ) {
                 composable("title") {
-                    // ✅ START AUTO-REFRESH HERE!
-                    LaunchedEffect(Unit) {
-                        viewModel.startAutoRefresh()
-                    }
-
                     TitleScreen(
                         onOpenGameList = {
                             navController.navigate("game_list")
@@ -76,7 +66,6 @@ fun MainScreen() {
                 }
 
                 composable("game_list") {
-                    // Auto-refresh is already running from title screen
                     GameListScreen(
                         viewModel = viewModel,
                         onGroupClick = { groupId ->
@@ -106,12 +95,9 @@ fun MainScreen() {
                     viewModel = viewModel,
                     onLogout = {
                         viewModel.logout()
-                        navController.navigate("auth") {
-                            popUpTo(0) { inclusive = true }
-                        }
                     },
                     onNavigateToLogin = {
-                        navController.navigate("auth")
+                        // Sprint Demo: Keine Login-Navigation
                     }
                 )
             }

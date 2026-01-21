@@ -130,18 +130,7 @@ fun SettingsScreen(
                     HorizontalDivider()
 
                     // Login with other account button
-                    ListItem(
-                        headlineContent = { Text("Mit anderem Account anmelden") },
-                        leadingContent = {
-                            Icon(
-                                imageVector = Icons.Default.PersonAdd,
-                                contentDescription = null
-                            )
-                        },
-                        modifier = Modifier.clickable {
-                            onNavigateToLogin()
-                        }
-                    )
+
                 }
             }
 

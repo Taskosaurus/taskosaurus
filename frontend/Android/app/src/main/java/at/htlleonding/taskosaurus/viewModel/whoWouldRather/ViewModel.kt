@@ -50,19 +50,19 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         }
 
     init {
-        // Like iOS: Load player from SharedPreferences on init
-        val savedPlayerId = PlayerPrefs.getPlayerId(application)
-        if (savedPlayerId != 0) {
-            _playerId.value = savedPlayerId
-            loadPlayerFromId(savedPlayerId)
-        } else {
-            // Fallback: load player with ID 1 (like iOS does)
-            loadPlayerFromId(1)
-        }
+        // 🔧 SPRINT DEMO: Immer Player ID 1!
+        _playerId.value = 1
+        PlayerPrefs.savePlayer(application, Player(id = 1, name = "DemoUser"))
+
+        // 🔥 SOFORT laden beim Start!
+        loadPlayerFromId(1)
     }
 
     fun startAutoRefresh() {
-        fetchGroups()
+        // 🔥 Sofort einmal fetchen!
+        if (_player.value != null) {
+            fetchGroups()
+        }
 
         autoRefreshJob?.cancel()
         autoRefreshJob = viewModelScope.launch {
@@ -110,6 +110,9 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                 _player.value = loadedPlayer
                 _playerId.value = id
                 _hasConnection.value = true
+
+                // 🔥 SOFORT nach Player-Load: Groups laden!
+                fetchGroups()
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error loading player", e)
                 _hasConnection.value = false
@@ -120,11 +123,18 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
     private fun fetchGroups() {
         viewModelScope.launch {
             try {
-                val player = _player.value ?: return@launch
+                val player = _player.value
+                if (player == null) {
+                    Log.w("ViewModel", "Cannot fetch groups: No player")
+                    return@launch
+                }
 
+                Log.d("ViewModel", "Fetching groups for player: ${player.name}")
                 val groups = RetrofitInstance.groupApi.getJoinedGroups(player)
                 _groups.value = groups
                 _hasConnection.value = true
+
+                Log.d("ViewModel", "Loaded ${groups.size} groups")
 
                 // Load questions for each group
                 loadQuestionsForGroups()
@@ -137,12 +147,15 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun loadQuestionsForGroups() {
         val playerId = _playerId.value
+        val playerName = _player.value?.name ?: ""
+
+        Log.d("ViewModel", "Loading questions for ${_groups.value.size} groups")
 
         _groups.value.forEach { group ->
             try {
                 val request = DailyQuestionRequest(
                     id = playerId,
-                    name = _player.value?.name ?: "",
+                    name = playerName,
                     groupId = group.id,
                     date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
                 )
@@ -150,10 +163,14 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                 val question = RetrofitInstance.questionApi.getDailyQuestion(request)
                 _latestQuestions.value = _latestQuestions.value + (group.id to question)
                 _hasConnection.value = true
+
+                Log.d("ViewModel", "Loaded question for group ${group.name}")
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error fetching question for group ${group.id}", e)
             }
         }
+
+        Log.d("ViewModel", "All questions loaded. Total: ${_latestQuestions.value.size}")
     }
 
     fun submitVote(
