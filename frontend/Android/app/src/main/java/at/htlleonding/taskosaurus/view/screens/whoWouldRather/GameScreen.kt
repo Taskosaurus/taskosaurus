@@ -46,10 +46,15 @@ fun GameScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = group?.name ?: "Gruppe",
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = group?.name ?: "Gruppe",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {

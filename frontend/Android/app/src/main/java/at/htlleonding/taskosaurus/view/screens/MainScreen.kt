@@ -81,7 +81,8 @@ fun MainScreen() {
                         viewModel = viewModel,
                         onGroupClick = { groupId ->
                             navController.navigate("game/$groupId")
-                        }
+                        },
+                        onNavigateBack = { navController.navigateUp() }
                     )
                 }
 
