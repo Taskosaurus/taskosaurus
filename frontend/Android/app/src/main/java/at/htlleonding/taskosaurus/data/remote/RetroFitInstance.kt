@@ -12,17 +12,29 @@ object RetrofitInstance {
             val request = chain.request().newBuilder()
                 .addHeader("User-Agent", "TaskosaurusApp/1.0")
                 .addHeader("Accept", "application/json")
+                .addHeader("Content-Type", "application/json")
                 .build()
             chain.proceed(request)
         }
         .build()
 
-    val api: GroupApiService by lazy {
+    private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(GroupApiService::class.java)
+    }
+
+    val groupApi: GroupApiService by lazy {
+        retrofit.create(GroupApiService::class.java)
+    }
+
+    val playerApi: PlayerApiService by lazy {
+        retrofit.create(PlayerApiService::class.java)
+    }
+
+    val questionApi: QuestionApiService by lazy {
+        retrofit.create(QuestionApiService::class.java)
     }
 }
