@@ -71,7 +71,12 @@ fun MainScreen() {
                     TitleScreen(
                         onOpenGameList = {
                             navController.navigate("game_list")
-                        }
+                        },
+                        onGameCreated = { groupId ->
+                            navController.navigate("game/$groupId")
+                            // TODO: navigate to the player list view, not the game view with question
+                        },
+                        viewModel = viewModel
                     )
                 }
 
@@ -81,8 +86,7 @@ fun MainScreen() {
                         viewModel = viewModel,
                         onGroupClick = { groupId ->
                             navController.navigate("game/$groupId")
-                        },
-                        onNavigateBack = { navController.navigateUp() }
+                        }
                     )
                 }
 
@@ -93,10 +97,7 @@ fun MainScreen() {
                     val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
                     GameScreen(
                         groupId = groupId,
-                        viewModel = viewModel,
-                        onNavigateBack = {
-                            navController.navigateUp()
-                        }
+                        viewModel = viewModel
                     )
                 }
             }

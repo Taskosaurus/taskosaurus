@@ -5,7 +5,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,8 +22,7 @@ import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 @Composable
 fun GameListScreen(
     viewModel: ViewModel = viewModel(),
-    onGroupClick: (Int) -> Unit,
-    onNavigateBack: () -> Unit
+    onGroupClick: (Int) -> Unit
 ) {
     val hasConnection by viewModel.hasConnection.collectAsState()
     val questions by viewModel.latestQuestions.collectAsState()
@@ -47,14 +45,6 @@ fun GameListScreen(
                         Text(
                             text = "Gruppen",
                             style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Zurück"
                         )
                     }
                 },

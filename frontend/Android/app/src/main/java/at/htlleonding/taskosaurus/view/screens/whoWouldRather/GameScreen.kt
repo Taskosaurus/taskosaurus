@@ -29,8 +29,7 @@ import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 @Composable
 fun GameScreen(
     groupId: Int,
-    viewModel: ViewModel = viewModel(),
-    onNavigateBack: () -> Unit
+    viewModel: ViewModel = viewModel()
 ) {
     val groups by viewModel.groups.collectAsState()
     val questions by viewModel.latestQuestions.collectAsState()
@@ -53,14 +52,6 @@ fun GameScreen(
                         Text(
                             text = group?.name ?: "Gruppe",
                             style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Zurück"
                         )
                     }
                 },

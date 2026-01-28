@@ -13,11 +13,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 
 @Composable
 fun TitleScreen(
-    onOpenGameList: () -> Unit
+    onOpenGameList: () -> Unit,
+    onGameCreated: (Int) -> Unit, // Callback to navigate to the new game
+    viewModel: ViewModel = viewModel()
 ) {
+    var showCreateDialog by remember { mutableStateOf(false) }
+    var groupName by remember { mutableStateOf("") }
+    var isSubmitting by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -31,9 +39,7 @@ fun TitleScreen(
             color = MaterialTheme.colorScheme.primaryContainer,
             shape = MaterialTheme.shapes.extraLarge
         ) {
-            Box(
-                contentAlignment = Alignment.Center
-            ) {
+            Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = Icons.Outlined.People,
                     contentDescription = null,
@@ -45,7 +51,6 @@ fun TitleScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Title
         Text(
             text = "Wer würde eher?",
             style = MaterialTheme.typography.headlineLarge,
@@ -55,7 +60,6 @@ fun TitleScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Subtitle
         Text(
             text = "Entdecke was deine Freunde wählen würden",
             style = MaterialTheme.typography.bodyLarge,
@@ -66,7 +70,7 @@ fun TitleScreen(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Buttons
+        // Play Button
         FilledTonalButton(
             onClick = { onOpenGameList() },
             modifier = Modifier
@@ -74,37 +78,87 @@ fun TitleScreen(
                 .padding(horizontal = 24.dp)
                 .height(56.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
+            Icon(Icons.Default.PlayArrow, null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Jetzt spielen",
-                style = MaterialTheme.typography.labelLarge
-            )
+            Text("Jetzt spielen")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Create Button - Now opens the Dialog
         OutlinedButton(
-            onClick = { },
+            onClick = { showCreateDialog = true },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .height(56.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
+            Icon(Icons.Default.Add, null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Spiel erstellen",
-                style = MaterialTheme.typography.labelLarge
-            )
+            Text("Spiel erstellen")
         }
+    }
+
+    // --- Create Game Dialog ---
+    if (showCreateDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!isSubmitting) showCreateDialog = false },
+            title = { Text("Neues Spiel erstellen") },
+            text = {
+                Column {
+                    Text(
+                        "Gib deiner Gruppe einen Namen, um zu starten.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    OutlinedTextField(
+                        value = groupName,
+                        onValueChange = { groupName = it },
+                        label = { Text("Gruppenname") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isSubmitting
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    enabled = groupName.isNotBlank() && !isSubmitting,
+                    onClick = {
+                        isSubmitting = true
+                        viewModel.createGroup(
+                            name = groupName,
+                            onSuccess = { newGroup ->
+                                isSubmitting = false
+                                showCreateDialog = false
+                                onGameCreated(newGroup.id)
+                            },
+                            onError = {
+                                isSubmitting = false
+                                // Handle error (e.g., show Toast)
+                            }
+                        )
+                    }
+                ) {
+                    if (isSubmitting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text("Erstellen")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showCreateDialog = false },
+                    enabled = !isSubmitting
+                ) {
+                    Text("Abbrechen")
+                }
+            }
+        )
     }
 }
