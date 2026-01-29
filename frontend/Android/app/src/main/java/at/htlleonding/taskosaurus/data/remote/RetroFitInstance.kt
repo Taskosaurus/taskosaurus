@@ -10,7 +10,7 @@ object RetrofitInstance {
     val BASE_URL = if (EmulatorHelper.isEmulator()) {
         "http://10.0.2.2:8080/api/"  // Emulator
     } else {
-        "http://localhost:8080/api/"  // Real device
+        "http://127.0.0.1:8080/api/"  // Real device
     }
 
     private val client = OkHttpClient.Builder()
