@@ -289,7 +289,7 @@ private fun ResultsSection(question: Question) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "Ergebnisse",
+            text = "Ergebnisse - TOP 3",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -308,7 +308,7 @@ private fun ResultsSection(question: Question) {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                sortedAnswers.forEach { answer ->
+                sortedAnswers.take(3).forEach { answer ->
                     ResultBar(
                         name = answer.answeredName,
                         count = answer.count,
