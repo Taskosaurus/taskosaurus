@@ -5,5 +5,6 @@ data class Player(
     val name: String
 )
 data class PlayerNameDto(
-    val name: String
+    val name: String,
+    val password: String
 )

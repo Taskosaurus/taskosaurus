@@ -13,6 +13,11 @@ interface PlayerApiService {
         @Body playerName: PlayerNameDto
     ): Player
 
+    @POST("player/login")
+    suspend fun getPlayerByDto(
+        @Body playerName: PlayerNameDto
+    ): Player
+
     @GET("player/get/{id}")
     suspend fun getPlayerById(
         @Path("id") id: Int

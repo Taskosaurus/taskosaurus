@@ -50,13 +50,11 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         }
 
     init {
-        // Like iOS: Load player from SharedPreferences on init
         val savedPlayerId = PlayerPrefs.getPlayerId(application)
         if (savedPlayerId != 0) {
             _playerId.value = savedPlayerId
             loadPlayerFromId(savedPlayerId)
         } else {
-            // Fallback: load player with ID 1 (like iOS does)
             loadPlayerFromId(1)
         }
     }
@@ -77,16 +75,9 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         autoRefreshJob?.cancel()
     }
 
-    fun loginWithId(id: Int) {
-        _playerId.value = id
-        PlayerPrefs.savePlayer(getApplication(), Player(id = id, name = ""))
-        loadPlayerFromId(id)
-    }
-
-    fun createAndSaveUser(playerName: String, onSuccess: (Player) -> Unit, onError: (String) -> Unit) {
+    fun createAndSaveUser(playerDto: PlayerNameDto, onSuccess: (Player) -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                val playerDto = PlayerNameDto(name = playerName)
                 val createdPlayer = RetrofitInstance.playerApi.createPlayer(playerDto)
 
                 _player.value = createdPlayer
@@ -98,6 +89,25 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error creating player", e)
                 _hasConnection.value = false
+                onError(e.message ?: "Unknown error")
+            }
+        }
+    }
+
+    fun loadPlayerFromDto(request: PlayerNameDto, onSuccess: (Player) -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val loadedPlayer = RetrofitInstance.playerApi.getPlayerByDto(request)
+                PlayerPrefs.savePlayer(getApplication(), Player(id = loadedPlayer.id, name = ""))
+                _player.value = loadedPlayer
+                _playerId.value = loadedPlayer.id
+                _hasConnection.value = true
+
+                onSuccess(loadedPlayer)
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Error loading player", e)
+                _hasConnection.value = false
+
                 onError(e.message ?: "Unknown error")
             }
         }

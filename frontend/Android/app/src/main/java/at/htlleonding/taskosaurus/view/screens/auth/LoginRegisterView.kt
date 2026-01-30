@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import at.htlleonding.taskosaurus.data.model.PlayerNameDto
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 import kotlinx.coroutines.launch
 
@@ -24,6 +25,7 @@ fun LoginRegisterView(
     onSuccess: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") } // New state for password
     var isLoginMode by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -57,7 +59,6 @@ fun LoginRegisterView(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Title
             Text(
                 text = "Willkommen",
                 style = MaterialTheme.typography.displaySmall,
@@ -67,7 +68,7 @@ fun LoginRegisterView(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Login / Registrieren
+            // Your original FilterChip Toggle
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -90,29 +91,33 @@ fun LoginRegisterView(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Input Field
+            // Name Input
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = {
-                    Text(if (isLoginMode) "Spieler-ID eingeben" else "Dein Name")
-                },
+                label = { Text("Benutzername") },
                 singleLine = true,
                 enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Password Input
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Passwort") },
+                singleLine = true,
+                enabled = !isLoading,
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = if (isLoginMode) KeyboardType.Number else KeyboardType.Text,
+                    keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = {
-                        handleAuth(
-                            name = name,
-                            isLoginMode = isLoginMode,
-                            viewModel = viewModel,
-                            onLoading = { isLoading = it },
-                            onError = { errorMessage = it },
-                            onSuccess = onSuccess
-                        )
+                        handleAuth(name, password, isLoginMode, viewModel, { isLoading = it }, { errorMessage = it }, onSuccess)
                     }
                 ),
                 modifier = Modifier.fillMaxWidth()
@@ -122,16 +127,9 @@ fun LoginRegisterView(
 
             Button(
                 onClick = {
-                    handleAuth(
-                        name = name,
-                        isLoginMode = isLoginMode,
-                        viewModel = viewModel,
-                        onLoading = { isLoading = it },
-                        onError = { errorMessage = it },
-                        onSuccess = onSuccess
-                    )
+                    handleAuth(name, password, isLoginMode, viewModel, { isLoading = it }, { errorMessage = it }, onSuccess)
                 },
-                enabled = name.isNotBlank() && !isLoading,
+                enabled = name.isNotBlank() && password.isNotBlank() && !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -155,6 +153,7 @@ fun LoginRegisterView(
 
 private fun handleAuth(
     name: String,
+    password: String,
     isLoginMode: Boolean,
     viewModel: ViewModel,
     onLoading: (Boolean) -> Unit,
@@ -162,26 +161,23 @@ private fun handleAuth(
     onSuccess: () -> Unit
 ) {
     onLoading(true)
+    val dto = PlayerNameDto(name, password)
 
     if (isLoginMode) {
-        // Login with ID
-        val playerId = name.toIntOrNull()
-        if (playerId != null) {
-            viewModel.loginWithId(playerId)
-            kotlinx.coroutines.GlobalScope.launch {
-                kotlinx.coroutines.delay(1000)
-                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
-                    onLoading(false)
-                    onSuccess()
-                }
+        viewModel.loadPlayerFromDto(
+            request = dto,
+            onSuccess = {
+                onLoading(false)
+                onSuccess()
+            },
+            onError = { error ->
+                onLoading(false)
+                onError(error)
             }
-        } else {
-            onLoading(false)
-            onError("Ungültige Spieler-ID")
-        }
+        )
     } else {
         viewModel.createAndSaveUser(
-            playerName = name,
+            playerDto = dto,
             onSuccess = {
                 onLoading(false)
                 onSuccess()

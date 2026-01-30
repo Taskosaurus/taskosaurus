@@ -15,6 +15,8 @@ public class Player {
     Long id;
     String name;
 
+    String password;
+
     @ManyToMany
     @JoinTable(
             name="player_group",
@@ -53,5 +55,13 @@ public class Player {
 
     public void setGroup(List<EntityGroup> group) {
         this.groups = group;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

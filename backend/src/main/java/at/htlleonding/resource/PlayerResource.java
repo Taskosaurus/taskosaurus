@@ -34,6 +34,19 @@ public class PlayerResource {
         return Response.status(Response.Status.OK).entity(createdPlayer).build();
     }
 
+    @POST
+    @Path("login")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response loginPlayer(PlayerNameDto player) {
+        Player selectedPlayer = playerRepository.getPlayerByName(player.name());
+        if (selectedPlayer == null || !selectedPlayer.getPassword().equals(player.password())) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        return Response.status(Response.Status.OK).entity(selectedPlayer).build();
+    }
+
     @GET
     @Path("get/{id}")
     @Produces(MediaType.APPLICATION_JSON)

@@ -29,15 +29,16 @@ public class PlayerRepository {
     }
 
     public Player getPlayerByName(String name) {
-        Player player = em.createQuery("SELECT p FROM Player p WHERE p.name = :name", Player.class)
-                .setParameter("name", name).getSingleResult();
-        if (player == null) throw new NotFoundException("Player with name " + name + " not found");
-        return player;
+        List<Player> players = em.createQuery("SELECT p FROM Player p WHERE p.name = :name", Player.class)
+                .setParameter("name", name).getResultList();
+        if (players.isEmpty()) throw new NotFoundException("Player with name " + name + " not found");
+        return players.getFirst();
     }
 
     @Transactional
     public Player createPlayerFromDto(PlayerNameDto player) {
         Player createdPlayer = new Player(player.name());
+        createdPlayer.setPassword(player.password());
         em.persist(createdPlayer);
 
         return createdPlayer;
