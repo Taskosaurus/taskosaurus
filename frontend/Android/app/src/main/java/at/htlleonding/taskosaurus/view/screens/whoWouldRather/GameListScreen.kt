@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -26,7 +25,6 @@ fun GameListScreen(
     val hasConnection by viewModel.hasConnection.collectAsState()
     val questions by viewModel.latestQuestions.collectAsState()
 
-    // Use computed properties from ViewModel
     val unansweredGroups = viewModel.unAnsweredGroups
     val answeredGroups = viewModel.answeredGroups
 
@@ -37,27 +35,22 @@ fun GameListScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Gruppen",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        // TODO: insert QR Code Scanner
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.QrCodeScanner,
-                            contentDescription = "QR-Code scannen"
-                        )
-                    }
+                    Text(
+                        text = "Gruppen",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+                // TODO: insert QR Code Scanner
+            }) {
+                Icon(
+                    imageVector = Icons.Filled.QrCodeScanner,
+                    contentDescription = "QR-Code scannen"
+                )
+            }
         }
     ) { paddingValues ->
         LazyColumn(
@@ -87,7 +80,6 @@ fun GameListScreen(
                 }
             }
 
-            // Nicht beantwortet Section
             if (unansweredGroups.isNotEmpty()) {
                 item {
                     Text(
@@ -109,14 +101,13 @@ fun GameListScreen(
                         totalCount = totalCount,
                         isAnswered = false,
                         shortenedQuestion = question?.shortenedQuestion,
-                        currentLeader = null, // Don't show leader for unanswered
+                        currentLeader = null,
                         leaderVoteCount = 0,
                         onClick = { onGroupClick(group.id) }
                     )
                 }
             }
 
-            // Beantwortet Section
             if (answeredGroups.isNotEmpty()) {
                 item {
                     Text(
@@ -132,7 +123,6 @@ fun GameListScreen(
                     val votedCount = question?.answers?.sumOf { it.count } ?: 0
                     val totalCount = group.players?.size ?: 0
 
-                    // Get leader vote count
                     val leaderVoteCount = question?.answers
                         ?.maxByOrNull { it.count }
                         ?.count ?: 0
@@ -152,3 +142,4 @@ fun GameListScreen(
         }
     }
 }
+

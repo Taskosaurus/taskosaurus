@@ -19,87 +19,90 @@ import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 @Composable
 fun TitleScreen(
     onOpenGameList: () -> Unit,
-    onGameCreated: (Int) -> Unit, // Callback to navigate to the new game
+    onGameCreated: (Int) -> Unit,
     viewModel: ViewModel = viewModel()
 ) {
     var showCreateDialog by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
     var isSubmitting by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Icon Illustration
-        Surface(
-            modifier = Modifier.size(120.dp),
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = MaterialTheme.shapes.extraLarge
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Outlined.People,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        floatingActionButton = {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ExtendedFloatingActionButton(
+                    onClick = { onOpenGameList() },
+                    icon = { Icon(Icons.Default.PlayArrow, null) },
+                    text = { Text("Jetzt spielen") },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+
+                ExtendedFloatingActionButton(
+                    onClick = { showCreateDialog = true },
+                    icon = { Icon(Icons.Default.Add, null) },
+                    text = { Text("Spiel erstellen") },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = "Wer würde eher?",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Entdecke was deine Freunde wählen würden",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 48.dp)
-        )
-
-        Spacer(modifier = Modifier.height(48.dp))
-
-        // Play Button
-        FilledTonalButton(
-            onClick = { onOpenGameList() },
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .height(56.dp)
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally, // Alles im Container mittig ausrichten
+            verticalArrangement = Arrangement.Top
         ) {
-            Icon(Icons.Default.PlayArrow, null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Jetzt spielen")
-        }
+            Spacer(modifier = Modifier.height(64.dp))
 
-        Spacer(modifier = Modifier.height(12.dp))
+            // Icon Illustration (zentriert)
+            Surface(
+                modifier = Modifier.size(80.dp),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = MaterialTheme.shapes.large
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.People,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
 
-        // Create Button - Now opens the Dialog
-        OutlinedButton(
-            onClick = { showCreateDialog = true },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .height(56.dp)
-        ) {
-            Icon(Icons.Default.Add, null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Spiel erstellen")
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Haupt-Titel (JETZT AUCH MITTIG)
+            Text(
+                text = "Wer würde eher?",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center, // Zentriert
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Untertitel (ZENTRIERT)
+            Text(
+                text = "Entdecke was deine Freunde wählen würden. Erstelle eine Gruppe oder tritt einem bestehenden Spiel bei.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center, // Zentriert
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 
-    // --- Create Game Dialog ---
+    // --- Dialog bleibt gleich ---
     if (showCreateDialog) {
         AlertDialog(
             onDismissRequest = { if (!isSubmitting) showCreateDialog = false },
@@ -133,10 +136,7 @@ fun TitleScreen(
                                 showCreateDialog = false
                                 onGameCreated(newGroup.id)
                             },
-                            onError = {
-                                isSubmitting = false
-                                // Handle error (e.g., show Toast)
-                            }
+                            onError = { isSubmitting = false }
                         )
                     }
                 ) {

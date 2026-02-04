@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -45,23 +44,10 @@ fun GameScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = group?.name ?: "Gruppe",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* TODO: Group detail */ }) {
-                        Icon(
-                            imageVector = Icons.Default.Groups,
-                            contentDescription = "Gruppenmitglieder"
-                        )
-                    }
+                    Text(
+                        text = group?.name ?: "Gruppe",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
             )
         }
@@ -73,7 +59,6 @@ fun GameScreen(
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             if (group == null || question == null) {
-                // Loading
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -86,7 +71,6 @@ fun GameScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Vote Progress Header
                     VoteProgressHeader(
                         votedCount = question.answers.sumOf { it.count },
                         totalCount = group.players?.size ?: 0
@@ -94,17 +78,14 @@ fun GameScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Question Card
                     QuestionCard(question = question.question)
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Content based on state
                     if (question.answered) {
-                        // Show Results
                         ResultsSection(question = question)
                     } else {
-                        // Show Voting UI
+                        // VotingSection mit FAB über Abstimmen-Button
                         VotingSection(
                             players = group.players ?: emptyList(),
                             selectedPlayer = selectedPlayer,
@@ -114,12 +95,8 @@ fun GameScreen(
                                     viewModel.submitVote(
                                         groupId = groupId,
                                         answeredPlayerId = player.id,
-                                        onSuccess = {
-                                            selectedPlayer = null
-                                        },
-                                        onError = { error ->
-                                            // Show error
-                                        }
+                                        onSuccess = { selectedPlayer = null },
+                                        onError = { error ->  }
                                     )
                                 }
                             }
@@ -141,13 +118,13 @@ private fun VoteProgressHeader(votedCount: Int, totalCount: Int) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Start     //"Start" ist links
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         LinearProgressIndicator(
-            progress = { votedCount.toFloat() / totalCount.coerceAtLeast(1).toFloat() },
+            progress = votedCount.toFloat() / totalCount.coerceAtLeast(1).toFloat(),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(6.dp)
@@ -185,13 +162,14 @@ private fun VotingSection(
     onPlayerSelect: (Player) -> Unit,
     onVoteSubmit: () -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Player List
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        // Spieler-Liste
         LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 100.dp),
+            contentPadding = PaddingValues(0.dp)
         ) {
             items(players) { player ->
                 PlayerCard(
@@ -199,24 +177,40 @@ private fun VotingSection(
                     isSelected = selectedPlayer == player,
                     onClick = { onPlayerSelect(player) }
                 )
+                Divider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                    thickness = 1.dp
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Vote Button
+        // Abstimmen-Button unten zentriert
         Button(
             onClick = onVoteSubmit,
             enabled = selectedPlayer != null,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(56.dp)
+                .align(Alignment.BottomCenter),
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
                 text = "Abstimmen",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        // FAB über dem Button, unten rechts
+        FloatingActionButton(
+            onClick = { /* TODO: QR-Code Scanner */ },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 60.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Groups,
+                contentDescription = "Gruppenmitglieder"
             )
         }
     }
@@ -237,16 +231,16 @@ private fun PlayerCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .border(
                 width = 2.dp,
                 color = borderColor,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .clickable(onClick = onClick),
+                shape = RoundedCornerShape(0.dp)
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -254,7 +248,6 @@ private fun PlayerCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -292,15 +285,17 @@ private fun ResultsSection(question: Question) {
             text = "Ergebnisse - TOP 3",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
         )
 
+        // Card geht über die volle Breite (shape = 0.dp)
         Card(
             modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(0.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             ),
-            elevation = CardDefaults.cardElevation(4.dp)
+            elevation = CardDefaults.cardElevation(1.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -314,6 +309,13 @@ private fun ResultsSection(question: Question) {
                         count = answer.count,
                         maxCount = maxCount
                     )
+                    // Optional: Ein Divider zwischen den Ergebnissen
+                    if (answer != sortedAnswers.take(3).last()) {
+                        HorizontalDivider(
+                            thickness = 0.5.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    }
                 }
             }
         }
