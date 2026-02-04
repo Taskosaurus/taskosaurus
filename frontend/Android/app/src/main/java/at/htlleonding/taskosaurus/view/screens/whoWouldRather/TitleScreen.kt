@@ -1,5 +1,6 @@
 package at.htlleonding.taskosaurus.view.screens.whoWouldRather
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -10,6 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -26,6 +32,8 @@ fun TitleScreen(
     var groupName by remember { mutableStateOf("") }
     var isSubmitting by remember { mutableStateOf(false) }
 
+    val infiniteTransition = rememberInfiniteTransition(label = "background")
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
@@ -33,12 +41,23 @@ fun TitleScreen(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                val playButtonScale by infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1.05f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1000, easing = EaseInOut),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "playPulse"
+                )
+
                 ExtendedFloatingActionButton(
                     onClick = { onOpenGameList() },
                     icon = { Icon(Icons.Default.PlayArrow, null) },
                     text = { Text("Jetzt spielen") },
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.scale(playButtonScale)
                 )
 
                 ExtendedFloatingActionButton(
@@ -51,58 +70,90 @@ fun TitleScreen(
             }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally, // Alles im Container mittig ausrichten
-            verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(64.dp))
+            val gradientColors = listOf(
+                MaterialTheme.colorScheme.surface,
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                MaterialTheme.colorScheme.surface
+            )
 
-            // Icon Illustration (zentriert)
-            Surface(
-                modifier = Modifier.size(80.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = MaterialTheme.shapes.large
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Outlined.People,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = gradientColors
+                        )
                     )
+            )
+
+            FloatingQuestionCards(infiniteTransition)
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                val iconScale by infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1.1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(2000, easing = EaseInOutCubic),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "iconPulse"
+                )
+
+                Surface(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .scale(iconScale),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    shadowElevation = 8.dp
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Outlined.People,
+                            contentDescription = null,
+                            modifier = Modifier.size(50.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Text(
+                    text = "Wer würde eher?",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Entdecke was deine Freunde wählen würden",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Haupt-Titel (JETZT AUCH MITTIG)
-            Text(
-                text = "Wer würde eher?",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center, // Zentriert
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Untertitel (ZENTRIERT)
-            Text(
-                text = "Entdecke was deine Freunde wählen würden. Erstelle eine Gruppe oder tritt einem bestehenden Spiel bei.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center, // Zentriert
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 
-    // --- Dialog bleibt gleich ---
     if (showCreateDialog) {
         AlertDialog(
             onDismissRequest = { if (!isSubmitting) showCreateDialog = false },
@@ -160,5 +211,78 @@ fun TitleScreen(
                 }
             }
         )
+    }
+}
+
+@Composable
+fun FloatingQuestionCards(infiniteTransition: InfiniteTransition) {
+    val questions = listOf(
+        "eher auf Parties gehen?",
+        "eher Pizzaboden essen?",
+        "eher ein Geheimnis verraten?",
+        "eher spontan verreisen?"
+    )
+
+    questions.forEachIndexed { index, question ->
+        val offsetY by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 30f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    durationMillis = 3000 + index * 500,
+                    easing = EaseInOutCubic
+                ),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "cardFloat$index"
+        )
+
+        val rotation by infiniteTransition.animateFloat(
+            initialValue = -2f,
+            targetValue = 2f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    durationMillis = 2000 + index * 300,
+                    easing = EaseInOut
+                ),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "cardRotate$index"
+        )
+
+        val positions = listOf(
+            Offset(0.1f, 0.15f),
+            Offset(0.75f, 0.25f),
+            Offset(0.15f, 0.75f),
+            Offset(0.8f, 0.7f)
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            Card(
+                modifier = Modifier
+                    .offset(
+                        x = (positions[index].x * 300).dp,
+                        y = (positions[index].y * 600).dp + offsetY.dp
+                    )
+                    .rotate(rotation)
+                    .alpha(0.3f)
+                    .width(120.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Text(
+                    text = question,
+                    modifier = Modifier.padding(12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
