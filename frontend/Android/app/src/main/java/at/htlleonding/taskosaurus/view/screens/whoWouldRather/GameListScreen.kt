@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -109,6 +108,9 @@ fun GameListScreen(
                         votedCount = votedCount,
                         totalCount = totalCount,
                         isAnswered = false,
+                        shortenedQuestion = question?.shortenedQuestion,
+                        currentLeader = null, // Don't show leader for unanswered
+                        leaderVoteCount = 0,
                         onClick = { onGroupClick(group.id) }
                     )
                 }
@@ -130,11 +132,19 @@ fun GameListScreen(
                     val votedCount = question?.answers?.sumOf { it.count } ?: 0
                     val totalCount = group.players?.size ?: 0
 
+                    // Get leader vote count
+                    val leaderVoteCount = question?.answers
+                        ?.maxByOrNull { it.count }
+                        ?.count ?: 0
+
                     GroupListItem(
                         group = group,
                         votedCount = votedCount,
                         totalCount = totalCount,
                         isAnswered = true,
+                        shortenedQuestion = question?.shortenedQuestion,
+                        currentLeader = question?.currentLeader,
+                        leaderVoteCount = leaderVoteCount,
                         onClick = { onGroupClick(group.id) }
                     )
                 }

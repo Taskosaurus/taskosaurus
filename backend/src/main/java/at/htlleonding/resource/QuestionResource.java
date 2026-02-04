@@ -11,9 +11,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 
-import javax.swing.*;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 
 @Path("/api/question/")
@@ -63,7 +62,28 @@ public class QuestionResource {
 
         boolean hasAnswered = questionRepository.playerHasAnsweredQuestion(player, group, requestedDate);
 
-        DailyQuestionResponseDto response = new DailyQuestionResponseDto(hasAnswered, requestedDate, question.getQuestion(), answers);
+        // Determine current leader (person with most votes)
+        String currentLeader = null;
+        if (!answers.isEmpty()) {
+            currentLeader = answers.stream()
+                    .max(Comparator.comparingLong(GroupQuestionAnswerCollectedDto::count))
+                    .map(GroupQuestionAnswerCollectedDto::answeredName)
+                    .orElse(null);
+        }
+
+        // Use shortened question if available, otherwise fall back to full question
+        String shortenedQuestion = question.getShortenedQuestion() != null
+                ? question.getShortenedQuestion()
+                : question.getQuestion();
+
+        DailyQuestionResponseDto response = new DailyQuestionResponseDto(
+                hasAnswered,
+                requestedDate,
+                question.getQuestion(),
+                shortenedQuestion,
+                currentLeader,
+                answers
+        );
 
         return Response.status(Response.Status.OK).entity(response).build();
     }

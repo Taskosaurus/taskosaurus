@@ -16,6 +16,9 @@ public class Question {
     private Long id;
     private String question;
 
+    @Column(name = "shortened_question", length = 100)
+    private String shortenedQuestion;
+
     @OneToMany(mappedBy = "question")
     @JsonIgnoreProperties({"question"})
     @JsonIgnore
@@ -38,6 +41,14 @@ public class Question {
 
     public void setQuestion(String question) {
         this.question = question;
+    }
+
+    public String getShortenedQuestion() {
+        return shortenedQuestion;
+    }
+
+    public void setShortenedQuestion(String shortenedQuestion) {
+        this.shortenedQuestion = shortenedQuestion;
     }
 
     public List<GroupQuestion> getGroupQuestions() {

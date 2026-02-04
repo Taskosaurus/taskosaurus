@@ -74,3 +74,18 @@ INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id)
 INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (10, 8, 2);
 INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (12, 12, 2);
 INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (13, 8, 2);
+
+
+UPDATE Question SET shortened_question = 'In Fremdsprache mit Akzent sprechen' WHERE question LIKE '%Fremdsprache zu kommunizieren%';
+UPDATE Question SET shortened_question = 'Zu spät wegen leerem Handy' WHERE question LIKE '%Handyakku fast leer%';
+UPDATE Question SET shortened_question = 'YOLO leben' WHERE question LIKE '%Man lebt nur einmal%';
+UPDATE Question SET shortened_question = 'Fotos nicht teilen' WHERE question LIKE '%Gruppenreise dokumentieren%';
+UPDATE Question SET shortened_question = 'Schnell überreagieren' WHERE question LIKE '%überreagiert%';
+UPDATE Question SET shortened_question = 'Unvorhersehbarer Musikgeschmack' WHERE question LIKE '%unvorhersehbarsten Musikgeschmack%';
+UPDATE Question SET shortened_question = 'Dreckige Wohnung aushalten' WHERE question LIKE '%dreckigen Wohnung%';
+UPDATE Question SET shortened_question = 'Neue Trends mitmachen' WHERE question LIKE '%Teil von neuen Trends%';
+UPDATE Question SET shortened_question = 'Für Freund kriminell werden' WHERE question LIKE '%kriminell werden%';
+UPDATE Question SET shortened_question = 'Aus Strafzettel herausreden' WHERE question LIKE '%Strafzettel%';
+UPDATE Question SET shortened_question = 'TikTok-Tanz performen' WHERE question LIKE '%TikTok-Tanzperformance%';
+UPDATE Question SET shortened_question = 'Nicht politisch korrekt' WHERE question LIKE '%politisch korrekt%';
+UPDATE Question SET shortened_question = 'Alleine Nerven verlieren' WHERE question LIKE '%leeren Raum%';
