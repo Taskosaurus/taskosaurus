@@ -1,8 +1,6 @@
 package at.htlleonding.taskosaurus.view.screens.whoWouldRather
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -41,6 +39,7 @@ fun GameScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = Color(0xFFF7F9FC),
         topBar = {
             TopAppBar(
                 title = {
@@ -48,7 +47,8 @@ fun GameScreen(
                         text = group?.name ?: "Gruppe",
                         style = MaterialTheme.typography.bodyLarge
                     )
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { paddingValues ->
@@ -56,13 +56,9 @@ fun GameScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             if (group == null || question == null) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             } else {
@@ -77,15 +73,12 @@ fun GameScreen(
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
-
                     QuestionCard(question = question.question)
-
                     Spacer(modifier = Modifier.height(24.dp))
 
                     if (question.answered) {
                         ResultsSection(question = question)
                     } else {
-                        // VotingSection mit FAB über Abstimmen-Button
                         VotingSection(
                             players = group.players ?: emptyList(),
                             selectedPlayer = selectedPlayer,
@@ -96,7 +89,7 @@ fun GameScreen(
                                         groupId = groupId,
                                         answeredPlayerId = player.id,
                                         onSuccess = { selectedPlayer = null },
-                                        onError = { error ->  }
+                                        onError = { }
                                     )
                                 }
                             }
@@ -109,89 +102,62 @@ fun GameScreen(
 }
 
 @Composable
-private fun VoteProgressHeader(votedCount: Int, totalCount: Int) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = "Abgestimmt: $votedCount/$totalCount",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Start     //"Start" ist links
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LinearProgressIndicator(
-            progress = votedCount.toFloat() / totalCount.coerceAtLeast(1).toFloat(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp)),
-            color = MaterialTheme.colorScheme.primary,
-        )
-    }
-}
-
-@Composable
-private fun QuestionCard(question: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Text(
-            text = question,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-        )
-    }
-}
-
-@Composable
 private fun VotingSection(
     players: List<Player>,
     selectedPlayer: Player?,
     onPlayerSelect: (Player) -> Unit,
     onVoteSubmit: () -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-
-        // Spieler-Liste
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 100.dp),
-            contentPadding = PaddingValues(0.dp)
+    Column(modifier = Modifier.fillMaxSize()) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            items(players) { player ->
-                PlayerCard(
-                    player = player,
-                    isSelected = selectedPlayer == player,
-                    onClick = { onPlayerSelect(player) }
-                )
-                Divider(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-                    thickness = 1.dp
-                )
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(vertical = 4.dp)
+            ) {
+                items(players) { player ->
+                    PlayerCard(
+                        player = player,
+                        isSelected = selectedPlayer == player,
+                        onClick = { onPlayerSelect(player) }
+                    )
+                    if (player != players.last()) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                            thickness = 0.5.dp
+                        )
+                    }
+                }
             }
         }
 
-        // Abstimmen-Button unten zentriert
+        Spacer(modifier = Modifier.weight(1f))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            FloatingActionButton(
+                onClick = { /* TODO: Mitgliederliste */ },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Icon(Icons.Filled.Groups, contentDescription = "Mitglieder")
+            }
+        }
+
         Button(
             onClick = onVoteSubmit,
             enabled = selectedPlayer != null,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .align(Alignment.BottomCenter),
+                .height(56.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
@@ -200,76 +166,7 @@ private fun VotingSection(
                 fontWeight = FontWeight.SemiBold
             )
         }
-
-        // FAB über dem Button, unten rechts
-        FloatingActionButton(
-            onClick = { /* TODO: QR-Code Scanner */ },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 60.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Groups,
-                contentDescription = "Gruppenmitglieder"
-            )
-        }
-    }
-}
-
-@Composable
-private fun PlayerCard(
-    player: Player,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val borderColor = if (isSelected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        Color.Transparent
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .border(
-                width = 2.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(0.dp)
-            ),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        shape = RoundedCornerShape(0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = player.name.take(1).uppercase(),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Text(
-                text = player.name,
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
@@ -278,43 +175,28 @@ private fun ResultsSection(question: Question) {
     val sortedAnswers = question.answers.sortedByDescending { it.count }
     val maxCount = sortedAnswers.firstOrNull()?.count ?: 1
 
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Ergebnisse - TOP 3",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Card geht über die volle Breite (shape = 0.dp)
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(0.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(1.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 sortedAnswers.take(3).forEach { answer ->
-                    ResultBar(
-                        name = answer.answeredName,
-                        count = answer.count,
-                        maxCount = maxCount
-                    )
-                    // Optional: Ein Divider zwischen den Ergebnissen
+                    ResultBar(answer.answeredName, answer.count, maxCount)
                     if (answer != sortedAnswers.take(3).last()) {
-                        HorizontalDivider(
-                            thickness = 0.5.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
+                        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
                     }
                 }
             }
@@ -323,48 +205,87 @@ private fun ResultsSection(question: Question) {
 }
 
 @Composable
-private fun ResultBar(
-    name: String,
-    count: Int,
-    maxCount: Int
-) {
-    Column(
+private fun PlayerCard(player: Player, isSelected: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Box(
+                modifier = Modifier.size(42.dp).clip(CircleShape).background(
+                    if (isSelected) MaterialTheme.colorScheme.primary else Color(0xFFE8EAED)
+                ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    player.name.take(1).uppercase(),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = name,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = count.toString(),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                player.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black
             )
         }
+    }
+}
 
+@Composable
+private fun VoteProgressHeader(votedCount: Int, totalCount: Int) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Abgestimmt: $votedCount/$totalCount",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Start
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        LinearProgressIndicator(
+            progress = { votedCount.toFloat() / totalCount.coerceAtLeast(1).toFloat() },
+            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = Color(0xFFE8EAED)
+        )
+    }
+}
+
+@Composable
+private fun QuestionCard(question: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Text(
+            text = question,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(24.dp)
+        )
+    }
+}
+
+@Composable
+private fun ResultBar(name: String, count: Int, maxCount: Int) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            Text(count.toString(), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+        }
         Spacer(modifier = Modifier.height(6.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(count.toFloat() / maxCount.coerceAtLeast(1).toFloat())
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(MaterialTheme.colorScheme.primary)
-            )
+        Box(modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFFF1F3F4))) {
+            Box(modifier = Modifier.fillMaxHeight().fillMaxWidth(count.toFloat() / maxCount.coerceAtLeast(1).toFloat()).background(MaterialTheme.colorScheme.primary))
         }
     }
 }

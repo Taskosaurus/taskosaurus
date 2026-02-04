@@ -2,14 +2,16 @@ package at.htlleonding.taskosaurus.view.screens.general
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -56,9 +58,13 @@ fun SettingsScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), // Subtiler Background
         topBar = {
-            TopAppBar(
-                title = { Text("Einstellungen") }
+            CenterAlignedTopAppBar( // Zentriert für moderneren Look
+                title = { Text("Einstellungen", fontWeight = FontWeight.SemiBold) },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.Transparent // Verschmilzt mit dem Hintergrund
+                )
             )
         }
     ) { paddingValues ->
@@ -66,50 +72,65 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Player Info Section
+
             currentPlayer?.let { player ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Surface(
+                        modifier = Modifier.size(90.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        Column {
+                        Box(contentAlignment = Alignment.Center) {
                             Text(
-                                text = player.name,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                text = player.name.take(1).uppercase(),
+                                style = MaterialTheme.typography.displaySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Bold
                             )
                         }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Hallo ${player.name}!",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedButton(
+                        onClick = { /* TODO: Profil-Details */ },
+                        shape = RoundedCornerShape(50.dp),
+                        border = ButtonDefaults.outlinedButtonBorder.copy(
+                            width = 0.5.dp
+                        )
+                    ) {
+                        Text("Taskosaurus-Konto verwalten", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
 
-            // Actions Section
             Card(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
-                Column {
-                    // Logout Button
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    // Abmelden
                     ListItem(
                         headlineContent = { Text("Abmelden") },
                         leadingContent = {
@@ -119,40 +140,44 @@ fun SettingsScreen(
                                 tint = MaterialTheme.colorScheme.error
                             )
                         },
-                        modifier = Modifier.clickable {
-                            showLogoutDialog = true
-                        },
+                        modifier = Modifier.clickable { showLogoutDialog = true },
                         colors = ListItemDefaults.colors(
-                            headlineColor = MaterialTheme.colorScheme.error
+                            headlineColor = MaterialTheme.colorScheme.error,
+                            containerColor = Color.Transparent
                         )
                     )
 
-                    HorizontalDivider()
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
 
-                    // Login with other account button
+                    // Mit anderem Account anmelden
                     ListItem(
                         headlineContent = { Text("Mit anderem Account anmelden") },
                         leadingContent = {
                             Icon(
                                 imageVector = Icons.Default.PersonAdd,
-                                contentDescription = null
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
-                        modifier = Modifier.clickable {
-                            onNavigateToLogin()
-                        }
+                        modifier = Modifier.clickable { onNavigateToLogin() },
+                        colors = ListItemDefaults.colors(
+                            containerColor = Color.Transparent
+                        )
                     )
                 }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // App Version
             Text(
                 text = "Version 1.0.0",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.padding(bottom = 16.dp)
             )
         }
     }
