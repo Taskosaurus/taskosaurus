@@ -50,6 +50,50 @@ fun GameScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
+        },
+        floatingActionButton = {
+            if (group != null && question != null) {
+                FloatingActionButton(
+                    onClick = { /* TODO: Mitgliederliste */ },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.offset(
+                        x = if (!question.answered) (-15).dp else 0.dp,
+                        y = 0.dp
+                    )
+                ) {
+                    Icon(Icons.Filled.Groups, contentDescription = "Mitglieder")
+                }
+            }
+        },
+        bottomBar = {
+            if (question != null && !question.answered) {
+                Box(modifier = Modifier.padding(14.dp)) {
+                    Button(
+                        onClick = {
+                            selectedPlayer?.let { player ->
+                                viewModel.submitVote(
+                                    groupId = groupId,
+                                    answeredPlayerId = player.id,
+                                    onSuccess = { selectedPlayer = null },
+                                    onError = { }
+                                )
+                            }
+                        },
+                        enabled = selectedPlayer != null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "Abstimmen",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         Box(
@@ -65,7 +109,7 @@ fun GameScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
+                        .padding(horizontal = 16.dp)
                 ) {
                     VoteProgressHeader(
                         votedCount = question.answers.sumOf { it.count },
@@ -82,17 +126,7 @@ fun GameScreen(
                         VotingSection(
                             players = group.players ?: emptyList(),
                             selectedPlayer = selectedPlayer,
-                            onPlayerSelect = { selectedPlayer = it },
-                            onVoteSubmit = {
-                                selectedPlayer?.let { player ->
-                                    viewModel.submitVote(
-                                        groupId = groupId,
-                                        answeredPlayerId = player.id,
-                                        onSuccess = { selectedPlayer = null },
-                                        onError = { }
-                                    )
-                                }
-                            }
+                            onPlayerSelect = { selectedPlayer = it }
                         )
                     }
                 }
@@ -105,68 +139,35 @@ fun GameScreen(
 private fun VotingSection(
     players: List<Player>,
     selectedPlayer: Player?,
-    onPlayerSelect: (Player) -> Unit,
-    onVoteSubmit: () -> Unit
+    onPlayerSelect: (Player) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 4.dp)
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(vertical = 4.dp)
-            ) {
-                items(players) { player ->
-                    PlayerCard(
-                        player = player,
-                        isSelected = selectedPlayer == player,
-                        onClick = { onPlayerSelect(player) }
+            items(players) { player ->
+                PlayerCard(
+                    player = player,
+                    isSelected = selectedPlayer == player,
+                    onClick = { onPlayerSelect(player) }
+                )
+                if (player != players.last()) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        thickness = 0.5.dp
                     )
-                    if (player != players.last()) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                            thickness = 0.5.dp
-                        )
-                    }
                 }
             }
         }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            FloatingActionButton(
-                onClick = { /* TODO: Mitgliederliste */ },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.padding(bottom = 16.dp)
-            ) {
-                Icon(Icons.Filled.Groups, contentDescription = "Mitglieder")
-            }
-        }
-
-        Button(
-            onClick = onVoteSubmit,
-            enabled = selectedPlayer != null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text(
-                text = "Abstimmen",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
