@@ -12,6 +12,7 @@ import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -35,6 +36,28 @@ public class QuestionResource {
         List<Question> questions = questionRepository.getAllQuestions();
 
         return Response.status(Response.Status.OK).entity(questions).build();
+    }
+
+    @GET
+    @Path("random/{amount}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRandomQuestions(@PathParam("amount")  Integer amount) {
+        if (amount == null || !(amount > 0)) {
+            amount = 1;
+        }
+        List<Question> questions = questionRepository.getAllQuestions();
+        List<Question> randomQuestions = new ArrayList<>();
+
+        for (int i = 0; i < amount; i++) {
+            if (questions.size() <= 0){
+                break;
+            }
+            int randomIndex = (int) (Math.random() * questions.size());
+            randomQuestions.add(questions.get(randomIndex));
+            questions.remove(randomIndex);
+        }
+
+        return Response.status(Response.Status.OK).entity(randomQuestions).build();
     }
 
     @POST
@@ -107,4 +130,7 @@ public class QuestionResource {
 
         return getQuestion(new DailyQuestionRequestDto(answeringPlayer.getId(), answeringPlayer.getName(), answer.groupId(), requestedDate));
     }
+
+
+
 }

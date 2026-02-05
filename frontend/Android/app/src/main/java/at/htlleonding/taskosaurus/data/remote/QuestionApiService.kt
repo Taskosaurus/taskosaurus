@@ -8,6 +8,11 @@ interface QuestionApiService {
     @GET("question/list")
     suspend fun getAllQuestions(): List<Question>
 
+    @GET("question/random/{amount}")
+    suspend fun getRandomQuestions(
+        @Path("amount") amount: Int
+    ): List<Question>
+
     @POST("question/getDailyQuestion")
     suspend fun getDailyQuestion(
         @Body request: DailyQuestionRequest

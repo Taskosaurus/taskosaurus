@@ -19,6 +19,9 @@ import java.time.format.DateTimeFormatter
 class ViewModel(application: Application) : AndroidViewModel(application) {
 
     // State flows
+    private val _randomQuestions = MutableStateFlow<List<Question>>(emptyList())
+    val randomQuestions: StateFlow<List<Question>> get() = _randomQuestions
+
     private val _groups = MutableStateFlow<List<Group>>(emptyList())
     val groups: StateFlow<List<Group>> get() = _groups
 
@@ -57,6 +60,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             loadPlayerFromId(1)
         }
+        fetchRandomQuestions(4)
     }
 
     fun startAutoRefresh() {
@@ -126,6 +130,20 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    fun fetchRandomQuestions(amount: Int) {
+        viewModelScope.launch {
+            try {
+                val questions = RetrofitInstance.questionApi.getRandomQuestions(amount)
+                _randomQuestions.value = questions
+                _hasConnection.value = true
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Error loading random questions", e)
+                _hasConnection.value = false
+            }
+        }
+    }
+
 
     private fun fetchGroups() {
         viewModelScope.launch {

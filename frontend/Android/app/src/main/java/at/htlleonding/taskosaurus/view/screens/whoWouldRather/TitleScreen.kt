@@ -18,8 +18,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import at.htlleonding.taskosaurus.data.model.Question
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 
 @Composable
@@ -31,6 +34,8 @@ fun TitleScreen(
     var showCreateDialog by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
     var isSubmitting by remember { mutableStateOf(false) }
+
+    val questions by viewModel.randomQuestions.collectAsState()
 
     val infiniteTransition = rememberInfiniteTransition(label = "background")
 
@@ -91,7 +96,7 @@ fun TitleScreen(
                     )
             )
 
-            FloatingQuestionCards(infiniteTransition)
+            FloatingQuestionCards(infiniteTransition, questions)
 
             Column(
                 modifier = Modifier
@@ -215,13 +220,10 @@ fun TitleScreen(
 }
 
 @Composable
-fun FloatingQuestionCards(infiniteTransition: InfiniteTransition) {
-    val questions = listOf(
-        "eher auf Parties gehen?",
-        "eher Pizzaboden essen?",
-        "eher ein Geheimnis verraten?",
-        "eher spontan verreisen?"
-    )
+fun FloatingQuestionCards(
+    infiniteTransition: InfiniteTransition,
+    questions: List<Question>
+) {
 
     questions.forEachIndexed { index, question ->
         val offsetY by infiniteTransition.animateFloat(
@@ -276,11 +278,14 @@ fun FloatingQuestionCards(infiniteTransition: InfiniteTransition) {
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
                 Text(
-                    text = question,
+                    text = question.shortenedQuestion,
                     modifier = Modifier.padding(12.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 14.sp
                 )
             }
         }
