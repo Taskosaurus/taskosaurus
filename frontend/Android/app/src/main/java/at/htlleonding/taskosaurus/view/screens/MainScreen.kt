@@ -64,7 +64,6 @@ fun MainScreen() {
                 route = Screen.Games.route
             ) {
                 composable("title") {
-                    // ✅ START AUTO-REFRESH HERE!
                     LaunchedEffect(Unit) {
                         viewModel.startAutoRefresh()
                     }
