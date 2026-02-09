@@ -30,7 +30,8 @@ fun MainScreen() {
 
     // Check if player exists - if not, show login
     val player by viewModel.player.collectAsState()
-    val startDestination = if (player == null) "auth" else Screen.Games.route
+    val isReady by viewModel.isReady.collectAsState()
+
 
     Scaffold(
         bottomBar = {
@@ -40,82 +41,85 @@ fun MainScreen() {
             }
         }
     ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            // Auth Route
-            composable("auth") {
-                LoginRegisterView(
-                    viewModel = viewModel,
-                    onSuccess = {
-                        navController.navigate(Screen.Games.route) {
-                            popUpTo("auth") { inclusive = true }
-                        }
-                    }
-                )
-            }
-
-            // Games Navigation
-            navigation(
-                startDestination = "title",
-                route = Screen.Games.route
+        if (isReady) {
+            val startDestination = if (player != null) Screen.Games.route else "auth"
+            NavHost(
+                navController = navController,
+                startDestination = startDestination,
+                modifier = Modifier.padding(paddingValues)
             ) {
-                composable("title") {
-                    // ✅ START AUTO-REFRESH HERE!
-                    LaunchedEffect(Unit) {
-                        viewModel.startAutoRefresh()
-                    }
-
-                    TitleScreen(
-                        onOpenGameList = {
-                            navController.navigate("game_list")
-                        },
-                        onGameCreated = { groupId ->
-                            navController.navigate("game/$groupId")
-                            // TODO: navigate to the player list view, not the game view with question
-                        },
-                        viewModel = viewModel
-                    )
-                }
-
-                composable("game_list") {
-                    // Auto-refresh is already running from title screen
-                    GameListScreen(
+                // Auth Route
+                composable("auth") {
+                    LoginRegisterView(
                         viewModel = viewModel,
-                        onGroupClick = { groupId ->
-                            navController.navigate("game/$groupId")
+                        onSuccess = {
+                            navController.navigate(Screen.Games.route) {
+                                popUpTo("auth") { inclusive = true }
+                            }
                         }
                     )
                 }
 
-                composable(
-                    route = "game/{groupId}",
-                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
-                ) { backStackEntry ->
-                    val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
-                    GameScreen(
-                        groupId = groupId,
-                        viewModel = viewModel
-                    )
-                }
-            }
-
-            // Settings Route
-            composable(Screen.Settings.route) {
-                SettingsScreen(
-                    viewModel = viewModel,
-                    onLogout = {
-                        viewModel.logout()
-                        navController.navigate("auth") {
-                            popUpTo(0) { inclusive = true }
+                // Games Navigation
+                navigation(
+                    startDestination = "title",
+                    route = Screen.Games.route
+                ) {
+                    composable("title") {
+                        // ✅ START AUTO-REFRESH HERE!
+                        LaunchedEffect(Unit) {
+                            viewModel.startAutoRefresh()
                         }
-                    },
-                    onNavigateToLogin = {
-                        navController.navigate("auth")
+
+                        TitleScreen(
+                            onOpenGameList = {
+                                navController.navigate("game_list")
+                            },
+                            onGameCreated = { groupId ->
+                                navController.navigate("game/$groupId")
+                                // TODO: navigate to the player list view, not the game view with question
+                            },
+                            viewModel = viewModel
+                        )
                     }
-                )
+
+                    composable("game_list") {
+                        // Auto-refresh is already running from title screen
+                        GameListScreen(
+                            viewModel = viewModel,
+                            onGroupClick = { groupId ->
+                                navController.navigate("game/$groupId")
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = "game/{groupId}",
+                        arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                    ) { backStackEntry ->
+                        val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
+                        GameScreen(
+                            groupId = groupId,
+                            viewModel = viewModel
+                        )
+                    }
+                }
+
+                // Settings Route
+                composable(Screen.Settings.route) {
+                    SettingsScreen(
+                        viewModel = viewModel,
+                        onLogout = {
+                            viewModel.logout()
+                            navController.navigate("auth") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        },
+                        onNavigateToLogin = {
+                            navController.navigate("auth")
+                        }
+                    )
+                }
             }
         }
     }

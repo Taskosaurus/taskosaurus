@@ -73,7 +73,7 @@ INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id)
 INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (9, 6, 2);
 INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (10, 8, 2);
 INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (12, 12, 2);
-INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (13, 8, 2);
+INSERT INTO GroupQuestionAnswer (answering_player_id, answer, group_question_id) VALUES (6, 8, 2);
 
 
 UPDATE Question SET shortened_question = 'In Fremdsprache mit Akzent sprechen' WHERE question LIKE '%Fremdsprache zu kommunizieren%';

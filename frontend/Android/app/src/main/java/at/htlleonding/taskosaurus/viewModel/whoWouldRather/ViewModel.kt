@@ -31,6 +31,8 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
     private val _hasConnection = MutableStateFlow(true)
     val hasConnection: StateFlow<Boolean> get() = _hasConnection
 
+    private val _isReady = MutableStateFlow(false)
+    val isReady: StateFlow<Boolean> get() = _isReady
     private val _player = MutableStateFlow<Player?>(null)
     val player: StateFlow<Player?> get() = _player
 
@@ -52,6 +54,9 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
             question?.answered == true
         }
 
+    /*****
+     * INIT
+     */
     init {
         val savedPlayerId = PlayerPrefs.getPlayerId(application)
         if (savedPlayerId != 0) {
@@ -124,6 +129,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                 _player.value = loadedPlayer
                 _playerId.value = id
                 _hasConnection.value = true
+                _isReady.value = true
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error loading player", e)
                 _hasConnection.value = false
