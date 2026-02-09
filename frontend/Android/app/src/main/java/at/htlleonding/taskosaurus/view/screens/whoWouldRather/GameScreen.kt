@@ -1,5 +1,6 @@
 package at.htlleonding.taskosaurus.view.screens.whoWouldRather
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -10,10 +11,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import at.htlleonding.taskosaurus.data.model.*
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
@@ -36,7 +40,7 @@ fun GameScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color(0xFFF7F9FC),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -118,7 +122,7 @@ fun GameScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     if (question.answered) {
-                        ResultsSection(question = question)
+                        ResultsPodium(question = question)
                     } else {
                         VotingSection(
                             players = group.players ?: emptyList(),
@@ -141,7 +145,7 @@ private fun VotingSection(
     Card(
         modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         LazyColumn(
@@ -167,34 +171,177 @@ private fun VotingSection(
 }
 
 @Composable
-private fun ResultsSection(question: Question) {
+private fun ResultsPodium(question: Question) {
     val sortedAnswers = question.answers.sortedByDescending { it.count }
-    val maxCount = sortedAnswers.firstOrNull()?.count ?: 1
+    val top3 = sortedAnswers.take(3)
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    val infiniteTransition = rememberInfiniteTransition(label = "podium")
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(
-            text = "Ergebnisse - TOP 3",
-            style = MaterialTheme.typography.titleMedium,
+            text = "🏆 Die Gewinner 🏆",
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Bottom
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            if (top3.size >= 2) {
+                PodiumPlace(
+                    name = top3[1].answeredName,
+                    votes = top3[1].count,
+                    place = 2,
+                    height = 140.dp,
+                    color = Color(0xFFC0C0C0),
+                    infiniteTransition = infiniteTransition
+                )
+            } else {
+                Spacer(modifier = Modifier.width(100.dp))
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            if (top3.isNotEmpty()) {
+                PodiumPlace(
+                    name = top3[0].answeredName,
+                    votes = top3[0].count,
+                    place = 1,
+                    height = 180.dp,
+                    color = Color(0xFFFFD700),
+                    infiniteTransition = infiniteTransition
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            if (top3.size >= 3) {
+                PodiumPlace(
+                    name = top3[2].answeredName,
+                    votes = top3[2].count,
+                    place = 3,
+                    height = 100.dp,
+                    color = Color(0xFFCD7F32),
+                    infiniteTransition = infiniteTransition
+                )
+            } else {
+                Spacer(modifier = Modifier.width(100.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun PodiumPlace(
+    name: String,
+    votes: Int,
+    place: Int,
+    height: Dp,
+    color: Color,
+    infiniteTransition: InfiniteTransition
+) {
+    val scale by infiniteTransition.animateFloat(
+        initialValue = if (place == 1) 1f else 1f,
+        targetValue = if (place == 1) 1.05f else 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = EaseInOut),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale$place"
+    )
+
+    val medalColor = when (place) {
+        1 -> Color(0xFFFFD700)
+        2 -> Color(0xFFC0C0C0)
+        3 -> Color(0xFFCD7F32)
+        else -> MaterialTheme.colorScheme.primary
+    }
+
+    Column(
+        modifier = Modifier.width(100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.scale(if (place == 1) scale else 1f)
+        ) {
+            Text(
+                text = when (place) {
+                    1 -> "🥇"
+                    2 -> "🥈"
+                    3 -> "🥉"
+                    else -> ""
+                },
+                fontSize = 32.sp,
+                modifier = Modifier
+                    .offset(y = (-25).dp)
+                    .align(Alignment.TopCenter)
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape)
+                    .background(medalColor),
+                contentAlignment = Alignment.Center
             ) {
-                sortedAnswers.take(3).forEach { answer ->
-                    ResultBar(answer.answeredName, answer.count, maxCount)
-                    if (answer != sortedAnswers.take(3).last()) {
-                        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
-                    }
-                }
+                Text(
+                    text = name.take(1).uppercase(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+
+        Text(
+            text = "$votes Stimmen",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(
+            modifier = Modifier
+                .width(100.dp)
+                .height(height),
+            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = medalColor.copy(alpha = 0.3f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = place.toString(),
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = medalColor.copy(alpha = 0.6f)
+                )
             }
         }
     }
@@ -213,7 +360,7 @@ private fun PlayerCard(player: Player, isSelected: Boolean, onClick: () -> Unit)
         ) {
             Box(
                 modifier = Modifier.size(42.dp).clip(CircleShape).background(
-                    if (isSelected) MaterialTheme.colorScheme.primary else Color(0xFFE8EAED)
+                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
                 ),
                 contentAlignment = Alignment.Center
             ) {
@@ -221,7 +368,7 @@ private fun PlayerCard(player: Player, isSelected: Boolean, onClick: () -> Unit)
                     player.name.take(1).uppercase(),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -229,7 +376,7 @@ private fun PlayerCard(player: Player, isSelected: Boolean, onClick: () -> Unit)
                 player.name,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -249,7 +396,7 @@ private fun VoteProgressHeader(votedCount: Int, totalCount: Int) {
             progress = { if (totalCount > 0) votedCount.toFloat() / totalCount.toFloat() else 0f },
             modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
             color = MaterialTheme.colorScheme.primary,
-            trackColor = Color(0xFFE8EAED)
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
     }
 }
@@ -259,7 +406,7 @@ private fun QuestionCard(question: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Text(
@@ -269,24 +416,5 @@ private fun QuestionCard(question: String) {
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(24.dp)
         )
-    }
-}
-
-@Composable
-private fun ResultBar(name: String, count: Int, maxCount: Int) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-            Text(count.toString(), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-        }
-        Spacer(modifier = Modifier.height(6.dp))
-        Box(modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFFF1F3F4))) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(if (maxCount > 0) count.toFloat() / maxCount.toFloat() else 0f)
-                    .background(MaterialTheme.colorScheme.primary)
-            )
-        }
     }
 }
