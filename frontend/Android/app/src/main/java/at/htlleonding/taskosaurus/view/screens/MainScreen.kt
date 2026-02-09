@@ -3,24 +3,17 @@ package at.htlleonding.taskosaurus.view.screens
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.navigation.compose.*
+import androidx.navigation.*
 import at.htlleonding.taskosaurus.data.model.Screen
 import at.htlleonding.taskosaurus.view.components.MainNavigation
 import at.htlleonding.taskosaurus.view.screens.auth.LoginRegisterView
 import at.htlleonding.taskosaurus.view.screens.general.SettingsScreen
-import at.htlleonding.taskosaurus.view.screens.whoWouldRather.GameListScreen
-import at.htlleonding.taskosaurus.view.screens.whoWouldRather.GameScreen
-import at.htlleonding.taskosaurus.view.screens.whoWouldRather.TitleScreen
+import at.htlleonding.taskosaurus.view.screens.whoWouldRather.*
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 
 @Composable
@@ -60,50 +53,72 @@ fun MainScreen() {
                     )
                 }
 
-                // Games Navigation
-                navigation(
-                    startDestination = "title",
-                    route = Screen.Games.route
-                ) {
-                    composable("title") {
-                        // ✅ START AUTO-REFRESH HERE!
-                        LaunchedEffect(Unit) {
-                            viewModel.startAutoRefresh()
-                        }
-
-                        TitleScreen(
-                            onOpenGameList = {
-                                navController.navigate("game_list")
-                            },
-                            onGameCreated = { groupId ->
-                                navController.navigate("game/$groupId")
-                                // TODO: navigate to the player list view, not the game view with question
-                            },
-                            viewModel = viewModel
-                        )
+            // Games Navigation
+            navigation(
+                startDestination = "title",
+                route = Screen.Games.route
+            ) {
+                composable("title") {
+                    LaunchedEffect(Unit) {
+                        viewModel.startAutoRefresh()
                     }
 
-                    composable("game_list") {
-                        // Auto-refresh is already running from title screen
-                        GameListScreen(
-                            viewModel = viewModel,
-                            onGroupClick = { groupId ->
-                                navController.navigate("game/$groupId")
-                            }
-                        )
-                    }
-
-                    composable(
-                        route = "game/{groupId}",
-                        arguments = listOf(navArgument("groupId") { type = NavType.IntType })
-                    ) { backStackEntry ->
-                        val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
-                        GameScreen(
-                            groupId = groupId,
-                            viewModel = viewModel
-                        )
-                    }
+                    TitleScreen(
+                        onOpenGameList = {
+                            navController.navigate("game_list")
+                        },
+                        onGameCreated = { groupId ->
+                            // Navigiert nach Erstellung direkt zur Mitgliederliste/QR-Code
+                            navController.navigate("group_info/$groupId")
+                        },
+                        viewModel = viewModel
+                    )
                 }
+
+                composable("game_list") {
+                    GameListScreen(
+                        viewModel = viewModel,
+                        onGroupClick = { groupId ->
+                            navController.navigate("game/$groupId")
+                        }
+                    )
+                }
+
+                composable(
+                    route = "game/{groupId}",
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
+                    GameScreen(
+                        groupId = groupId,
+                        viewModel = viewModel,
+                        // Hier die Funktion übergeben, um zum Info-Screen zu kommen
+                        onNavigateToGroupInfo = { id ->
+                            navController.navigate("group_info/$id")
+                        }
+                    )
+                }
+
+                // NEU: Group Info Screen mit Deep Link Unterstützung
+                composable(
+                    route = "group_info/{groupId}",
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType }),
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern = "https://taskosaurus.at/group/{groupId}"
+                        }
+                    )
+                ) { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
+                    GroupInfoScreen(
+                        groupId = groupId,
+                        viewModel = viewModel,
+                        onBackClick = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+            }
 
                 // Settings Route
                 composable(Screen.Settings.route) {

@@ -6,15 +6,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import at.htlleonding.taskosaurus.view.components.GroupListItem
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,6 +22,8 @@ fun GameListScreen(
     viewModel: ViewModel = viewModel(),
     onGroupClick: (Int) -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val hasConnection by viewModel.hasConnection.collectAsState()
     val questions by viewModel.latestQuestions.collectAsState()
 
@@ -29,6 +31,32 @@ fun GameListScreen(
     val answeredGroups = viewModel.answeredGroups
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Initialisierung des Google Code Scanners
+    val scanner = remember { GmsBarcodeScanning.getClient(context) }
+
+    // Funktion zum Starten des Scans
+    val startQrScanner = {
+        scanner.startScan()
+            .addOnSuccessListener { barcode ->
+                val rawValue = barcode.rawValue ?: ""
+                // Extrahiert die ID aus der URL (z.B. https://taskosaurus.at/group/12)
+                val groupId = rawValue.substringAfterLast("/").toIntOrNull()
+
+                if (groupId != null) {
+                    onGroupClick(groupId)
+                } else {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Ungültiger QR-Code für Taskosaurus")
+                    }
+                }
+            }
+            .addOnFailureListener {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Scan abgebrochen oder fehlgeschlagen")
+                }
+            }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -44,7 +72,7 @@ fun GameListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                // TODO: insert QR Code Scanner
+                startQrScanner()
             }) {
                 Icon(
                     imageVector = Icons.Filled.QrCodeScanner,
@@ -142,4 +170,3 @@ fun GameListScreen(
         }
     }
 }
-
