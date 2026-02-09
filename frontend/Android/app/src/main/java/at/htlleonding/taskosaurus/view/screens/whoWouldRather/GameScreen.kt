@@ -4,16 +4,13 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
@@ -26,8 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import at.htlleonding.taskosaurus.data.model.Player
-import at.htlleonding.taskosaurus.data.model.Question
+import at.htlleonding.taskosaurus.data.model.*
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 import kotlin.random.Random
 
@@ -35,7 +31,8 @@ import kotlin.random.Random
 @Composable
 fun GameScreen(
     groupId: Int,
-    viewModel: ViewModel = viewModel()
+    viewModel: ViewModel = viewModel(),
+    onNavigateToGroupInfo: (Int) -> Unit // NEU: Parameter hinzugefügt
 ) {
     val groups by viewModel.groups.collectAsState()
     val questions by viewModel.latestQuestions.collectAsState()
@@ -63,19 +60,19 @@ fun GameScreen(
         floatingActionButton = {
             if (group != null && question != null) {
                 FloatingActionButton(
-                    onClick = { /* TODO: Mitgliederliste */ },
+                    onClick = {
+                        // Ruft die Navigation zum Info-Screen auf
+                        onNavigateToGroupInfo(groupId)
+                    },
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.offset(
-                        x = if (!question.answered) (-15).dp else 0.dp,
-                        y = 0.dp
-                    )
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ) {
-                    Icon(Icons.Filled.Groups, contentDescription = "Mitglieder")
+                    Icon(Icons.Filled.Groups, contentDescription = "Mitglieder & QR-Code")
                 }
             }
         },
         bottomBar = {
+            // Nur anzeigen, wenn die Frage noch nicht beantwortet wurde
             if (question != null && !question.answered) {
                 Box(modifier = Modifier.padding(14.dp)) {
                     Button(
@@ -151,9 +148,7 @@ private fun VotingSection(
     onPlayerSelect: (Player) -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(),
+        modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -431,7 +426,7 @@ private fun VoteProgressHeader(votedCount: Int, totalCount: Int) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         LinearProgressIndicator(
-            progress = { votedCount.toFloat() / totalCount.coerceAtLeast(1).toFloat() },
+            progress = { if (totalCount > 0) votedCount.toFloat() / totalCount.toFloat() else 0f },
             modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
             color = MaterialTheme.colorScheme.primary,
             trackColor = MaterialTheme.colorScheme.surfaceVariant
