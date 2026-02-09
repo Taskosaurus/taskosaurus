@@ -112,10 +112,7 @@ fun MainScreen() {
                     val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
                     GroupInfoScreen(
                         groupId = groupId,
-                        viewModel = viewModel,
-                        onBackClick = {
-                            navController.popBackStack()
-                        }
+                        viewModel = viewModel
                     )
                 }
             }

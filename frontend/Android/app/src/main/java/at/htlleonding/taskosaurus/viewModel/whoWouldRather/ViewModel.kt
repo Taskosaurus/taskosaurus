@@ -190,6 +190,26 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+
+    fun joinGroup(groupId: Int) {
+        viewModelScope.launch {
+            try {
+                val currentPlayer = _player.value ?: run {
+                    return@launch
+                }
+
+                RetrofitInstance.groupApi.joinGroup(groupId, currentPlayer.name)
+
+                _hasConnection.value = true
+                fetchGroups()
+                Log.d("ViewModel", "Successfully joined group $groupId")
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Error joining group $groupId", e)
+                _hasConnection.value = false
+            }
+        }
+    }
+
     fun submitVote(
         groupId: Int,
         answeredPlayerId: Int,

@@ -25,29 +25,28 @@ import com.google.zxing.qrcode.QRCodeWriter
 @Composable
 fun GroupInfoScreen(
     groupId: Int,
-    viewModel: ViewModel = viewModel(),
-    onBackClick: () -> Unit
+    viewModel: ViewModel = viewModel()
 ) {
     val groups by viewModel.groups.collectAsState()
+    val player by viewModel.player.collectAsState()
     val group = groups.find { it.id == groupId }
 
-    // Die URL, die wir in den QR-Code packen (muss zum Manifest passen)
-    val qrData = "https://taskosaurus.at/group/$groupId"
-
-    // QR-Code Bitmap generieren
-    val qrBitmap = remember(qrData) {
-        generateQrCode(qrData)
+    LaunchedEffect(groupId, groups) {
+        val isMember = groups.any { it.id == groupId }
+        if (!isMember && player != null) {
+            viewModel.joinGroup(groupId)
+        }
     }
 
+    val qrData = "https://taskosaurus.at/group/$groupId"
+    val qrBitmap = remember(qrData) { generateQrCode(qrData) }
+
     Scaffold(
+        containerColor = Color(0xFFF7F9FC),
         topBar = {
             TopAppBar(
-                title = { Text("Einladen & Info") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Zurück")
-                    }
-                }
+                title = { Text("EInladen und Info", style = MaterialTheme.typography.titleMedium) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { paddingValues ->
@@ -55,89 +54,140 @@ fun GroupInfoScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(20.dp))
+
             // QR-CODE KARTE
             Card(
-                modifier = Modifier.size(280.dp),
-                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.size(260.dp),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(20.dp),
+                    modifier = Modifier.fillMaxSize().padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     qrBitmap?.let {
                         Image(
                             bitmap = it.asImageBitmap(),
-                            contentDescription = "QR Code zum Beitreten",
-                            modifier = Modifier.fillMaxSize()
+                            contentDescription = "QR Code",
+                            modifier = Modifier.fillMaxSize(),
+                            filterQuality = FilterQuality.None // QR Code scharf halten
                         )
-                    } ?: CircularProgressIndicator()
+                    } ?: CircularProgressIndicator(strokeWidth = 2.dp)
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = group?.name ?: "Gruppe $groupId",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
+                text = group?.name ?: "Lade Gruppe...",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
             )
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             Text(
-                text = "Andere können diesen Code scannen,\num der Gruppe beizutreten.",
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                text = "Lass deine Freunde diesen Code scannen,\num automatisch beizutreten.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // MITGLIEDERLISTE
-            Text(
-                text = "Mitglieder (${group?.players?.size ?: 0})",
-                style = MaterialTheme.typography.titleLarge,
+            // MITGLIEDERLISTE HEADER
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                fontWeight = FontWeight.SemiBold
-            )
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Mitglieder",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = CircleShape
+                ) {
+                    Text(
+                        text = "${group?.players?.size ?: 0}",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // DYNAMISCHE LISTE
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(bottom = 24.dp)
             ) {
                 items(group?.players ?: emptyList()) { player ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(16.dp))
                             .background(Color.White)
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(40.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.secondaryContainer),
+                                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                player.name.take(1).uppercase(),
+                                text = player.name.take(1).uppercase(),
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                         Spacer(modifier = Modifier.width(16.dp))
-                        Text(player.name, style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = player.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun MemberRow(name: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(name.take(1).uppercase(), fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(name, style = MaterialTheme.typography.bodyLarge)
     }
 }
 
