@@ -53,69 +53,64 @@ fun MainScreen() {
                     )
                 }
 
-            // Games Navigation
-            navigation(
-                startDestination = "title",
-                route = Screen.Games.route
-            ) {
-                composable("title") {
-                    LaunchedEffect(Unit) {
-                        viewModel.startAutoRefresh()
+                // Games Navigation
+                navigation(
+                    startDestination = "title",
+                    route = Screen.Games.route
+                ) {
+                    composable("title") {
+                        LaunchedEffect(Unit) {
+                            viewModel.startAutoRefresh()
+                        }
+
+                        TitleScreen(
+                            onOpenGameList = {
+                                navController.navigate("game_list")
+                            },
+                            onGameCreated = { groupId ->
+                                // Navigiert nach Erstellung direkt zur Mitgliederliste/QR-Code
+                                navController.navigate("group_info/$groupId")
+                            },
+                            viewModel = viewModel
+                        )
                     }
 
-                    TitleScreen(
-                        onOpenGameList = {
-                            navController.navigate("game_list")
-                        },
-                        onGameCreated = { groupId ->
-                            // Navigiert nach Erstellung direkt zur Mitgliederliste/QR-Code
-                            navController.navigate("group_info/$groupId")
-                        },
-                        viewModel = viewModel
-                    )
-                }
+                    composable("game_list") {
+                        GameListScreen(
+                            viewModel = viewModel,
+                            onGroupClick = { groupId ->
+                                navController.navigate("game/$groupId")
+                            }
+                        )
+                    }
 
-                composable("game_list") {
-                    GameListScreen(
-                        viewModel = viewModel,
-                        onGroupClick = { groupId ->
-                            navController.navigate("game/$groupId")
-                        }
-                    )
-                }
+                    composable(
+                        route = "game/{groupId}",
+                        arguments = listOf(navArgument("groupId") { type = NavType.IntType }),
+                        deepLinks = listOf(
+                            navDeepLink {
+                                uriPattern = "https://taskosaurus.at/group/{groupId}"
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
+                        GameScreen(
+                            groupId = groupId,
+                            viewModel = viewModel,
+                            onNavigateToGroupInfo = { id ->
+                                navController.navigate("group_info/$id")
+                            }
+                        )
+                    }
 
-                composable(
-                    route = "game/{groupId}",
-                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
-                ) { backStackEntry ->
-                    val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
-                    GameScreen(
-                        groupId = groupId,
-                        viewModel = viewModel,
-                        // Hier die Funktion übergeben, um zum Info-Screen zu kommen
-                        onNavigateToGroupInfo = { id ->
-                            navController.navigate("group_info/$id")
-                        }
-                    )
+                    composable(
+                        route = "group_info/{groupId}",
+                        arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                    ) { backStackEntry ->
+                        val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
+                        GroupInfoScreen(groupId = groupId, viewModel = viewModel)
+                    }
                 }
-
-                // NEU: Group Info Screen mit Deep Link Unterstützung
-                composable(
-                    route = "group_info/{groupId}",
-                    arguments = listOf(navArgument("groupId") { type = NavType.IntType }),
-                    deepLinks = listOf(
-                        navDeepLink {
-                            uriPattern = "https://taskosaurus.at/group/{groupId}"
-                        }
-                    )
-                ) { backStackEntry ->
-                    val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
-                    GroupInfoScreen(
-                        groupId = groupId,
-                        viewModel = viewModel
-                    )
-                }
-            }
 
                 // Settings Route
                 composable(Screen.Settings.route) {

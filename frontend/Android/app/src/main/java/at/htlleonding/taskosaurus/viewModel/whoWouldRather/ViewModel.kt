@@ -194,18 +194,23 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
     fun joinGroup(groupId: Int) {
         viewModelScope.launch {
             try {
-                val currentPlayer = _player.value ?: run {
-                    return@launch
-                }
+                val currentPlayer = _player.value ?: return@launch
 
+                // 1. Den Join-Call ausführen
                 RetrofitInstance.groupApi.joinGroup(groupId, currentPlayer.name)
 
-                _hasConnection.value = true
-                fetchGroups()
-                Log.d("ViewModel", "Successfully joined group $groupId")
+                // 2. WICHTIG: Die Liste direkt vom Server neu holen
+                val updatedGroups = RetrofitInstance.groupApi.getJoinedGroups(currentPlayer)
+
+                // 3. Den StateFlow aktualisieren - das triggert den Screen!
+                _groups.value = updatedGroups
+
+                // 4. Auch die Fragen für die neuen Gruppen laden
+                loadQuestionsForGroups()
+
+                Log.d("ViewModel", "Join erfolgreich, Gruppe $groupId ist jetzt in der Liste")
             } catch (e: Exception) {
-                Log.e("ViewModel", "Error joining group $groupId", e)
-                _hasConnection.value = false
+                Log.e("ViewModel", "Fehler beim Joinen von $groupId", e)
             }
         }
     }

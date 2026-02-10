@@ -27,16 +27,27 @@ import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 fun GameScreen(
     groupId: Int,
     viewModel: ViewModel = viewModel(),
-    onNavigateToGroupInfo: (Int) -> Unit // NEU: Parameter hinzugefügt
+    onNavigateToGroupInfo: (Int) -> Unit
 ) {
     val groups by viewModel.groups.collectAsState()
     val questions by viewModel.latestQuestions.collectAsState()
+    val player by viewModel.player.collectAsState()
+    val isReady by viewModel.isReady.collectAsState()
 
     val group = groups.find { it.id == groupId }
     val question = questions[groupId]
 
     var selectedPlayer by remember { mutableStateOf<Player?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // AUTOMATISCHER BEITRITT:
+    // Wenn der Player geladen ist, aber die Gruppe nicht in der Liste gefunden wird.
+    LaunchedEffect(player, isReady, group) {
+        if (isReady && player != null && group == null) {
+            println("DEBUG: Deep Link erkannt. Gruppe $groupId fehlt lokal. Trete bei...")
+            viewModel.joinGroup(groupId)
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -45,7 +56,7 @@ fun GameScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = group?.name ?: "Gruppe",
+                        text = group?.name ?: "Lade Gruppe...",
                         style = MaterialTheme.typography.bodyLarge
                     )
                 },
@@ -55,10 +66,7 @@ fun GameScreen(
         floatingActionButton = {
             if (group != null && question != null) {
                 FloatingActionButton(
-                    onClick = {
-                        // Ruft die Navigation zum Info-Screen auf
-                        onNavigateToGroupInfo(groupId)
-                    },
+                    onClick = { onNavigateToGroupInfo(groupId) },
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ) {
@@ -67,56 +75,52 @@ fun GameScreen(
             }
         },
         bottomBar = {
-            // Nur anzeigen, wenn die Frage noch nicht beantwortet wurde
             if (question != null && !question.answered) {
                 Box(modifier = Modifier.padding(14.dp)) {
                     Button(
                         onClick = {
-                            selectedPlayer?.let { player ->
+                            selectedPlayer?.let { p ->
                                 viewModel.submitVote(
                                     groupId = groupId,
-                                    answeredPlayerId = player.id,
+                                    answeredPlayerId = p.id,
                                     onSuccess = { selectedPlayer = null },
                                     onError = { }
                                 )
                             }
                         },
                         enabled = selectedPlayer != null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(
-                            text = "Abstimmen",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Text("Abstimmen", style = MaterialTheme.typography.titleMedium)
                     }
                 }
             }
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            // Wir zeigen den Ladebildschirm, solange die Gruppe ODER die Frage fehlt
             if (group == null || question == null) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = if (group == null) "Trete Gruppe bei..." else "Lade Fragen...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp)
-                ) {
+                // Das eigentliche Spiel-Layout
+                Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
                     VoteProgressHeader(
                         votedCount = question.answers.sumOf { it.count },
                         totalCount = group.players?.size ?: 0
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
                     QuestionCard(question = question.question)
                     Spacer(modifier = Modifier.height(24.dp))
