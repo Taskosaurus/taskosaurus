@@ -1,6 +1,7 @@
 package at.htlleonding.taskosaurus.view.screens.whoWouldRather
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -11,8 +12,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -21,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import at.htlleonding.taskosaurus.data.model.*
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -181,63 +186,91 @@ private fun ResultsPodium(question: Question) {
 
     val infiniteTransition = rememberInfiniteTransition(label = "podium")
 
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "🏆 Die Gewinner 🏆",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 24.dp)
+    val confettiParticles = remember {
+        List(30) {
+            ConfettiParticle(
+                initialX = Random.nextFloat(),
+                initialY = -0.1f - Random.nextFloat() * 0.2f,
+                speed = Random.nextFloat() * 2f + 1f,
+                rotation = Random.nextFloat() * 360f,
+                rotationSpeed = Random.nextFloat() * 4f - 2f,
+                color = listOf(
+                    Color(0xFFFFD700),
+                    Color(0xFFFF6B9D),
+                    Color(0xFF4CAF50),
+                    Color(0xFF2196F3),
+                    Color(0xFFFF9800),
+                    Color(0xFF9C27B0)
+                ).random(),
+                size = Random.nextFloat() * 8f + 4f
+            )
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        ConfettiAnimation(
+            particles = confettiParticles,
+            transition = infiniteTransition
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.Bottom
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (top3.size >= 2) {
-                PodiumPlace(
-                    name = top3[1].answeredName,
-                    votes = top3[1].count,
-                    place = 2,
-                    height = 140.dp,
-                    color = Color(0xFFC0C0C0),
-                    infiniteTransition = infiniteTransition
-                )
-            } else {
-                Spacer(modifier = Modifier.width(100.dp))
-            }
+            Text(
+                text = "🏆 Die Gewinner 🏆",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                if (top3.size >= 2) {
+                    PodiumPlace(
+                        name = top3[1].answeredName,
+                        votes = top3[1].count,
+                        place = 2,
+                        height = 140.dp,
+                        color = Color(0xFFC0C0C0),
+                        infiniteTransition = infiniteTransition
+                    )
+                } else {
+                    Spacer(modifier = Modifier.width(100.dp))
+                }
 
-            if (top3.isNotEmpty()) {
-                PodiumPlace(
-                    name = top3[0].answeredName,
-                    votes = top3[0].count,
-                    place = 1,
-                    height = 180.dp,
-                    color = Color(0xFFFFD700),
-                    infiniteTransition = infiniteTransition
-                )
-            }
+                Spacer(modifier = Modifier.width(12.dp))
 
-            Spacer(modifier = Modifier.width(12.dp))
+                if (top3.isNotEmpty()) {
+                    PodiumPlace(
+                        name = top3[0].answeredName,
+                        votes = top3[0].count,
+                        place = 1,
+                        height = 180.dp,
+                        color = Color(0xFFFFD700),
+                        infiniteTransition = infiniteTransition
+                    )
+                }
 
-            if (top3.size >= 3) {
-                PodiumPlace(
-                    name = top3[2].answeredName,
-                    votes = top3[2].count,
-                    place = 3,
-                    height = 100.dp,
-                    color = Color(0xFFCD7F32),
-                    infiniteTransition = infiniteTransition
-                )
-            } else {
-                Spacer(modifier = Modifier.width(100.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+
+                if (top3.size >= 3) {
+                    PodiumPlace(
+                        name = top3[2].answeredName,
+                        votes = top3[2].count,
+                        place = 3,
+                        height = 100.dp,
+                        color = Color(0xFFCD7F32),
+                        infiniteTransition = infiniteTransition
+                    )
+                } else {
+                    Spacer(modifier = Modifier.width(100.dp))
+                }
             }
         }
     }
@@ -422,3 +455,54 @@ private fun QuestionCard(question: String) {
         )
     }
 }
+
+@Composable
+private fun ConfettiAnimation(
+    particles: List<ConfettiParticle>,
+    transition: InfiniteTransition
+) {
+    val time by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(8000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "confettiTime"
+    )
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        particles.forEach { particle ->
+            val progress = (time * particle.speed / 100f) % 1.5f
+
+            if (progress <= 1.0f) {
+                val x = size.width * particle.initialX
+                val y = size.height * progress
+                val rotation = particle.rotation + time * particle.rotationSpeed
+
+                val alpha = if (progress > 0.8f) (1.0f - progress) * 5f else 1f
+
+                rotate(
+                    degrees = rotation,
+                    pivot = Offset(x, y)
+                ) {
+                    drawRect(
+                        color = particle.color.copy(alpha = alpha.coerceIn(0f, 1f)),
+                        topLeft = Offset(x - particle.size / 2, y - particle.size / 2),
+                        size = androidx.compose.ui.geometry.Size(particle.size, particle.size)
+                    )
+                }
+            }
+        }
+    }
+}
+
+data class ConfettiParticle(
+    val initialX: Float,
+    val initialY: Float,
+    val speed: Float,
+    val rotation: Float,
+    val rotationSpeed: Float,
+    val color: Color,
+    val size: Float
+)
