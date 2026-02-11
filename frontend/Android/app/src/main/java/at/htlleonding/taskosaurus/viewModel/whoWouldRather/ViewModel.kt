@@ -132,6 +132,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                 _isReady.value = true
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error loading player", e)
+                _isReady.value = true;
                 _hasConnection.value = false
             }
         }
@@ -196,16 +197,12 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val currentPlayer = _player.value ?: return@launch
 
-                // 1. Den Join-Call ausführen
                 RetrofitInstance.groupApi.joinGroup(groupId, currentPlayer.name)
 
-                // 2. WICHTIG: Die Liste direkt vom Server neu holen
                 val updatedGroups = RetrofitInstance.groupApi.getJoinedGroups(currentPlayer)
 
-                // 3. Den StateFlow aktualisieren - das triggert den Screen!
                 _groups.value = updatedGroups
 
-                // 4. Auch die Fragen für die neuen Gruppen laden
                 loadQuestionsForGroups()
 
                 Log.d("ViewModel", "Join erfolgreich, Gruppe $groupId ist jetzt in der Liste")

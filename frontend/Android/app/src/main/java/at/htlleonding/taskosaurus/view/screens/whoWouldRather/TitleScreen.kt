@@ -41,7 +41,7 @@ fun TitleScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
