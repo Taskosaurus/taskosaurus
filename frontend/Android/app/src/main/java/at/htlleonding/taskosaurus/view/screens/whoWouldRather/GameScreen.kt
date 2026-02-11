@@ -44,9 +44,6 @@ fun GameScreen(
 
     var selectedPlayer by remember { mutableStateOf<Player?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
-
-    // AUTOMATISCHER BEITRITT:
-    // Wenn der Player geladen ist, aber die Gruppe nicht in der Liste gefunden wird.
     LaunchedEffect(player, isReady, group) {
         if (isReady && player != null && group == null) {
             println("DEBUG: Deep Link erkannt. Gruppe $groupId fehlt lokal. Trete bei...")

@@ -67,4 +67,6 @@ dependencies {
     implementation(libs.converter.gson) // JSON converter
     implementation(libs.gson) // Optional: For Gson
     implementation(libs.kotlinx.coroutines.android) // Coroutines
+
+    implementation(libs.androidx.material.icons.extended)
 }
