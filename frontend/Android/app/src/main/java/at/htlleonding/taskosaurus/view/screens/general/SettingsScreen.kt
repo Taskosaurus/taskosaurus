@@ -146,28 +146,6 @@ fun SettingsScreen(
                             containerColor = Color.Transparent
                         )
                     )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        thickness = 0.5.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
-
-                    // Mit anderem Account anmelden
-                    ListItem(
-                        headlineContent = { Text("Mit anderem Account anmelden") },
-                        leadingContent = {
-                            Icon(
-                                imageVector = Icons.Default.PersonAdd,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        modifier = Modifier.clickable { onNavigateToLogin() },
-                        colors = ListItemDefaults.colors(
-                            containerColor = Color.Transparent
-                        )
-                    )
                 }
             }
 
