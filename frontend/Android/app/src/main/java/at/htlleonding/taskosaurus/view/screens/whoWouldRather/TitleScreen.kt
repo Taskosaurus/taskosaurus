@@ -41,9 +41,10 @@ fun TitleScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        floatingActionButtonPosition = FabPosition.Center,
         floatingActionButton = {
             Column(
-                horizontalAlignment = Alignment.End,
+                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 val playButtonScale by infiniteTransition.animateFloat(
