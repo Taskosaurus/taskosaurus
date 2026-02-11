@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import at.htlleonding.taskosaurus.data.model.*
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,10 +45,18 @@ fun GameScreen(
 
     var selectedPlayer by remember { mutableStateOf<Player?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(player, isReady, group) {
         if (isReady && player != null && group == null) {
-            println("DEBUG: Deep Link erkannt. Gruppe $groupId fehlt lokal. Trete bei...")
-            viewModel.joinGroup(groupId)
+            viewModel.joinGroup(
+                groupId = groupId,
+                onSuccess = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Erfolgreich beigetreten!")
+                    }
+                }
+            )
         }
     }
 
