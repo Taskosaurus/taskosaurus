@@ -1,7 +1,5 @@
 package at.htlleonding.taskosaurus.view.components
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -17,10 +15,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.HourglassBottom
-import androidx.compose.material.icons.filled.Pending
-import androidx.compose.material.icons.filled.SportsScore
+import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -189,9 +185,8 @@ fun GroupListItem(
                     } else {
                         // Race-Flag Icon
                         Icon(
-                            imageVector = Icons.Default.SportsScore,
-                            contentDescription = "Race Flag",
-                            tint = Color.White,
+                            imageVector = Icons.Default.Leaderboard,
+                            contentDescription = "Aktuell Führend",
                             modifier = Modifier.size(18.dp)
                         )
                     }

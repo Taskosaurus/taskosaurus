@@ -32,15 +32,12 @@ fun GameListScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Initialisierung des Google Code Scanners
     val scanner = remember { GmsBarcodeScanning.getClient(context) }
 
-    // Funktion zum Starten des Scans
     val startQrScanner = {
         scanner.startScan()
             .addOnSuccessListener { barcode ->
                 val rawValue = barcode.rawValue ?: ""
-                // Extrahiert die ID aus der URL (z.B. https://taskosaurus.at/group/12)
                 val groupId = rawValue.substringAfterLast("/").toIntOrNull()
 
                 if (groupId != null) {

@@ -27,7 +27,7 @@ INSERT INTO Player (name, password) VALUES('Kinga', 'q');
 INSERT INTO Player (name, password) VALUES('Timon', 'q');
 INSERT INTO Player (name, password) VALUES('Lien', 'q');
 INSERT INTO Player (name, password) VALUES('Stefanie', 'q');
-INSERT INTO Player (name, password) VALUES('Christof', 'q');
+INSERT INTO Player (name, password) VALUES('Christoph', 'q');
 INSERT INTO Player (name, password) VALUES('Tobi', 'q');
 INSERT INTO Player (name, password) VALUES('Timmy', 'q');
 INSERT INTO Player (name, password) VALUES('Georgina', 'q');
