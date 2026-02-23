@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -31,7 +32,6 @@ fun GameListScreen(
     val answeredGroups = viewModel.answeredGroups
 
     val snackbarHostState = remember { SnackbarHostState() }
-
     val scanner = remember { GmsBarcodeScanning.getClient(context) }
 
     val startQrScanner = {
@@ -55,115 +55,121 @@ fun GameListScreen(
             }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
                 title = {
                     Text(
                         text = "Gruppen",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.titleLarge
                     )
                 }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = {
-                startQrScanner()
-            }) {
-                Icon(
-                    imageVector = Icons.Filled.QrCodeScanner,
-                    contentDescription = "QR-Code scannen"
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = 80.dp
                 )
-            }
-        }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = paddingValues.calculateTopPadding(),
-                bottom = paddingValues.calculateBottomPadding()
-            )
-        ) {
-            if (!hasConnection) {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
-                    ) {
+            ) {
+                if (!hasConnection) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer
+                            )
+                        ) {
+                            Text(
+                                text = "Keine Verbindung zum Server",
+                                modifier = Modifier.padding(16.dp),
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
+                }
+
+                if (unansweredGroups.isNotEmpty()) {
+                    item {
                         Text(
-                            text = "Keine Verbindung zum Server",
-                            modifier = Modifier.padding(16.dp),
-                            color = MaterialTheme.colorScheme.onErrorContainer
+                            text = "Nicht beantwortet",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 4.dp)
+                        )
+                    }
+
+                    items(unansweredGroups) { group ->
+                        val question = questions[group.id]
+                        val votedCount = question?.answers?.sumOf { it.count } ?: 0
+                        val totalCount = group.players?.size ?: 0
+
+                        GroupListItem(
+                            group = group,
+                            votedCount = votedCount,
+                            totalCount = totalCount,
+                            isAnswered = false,
+                            shortenedQuestion = question?.shortenedQuestion,
+                            currentLeader = null,
+                            leaderVoteCount = 0,
+                            onClick = { onGroupClick(group.id) }
+                        )
+                    }
+                }
+
+                if (answeredGroups.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Beantwortet",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 4.dp, top = 16.dp, bottom = 4.dp)
+                        )
+                    }
+
+                    items(answeredGroups) { group ->
+                        val question = questions[group.id]
+                        val votedCount = question?.answers?.sumOf { it.count } ?: 0
+                        val totalCount = group.players?.size ?: 0
+
+                        val leaderVoteCount = question?.answers
+                            ?.maxByOrNull { it.count }
+                            ?.count ?: 0
+
+                        GroupListItem(
+                            group = group,
+                            votedCount = votedCount,
+                            totalCount = totalCount,
+                            isAnswered = true,
+                            shortenedQuestion = question?.shortenedQuestion,
+                            currentLeader = question?.currentLeader,
+                            leaderVoteCount = leaderVoteCount,
+                            onClick = { onGroupClick(group.id) }
                         )
                     }
                 }
             }
+        }
 
-            if (unansweredGroups.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "Nicht beantwortet",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 4.dp)
-                    )
-                }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
 
-                items(unansweredGroups) { group ->
-                    val question = questions[group.id]
-                    val votedCount = question?.answers?.sumOf { it.count } ?: 0
-                    val totalCount = group.players?.size ?: 0
-
-                    GroupListItem(
-                        group = group,
-                        votedCount = votedCount,
-                        totalCount = totalCount,
-                        isAnswered = false,
-                        shortenedQuestion = question?.shortenedQuestion,
-                        currentLeader = null,
-                        leaderVoteCount = 0,
-                        onClick = { onGroupClick(group.id) }
-                    )
-                }
-            }
-
-            if (answeredGroups.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "Beantwortet",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 4.dp, top = 16.dp, bottom = 4.dp)
-                    )
-                }
-
-                items(answeredGroups) { group ->
-                    val question = questions[group.id]
-                    val votedCount = question?.answers?.sumOf { it.count } ?: 0
-                    val totalCount = group.players?.size ?: 0
-
-                    val leaderVoteCount = question?.answers
-                        ?.maxByOrNull { it.count }
-                        ?.count ?: 0
-
-                    GroupListItem(
-                        group = group,
-                        votedCount = votedCount,
-                        totalCount = totalCount,
-                        isAnswered = true,
-                        shortenedQuestion = question?.shortenedQuestion,
-                        currentLeader = question?.currentLeader,
-                        leaderVoteCount = leaderVoteCount,
-                        onClick = { onGroupClick(group.id) }
-                    )
-                }
-            }
+        FloatingActionButton(
+            onClick = { startQrScanner() },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.QrCodeScanner,
+                contentDescription = "QR-Code scannen"
+            )
         }
     }
 }
