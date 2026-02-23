@@ -43,7 +43,6 @@ fun TitleScreen(
     val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Hintergrund Gradient
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -58,10 +57,8 @@ fun TitleScreen(
                 )
         )
 
-        // Mehr Karten im Hintergrund, besser verteilt
         FloatingQuestionCards(infiniteTransition, questions, isLandscape)
 
-        // Haupt-Content (Zentriert)
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -109,7 +106,6 @@ fun TitleScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Text-Breite limitieren für kompakten Umbruch im Querformat
             Text(
                 text = "Entdecke, was deine Freunde wählen würden",
                 style = MaterialTheme.typography.bodyLarge,
@@ -183,19 +179,15 @@ fun FloatingQuestionCards(
         Offset(0.8f, 0.7f)
     )
 
-    // Landscape: Radikaler Versatz für einen dynamischen Fluss
     val landscapePositions = listOf(
-        // Links-Bereich
-        Offset(0.08f, 0.15f), // Oben Links
-        Offset(0.05f, 0.65f), // Unten Links (weit außen)
+        Offset(0.08f, 0.15f),
+        Offset(0.05f, 0.65f),
 
-        // Rechts-Bereich nach deinen Wünschen:
-        Offset(0.74f, 0.12f), // 1. Oben Rechts: "Relativ ganz oben rechts"
-        Offset(0.64f, 0.40f), // 2. Mitte Rechts: "Weiter in die Mitte"
-        Offset(0.42f, 0.77f), // 3. Unten Rechts: "Viel mehr nach links"
+        Offset(0.74f, 0.12f),
+        Offset(0.64f, 0.40f),
+        Offset(0.42f, 0.77f),
 
-        // Füller
-        Offset(0.35f, 0.10f)  // Oben Mitte
+        Offset(0.35f, 0.10f)
     )
 
     val finalPositions = if (isLandscape) landscapePositions else portraitPositions
