@@ -65,7 +65,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             loadPlayerFromId(1)
         }
-        fetchRandomQuestions(4)
+        fetchRandomQuestions(8)
     }
 
     fun startAutoRefresh() {
