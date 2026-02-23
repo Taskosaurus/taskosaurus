@@ -56,8 +56,6 @@ fun MainNavigationRail(navController: NavController) {
                     isSelected = isSelected,
                     isExpanded = isExpanded,
                     onClick = {
-                        isExpanded = false
-
                         if (screen == Screen.Games) {
                             navController.navigate("title") {
                                 popUpTo(Screen.Games.route) {
