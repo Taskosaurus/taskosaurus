@@ -256,11 +256,10 @@ private fun ResultsPodium(question: Question, votedCount: Int, totalCount: Int) 
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.Bottom
             ) {
-                val voteCount = question.answers.count()
                 if (top3.size >= 2) PodiumPlace(
                     top3[1].answeredName,
                     top3[1].count,
-                    voteCount,
+                    votedCount,
                     2,
                     100.dp,
                     Color(0xFFC0C0C0),
@@ -270,7 +269,7 @@ private fun ResultsPodium(question: Question, votedCount: Int, totalCount: Int) 
                 if (top3.isNotEmpty()) PodiumPlace(
                     top3[0].answeredName,
                     top3[0].count,
-                    voteCount,
+                    votedCount,
                     1,
                     140.dp,
                     Color(0xFFFFD700),
@@ -280,7 +279,7 @@ private fun ResultsPodium(question: Question, votedCount: Int, totalCount: Int) 
                 if (top3.size >= 3) PodiumPlace(
                     top3[2].answeredName,
                     top3[2].count,
-                    voteCount,
+                    votedCount,
                     3,
                     80.dp,
                     Color(0xFFCD7F32),
