@@ -39,6 +39,7 @@ fun GameListScreen(
     val scanner = remember { GmsBarcodeScanning.getClient(context) }
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    val isTabletPortrait = configuration.screenWidthDp >= 600 && !isLandscape
 
     val startQrScanner = {
         scanner.startScan()
@@ -92,19 +93,30 @@ fun GameListScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(if (isTabletPortrait) 12.dp else 8.dp),
+                    contentPadding = PaddingValues(if (isTabletPortrait) 24.dp else 16.dp)
                 ) {
                     if (unansweredGroups.isEmpty() && answeredGroups.isEmpty()) {
-                        item { Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) { Text("Keine Gruppen gefunden") } }
+                        item {
+                            Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    "Keine Gruppen gefunden",
+                                    style = if (isTabletPortrait) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
                     }
                     if (unansweredGroups.isNotEmpty()) {
-                        item { SectionHeader("Nicht beantwortet") }
-                        itemsIndexed(unansweredGroups) { index, group -> GroupItemWrapper(group, questions, false, index * 200, onGroupClick) }
+                        item { SectionHeader("Nicht beantwortet", isTabletPortrait) }
+                        itemsIndexed(unansweredGroups) { index, group ->
+                            GroupItemWrapper(group, questions, false, index * 200, onGroupClick)
+                        }
                     }
                     if (answeredGroups.isNotEmpty()) {
-                        item { SectionHeader("Beantwortet") }
-                        itemsIndexed(answeredGroups) { index, group -> GroupItemWrapper(group, questions, true, index * 200, onGroupClick) }
+                        item { SectionHeader("Beantwortet", isTabletPortrait) }
+                        itemsIndexed(answeredGroups) { index, group ->
+                            GroupItemWrapper(group, questions, true, index * 200, onGroupClick)
+                        }
                     }
                 }
             }
@@ -161,6 +173,11 @@ fun GroupItemWrapper(group: Group, questions: Map<Int, Question>, isAnswered: Bo
 }
 
 @Composable
-fun SectionHeader(text: String) {
-    Text(text = text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 4.dp))
+fun SectionHeader(text: String, isTabletPortrait: Boolean = false) {
+    Text(
+        text = text,
+        style = if (isTabletPortrait) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 4.dp)
+    )
 }

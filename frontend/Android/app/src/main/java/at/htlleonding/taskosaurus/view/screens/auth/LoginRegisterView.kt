@@ -36,6 +36,7 @@ fun LoginRegisterView(
 
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    val isTabletPortrait = configuration.screenWidthDp >= 600 && !isLandscape
 
     Box(
         modifier = Modifier
@@ -89,6 +90,7 @@ fun LoginRegisterView(
                                 isLoginMode = isLoginMode,
                                 isLoading = isLoading,
                                 isLandscape = true,
+                                isTabletPortrait = false,
                                 onAuth = {
                                     handleAuth(name, password, isLoginMode, viewModel, { isLoading = it }, {}, onSuccess)
                                 }
@@ -97,21 +99,21 @@ fun LoginRegisterView(
                     }
                 }
             } else {
-                // Portrait Modus (Bleibt zentriert)
+                // Portrait Modus
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(24.dp)
+                        .padding(horizontal = if (isTabletPortrait) 64.dp else 24.dp)
                         .imePadding()
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    AuthBranding(false)
-                    Spacer(modifier = Modifier.height(32.dp))
+                    AuthBranding(false, isTabletPortrait)
+                    Spacer(modifier = Modifier.height(if (isTabletPortrait) 48.dp else 32.dp))
                     AuthModeToggle(isLoginMode) { isLoginMode = it }
-                    Spacer(modifier = Modifier.height(24.dp))
-                    AuthInputFields(name, {name=it}, password, {password=it}, isLoginMode, isLoading, false) {
+                    Spacer(modifier = Modifier.height(if (isTabletPortrait) 32.dp else 24.dp))
+                    AuthInputFields(name, {name=it}, password, {password=it}, isLoginMode, isLoading, false, isTabletPortrait) {
                         handleAuth(name, password, isLoginMode, viewModel, {isLoading=it}, {}, onSuccess)
                     }
                 }
@@ -121,18 +123,22 @@ fun LoginRegisterView(
 }
 
 @Composable
-private fun AuthBranding(isLandscape: Boolean) {
+private fun AuthBranding(isLandscape: Boolean, isTabletPortrait: Boolean = false) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
             imageVector = Icons.Default.Person,
             contentDescription = null,
-            modifier = Modifier.size(if (isLandscape) 60.dp else 100.dp),
+            modifier = Modifier.size(when { isLandscape -> 60.dp; isTabletPortrait -> 120.dp; else -> 100.dp }),
             tint = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(if (isLandscape) 8.dp else 32.dp))
+        Spacer(modifier = Modifier.height(when { isLandscape -> 8.dp; isTabletPortrait -> 28.dp; else -> 32.dp }))
         Text(
             text = "Willkommen",
-            style = if (isLandscape) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.displaySmall,
+            style = when {
+                isLandscape -> MaterialTheme.typography.headlineSmall
+                isTabletPortrait -> MaterialTheme.typography.displayMedium
+                else -> MaterialTheme.typography.displaySmall
+            },
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
@@ -172,17 +178,22 @@ private fun AuthInputFields(
     isLoginMode: Boolean,
     isLoading: Boolean,
     isLandscape: Boolean,
+    isTabletPortrait: Boolean = false,
     onAuth: () -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(if (isLandscape) 8.dp else 16.dp)) {
+    val fieldHeight = when { isTabletPortrait -> 68.dp; isLandscape -> 48.dp; else -> 56.dp }
+    val buttonHeight = when { isTabletPortrait -> 68.dp; isLandscape -> 48.dp; else -> 56.dp }
+    val spacing = when { isTabletPortrait -> 20.dp; isLandscape -> 8.dp; else -> 16.dp }
+    Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
         OutlinedTextField(
             value = name,
             onValueChange = onNameChange,
             label = { Text("Benutzername") },
             singleLine = true,
             enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth().heightIn(min = if (isLandscape) 48.dp else 56.dp),
-            shape = RoundedCornerShape(12.dp)
+            modifier = Modifier.fillMaxWidth().heightIn(min = fieldHeight),
+            shape = RoundedCornerShape(12.dp),
+            textStyle = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
         )
         OutlinedTextField(
             value = password,
@@ -193,22 +204,24 @@ private fun AuthInputFields(
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { onAuth() }),
-            modifier = Modifier.fillMaxWidth().heightIn(min = if (isLandscape) 48.dp else 56.dp),
-            shape = RoundedCornerShape(12.dp)
+            modifier = Modifier.fillMaxWidth().heightIn(min = fieldHeight),
+            shape = RoundedCornerShape(12.dp),
+            textStyle = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
         )
-
-        Spacer(modifier = Modifier.height(if (isLandscape) 4.dp else 8.dp))
-
+        Spacer(modifier = Modifier.height(if (isTabletPortrait) 8.dp else if (isLandscape) 4.dp else 8.dp))
         Button(
             onClick = onAuth,
             enabled = name.isNotBlank() && password.isNotBlank() && !isLoading,
-            modifier = Modifier.fillMaxWidth().height(if (isLandscape) 48.dp else 56.dp),
+            modifier = Modifier.fillMaxWidth().height(buttonHeight),
             shape = RoundedCornerShape(12.dp)
         ) {
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
             } else {
-                Text(if (isLoginMode) "Anmelden" else "Registrieren")
+                Text(
+                    if (isLoginMode) "Anmelden" else "Registrieren",
+                    style = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
+                )
             }
         }
     }

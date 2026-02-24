@@ -11,6 +11,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -49,7 +50,11 @@ fun MainScreen(activity: Activity) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val baseRailWidth = 80.dp
+    val configuration = LocalConfiguration.current
+    val isTablet = configuration.screenWidthDp >= 600
+
+    // Tablet bekommt breitere Rail — muss mit MainNavigationRail übereinstimmen
+    val baseRailWidth = if (isTablet) 96.dp else 80.dp
     val railWidthWithSystem = if (isNavBarLeft) baseRailWidth + 48.dp else baseRailWidth
 
     Box(modifier = Modifier.fillMaxSize()) {
