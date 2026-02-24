@@ -1,6 +1,7 @@
 package at.htlleonding.taskosaurus.view.screens
 
 import android.app.Activity
+import android.os.Build
 import android.view.Surface
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -35,16 +36,19 @@ fun MainScreen(activity: Activity) {
     val windowSizeClass = calculateWindowSizeClass(activity)
     val useNavRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
 
-    // Rotation und System-UI Logik
     val context = LocalContext.current
-    val rotation = context.display?.rotation ?: Surface.ROTATION_0
+    val rotation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        context.display?.rotation ?: Surface.ROTATION_0
+    } else {
+        TODO("VERSION.SDK_INT < R")
+    }
 
-    // Fall 1: Handy nach links gekippt -> Nav-Leiste ist LINKS (Rotation 270)
     val isNavBarLeft = rotation == Surface.ROTATION_270
-    // Fall 2: Handy nach rechts gekippt -> Nav-Leiste ist RECHTS (Rotation 90)
     val isNavBarRight = rotation == Surface.ROTATION_90
 
-    // Die Breite der Rail muss exakt der in MainNavigationRail entsprechen
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
     val baseRailWidth = 80.dp
     val railWidthWithSystem = if (isNavBarLeft) baseRailWidth + 48.dp else baseRailWidth
 
@@ -53,7 +57,6 @@ fun MainScreen(activity: Activity) {
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.surface,
             bottomBar = {
-                // BottomBar nur im Portrait-Modus (Compact)
                 if (!useNavRail && player != null && isReady) {
                     MainNavigation(navController)
                 }
@@ -67,15 +70,22 @@ fun MainScreen(activity: Activity) {
                     startDestination = startDestination,
                     modifier = Modifier
                         .padding(
-                            top = paddingValues.calculateTopPadding(),
-                            bottom = paddingValues.calculateBottomPadding()
+                            top = if (currentRoute == Screen.Settings.route || currentRoute == "auth") {
+                                0.dp
+                            } else {
+                                paddingValues.calculateTopPadding()
+                            },
+                            bottom = if (currentRoute == Screen.Settings.route || currentRoute == "auth") {
+                                0.dp
+                            } else {
+                                paddingValues.calculateBottomPadding()
+                            }
                         )
                         .padding(
-                            // Dynamisches Padding für die Rail
                             start = if (useNavRail && player != null) railWidthWithSystem else 0.dp,
-                            // Dynamisches Padding für die System-Leiste, wenn sie RECHTS liegt
                             end = if (isNavBarRight) 48.dp else 0.dp
                         )
+                        .imePadding()
                 ) {
                     composable("auth") {
                         LoginRegisterView(viewModel, onSuccess = {
