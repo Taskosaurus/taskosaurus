@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Taskosaurus</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="logout_dialog_title">Abmelden</string>
+    <string name="logout_dialog_confirm">Möchtest du dich wirklich abmelden?</string>
+    <string name="logout_button">Abmelden</string>
+    <string name="cancel_button">Abbrechen</string>
+    <string name="hello_player">Hallo %1$s!</string>
+    <string name="manage_account">Konto verwalten</string>
+    <string name="version_text">Version %1$s</string>
 </resources>

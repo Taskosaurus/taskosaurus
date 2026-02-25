@@ -1,0 +1,9 @@
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="logout_dialog_title">Logout</string>
+    <string name="logout_dialog_confirm">Do you really want to log out?</string>
+    <string name="logout_button">Logout</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="hello_player">Hello %1$s!</string>
+    <string name="manage_account">Manage Account</string>
+</resources>

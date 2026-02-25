@@ -69,4 +69,5 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android) // Coroutines
 
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.compose.material3.window.size.class1)
 }

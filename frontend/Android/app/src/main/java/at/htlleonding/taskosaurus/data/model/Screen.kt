@@ -12,7 +12,7 @@ sealed class Screen(
 ) {
     object Games : Screen(
         route = "games",
-        title = "Spiele",
+        title = "Spielen",
         icon = Icons.Default.SportsEsports
     )
 

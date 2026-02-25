@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import at.htlleonding.taskosaurus.data.model.Question
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
+import kotlin.random.Random
 
 @Composable
 fun TitleScreen(
@@ -36,185 +38,140 @@ fun TitleScreen(
     var isSubmitting by remember { mutableStateOf(false) }
 
     val questions by viewModel.randomQuestions.collectAsState()
-
     val infiniteTransition = rememberInfiniteTransition(label = "background")
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    // Tablet Portrait: screenWidth >= 600dp und Hochformat
+    val isTabletPortrait = configuration.screenWidthDp >= 600 && !isLandscape
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                val playButtonScale by infiniteTransition.animateFloat(
-                    initialValue = 1f,
-                    targetValue = 1.05f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(1000, easing = EaseInOut),
-                        repeatMode = RepeatMode.Reverse
-                    ),
-                    label = "playPulse"
-                )
-
-                ExtendedFloatingActionButton(
-                    onClick = { onOpenGameList() },
-                    icon = { Icon(Icons.Default.PlayArrow, null) },
-                    text = { Text("Jetzt spielen") },
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.scale(playButtonScale)
-                )
-
-                ExtendedFloatingActionButton(
-                    onClick = { showCreateDialog = true },
-                    icon = { Icon(Icons.Default.Add, null) },
-                    text = { Text("Spiel erstellen") },
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-        }
-    ) { paddingValues ->
+    Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            val gradientColors = listOf(
-                MaterialTheme.colorScheme.surface,
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                MaterialTheme.colorScheme.surface
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = gradientColors
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            MaterialTheme.colorScheme.surface
                         )
                     )
+                )
+        )
+
+        FloatingQuestionCards(infiniteTransition, questions, isLandscape)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.dp), // Mehr Padding für Kompaktheit
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            val iconScale by infiniteTransition.animateFloat(
+                initialValue = 1f,
+                targetValue = 1.1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(2000, easing = EaseInOutCubic),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "iconPulse"
             )
 
-            FloatingQuestionCards(infiniteTransition, questions)
-
-            Column(
+            Surface(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .size(when { isLandscape -> 80.dp; isTabletPortrait -> 160.dp; else -> 100.dp })
+                    .scale(iconScale),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = MaterialTheme.shapes.extraLarge,
+                shadowElevation = 8.dp
             ) {
-                val iconScale by infiniteTransition.animateFloat(
-                    initialValue = 1f,
-                    targetValue = 1.1f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(2000, easing = EaseInOutCubic),
-                        repeatMode = RepeatMode.Reverse
-                    ),
-                    label = "iconPulse"
-                )
-
-                Surface(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .scale(iconScale),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = MaterialTheme.shapes.extraLarge,
-                    shadowElevation = 8.dp
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Outlined.People,
-                            contentDescription = null,
-                            modifier = Modifier.size(50.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.People,
+                        contentDescription = null,
+                        modifier = Modifier.size(when { isLandscape -> 40.dp; isTabletPortrait -> 84.dp; else -> 50.dp }),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                Text(
-                    text = "Wer würde eher?",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Entdecke was deine Freunde wählen würden",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
             }
+
+            Spacer(modifier = Modifier.height(when { isLandscape -> 24.dp; isTabletPortrait -> 64.dp; else -> 40.dp }))
+
+            Text(
+                text = "Wer würde eher?",
+                style = when {
+                    isLandscape -> MaterialTheme.typography.headlineMedium
+                    isTabletPortrait -> MaterialTheme.typography.displayLarge
+                    else -> MaterialTheme.typography.headlineLarge
+                },
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(when { isTabletPortrait -> 28.dp; else -> 16.dp }))
+
+            Text(
+                text = "Entdecke, was deine Freunde wählen würden",
+                style = when {
+                    isLandscape -> MaterialTheme.typography.bodyLarge
+                    isTabletPortrait -> MaterialTheme.typography.headlineSmall
+                    else -> MaterialTheme.typography.bodyLarge
+                },
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.widthIn(max = when { isLandscape -> 220.dp; isTabletPortrait -> 560.dp; else -> 300.dp })
+            )
+        }
+
+        // FAB Buttons
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(if (isTabletPortrait) 36.dp else 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(if (isTabletPortrait) 20.dp else 16.dp)
+        ) {
+            val playButtonScale by infiniteTransition.animateFloat(
+                initialValue = 1f,
+                targetValue = 1.05f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1000, easing = EaseInOut),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "playPulse"
+            )
+
+            ExtendedFloatingActionButton(
+                onClick = { onOpenGameList() },
+                icon = { Icon(Icons.Default.PlayArrow, null, modifier = if (isTabletPortrait) Modifier.size(28.dp) else Modifier) },
+                text = { Text("Jetzt spielen", style = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge) },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.scale(playButtonScale).then(if (isTabletPortrait) Modifier.height(64.dp) else Modifier)
+            )
+
+            ExtendedFloatingActionButton(
+                onClick = { showCreateDialog = true },
+                icon = { Icon(Icons.Default.Add, null, modifier = if (isTabletPortrait) Modifier.size(28.dp) else Modifier) },
+                text = { Text("Spiel erstellen", style = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge) },
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = if (isTabletPortrait) Modifier.height(64.dp) else Modifier
+            )
         }
     }
 
     if (showCreateDialog) {
-        AlertDialog(
-            onDismissRequest = { if (!isSubmitting) showCreateDialog = false },
-            title = { Text("Neues Spiel erstellen") },
-            text = {
-                Column {
-                    Text(
-                        "Gib deiner Gruppe einen Namen, um zu starten.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    OutlinedTextField(
-                        value = groupName,
-                        onValueChange = { groupName = it },
-                        label = { Text("Gruppenname") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isSubmitting
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    enabled = groupName.isNotBlank() && !isSubmitting,
-                    onClick = {
-                        isSubmitting = true
-                        viewModel.createGroup(
-                            name = groupName,
-                            onSuccess = { newGroup ->
-                                isSubmitting = false
-                                showCreateDialog = false
-                                onGameCreated(newGroup.id)
-                            },
-                            onError = { isSubmitting = false }
-                        )
-                    }
-                ) {
-                    if (isSubmitting) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Text("Erstellen")
-                    }
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showCreateDialog = false },
-                    enabled = !isSubmitting
-                ) {
-                    Text("Abbrechen")
-                }
+        CreateGroupDialog(
+            groupName = groupName,
+            onGroupNameChange = { groupName = it },
+            isSubmitting = isSubmitting,
+            onDismiss = { showCreateDialog = false },
+            onConfirm = {
+                isSubmitting = true
+                viewModel.createGroup(groupName, { isSubmitting = false; showCreateDialog = false; onGameCreated(it.id) }, { isSubmitting = false })
             }
         )
     }
@@ -223,72 +180,124 @@ fun TitleScreen(
 @Composable
 fun FloatingQuestionCards(
     infiniteTransition: InfiniteTransition,
-    questions: List<Question>
+    questions: List<Question>,
+    isLandscape: Boolean
 ) {
+    val portraitPositions = listOf(
+        Offset(0.1f, 0.15f),
+        Offset(0.75f, 0.25f),
+        Offset(0.15f, 0.75f),
+        Offset(0.8f, 0.7f)
+    )
 
-    questions.forEachIndexed { index, question ->
-        val offsetY by infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = 30f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(
-                    durationMillis = 3000 + index * 500,
-                    easing = EaseInOutCubic
+    val landscapePositions = listOf(
+        Offset(0.08f, 0.15f),
+        Offset(0.05f, 0.65f),
+
+        Offset(0.74f, 0.12f),
+        Offset(0.64f, 0.40f),
+        Offset(0.42f, 0.77f),
+
+        Offset(0.35f, 0.10f)
+    )
+
+    val finalPositions = if (isLandscape) landscapePositions else portraitPositions
+    val displayQuestions = if (questions.isEmpty()) emptyList()
+    else List(finalPositions.size) { questions[it % questions.size] }
+
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val screenW = maxWidth
+        val screenH = maxHeight
+
+        displayQuestions.forEachIndexed { index, question ->
+            val pos = finalPositions[index]
+
+            val offsetY by infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 30f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 3000 + index * 500, easing = EaseInOutCubic),
+                    repeatMode = RepeatMode.Reverse
                 ),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "cardFloat$index"
-        )
+                label = "cardFloat$index"
+            )
 
-        val rotation by infiniteTransition.animateFloat(
-            initialValue = -2f,
-            targetValue = 2f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(
-                    durationMillis = 2000 + index * 300,
-                    easing = EaseInOut
+            val rotation by infiniteTransition.animateFloat(
+                initialValue = if (index % 2 == 0) -3f else 3f,
+                targetValue = if (index % 2 == 0) 3f else -3f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 2000 + index * 300, easing = EaseInOut),
+                    repeatMode = RepeatMode.Reverse
                 ),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "cardRotate$index"
-        )
+                label = "cardRotate$index"
+            )
 
-        val positions = listOf(
-            Offset(0.1f, 0.15f),
-            Offset(0.75f, 0.25f),
-            Offset(0.15f, 0.75f),
-            Offset(0.8f, 0.7f)
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            Card(
-                modifier = Modifier
-                    .offset(
-                        x = (positions[index].x * 300).dp,
-                        y = (positions[index].y * 600).dp + offsetY.dp
+            Box(modifier = Modifier.fillMaxSize()) {
+                Card(
+                    modifier = Modifier
+                        .offset(
+                            x = if (isLandscape) (screenW * pos.x) else (pos.x * 300).dp,
+                            y = if (isLandscape) {
+                                (screenH * pos.y) + offsetY.dp - 15.dp
+                            } else {
+                                (pos.y * 600).dp + offsetY.dp
+                            }
+                        )
+                        .rotate(rotation)
+                        .alpha(if (isLandscape) 0.15f else 0.3f)
+                        .width(125.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    elevation = CardDefaults.cardElevation(2.dp)
+                ) {
+                    Text(
+                        text = question.shortenedQuestion,
+                        modifier = Modifier.padding(12.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 14.sp
                     )
-                    .rotate(rotation)
-                    .alpha(0.3f)
-                    .width(120.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                elevation = CardDefaults.cardElevation(4.dp)
-            ) {
-                Text(
-                    text = question.shortenedQuestion,
-                    modifier = Modifier.padding(12.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 14.sp
-                )
+                }
             }
         }
     }
+}
+
+@Composable
+private fun CreateGroupDialog(
+    groupName: String,
+    onGroupNameChange: (String) -> Unit,
+    isSubmitting: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Neues Spiel erstellen") },
+        text = {
+            Column {
+                Text("Gib deiner Gruppe einen Namen.", Modifier.padding(bottom = 16.dp))
+                OutlinedTextField(
+                    value = groupName,
+                    onValueChange = onGroupNameChange,
+                    label = { Text("Gruppenname") },
+                    singleLine = true,
+                    enabled = !isSubmitting
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = onConfirm, enabled = groupName.isNotBlank() && !isSubmitting) {
+                if (isSubmitting) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                else Text("Erstellen")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Abbrechen") }
+        }
+    )
 }

@@ -1,23 +1,26 @@
 package at.htlleonding.taskosaurus.view.screens.general
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource // NEU: Import für Localization
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import at.htlleonding.taskosaurus.R // NEU: Import deiner Resource-Klasse
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: ViewModel = viewModel(),
@@ -27,136 +30,170 @@ fun SettingsScreen(
     val currentPlayer by viewModel.player.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    val isTabletPortrait = configuration.screenWidthDp >= 600 && !isLandscape
+
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Logout,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            },
-            title = { Text("Abmelden") },
-            text = { Text("Möchtest du dich wirklich abmelden?") },
+            icon = { Icon(Icons.Default.Logout, null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text(stringResource(R.string.logout_dialog_title)) }, // GEÄNDERT: Localization
+            text = { Text(stringResource(R.string.logout_dialog_confirm)) }, // GEÄNDERT: Localization
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogoutDialog = false
-                        onLogout()
-                    }
-                ) {
-                    Text("Abmelden", color = MaterialTheme.colorScheme.error)
+                TextButton(onClick = { showLogoutDialog = false; onLogout() }) {
+                    Text(stringResource(R.string.logout_button), color = MaterialTheme.colorScheme.error) // GEÄNDERT
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Abbrechen")
+                    Text(stringResource(R.string.cancel_button)) // GEÄNDERT: Localization
                 }
             }
         )
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), // Subtiler Background
-        topBar = {
-            CenterAlignedTopAppBar( // Zentriert für moderneren Look
-                title = { Text("Einstellungen", fontWeight = FontWeight.SemiBold) },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent // Verschmilzt mit dem Hintergrund
-                )
-            )
-        }
-    ) { paddingValues ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .statusBarsPadding()
+                .padding(
+                    horizontal = if (isTabletPortrait) 48.dp else 24.dp,
+                    vertical = if (isTabletPortrait) 28.dp else 20.dp
+                )
         ) {
-
-            currentPlayer?.let { player ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Surface(
-                        modifier = Modifier.size(90.dp),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = player.name.take(1).uppercase(),
-                                style = MaterialTheme.typography.displaySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Hallo ${player.name}!",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedButton(
-                        onClick = { /* TODO: Profil-Details */ },
-                        shape = RoundedCornerShape(50.dp),
-                        border = ButtonDefaults.outlinedButtonBorder.copy(
-                            width = 0.5.dp
-                        )
-                    ) {
-                        Text("Taskosaurus-Konto verwalten", style = MaterialTheme.typography.labelLarge)
-                    }
-                }
-            }
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    // Abmelden
-                    ListItem(
-                        headlineContent = { Text("Abmelden") },
-                        leadingContent = {
-                            Icon(
-                                imageVector = Icons.Default.Logout,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        },
-                        modifier = Modifier.clickable { showLogoutDialog = true },
-                        colors = ListItemDefaults.colors(
-                            headlineColor = MaterialTheme.colorScheme.error,
-                            containerColor = Color.Transparent
-                        )
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
             Text(
-                text = "Version 1.0.0",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                modifier = Modifier.padding(bottom = 16.dp)
+                text = stringResource(R.string.settings_title), // GEÄNDERT: Localization
+                style = when {
+                    isTabletPortrait -> MaterialTheme.typography.displaySmall
+                    isLandscape -> MaterialTheme.typography.headlineLarge
+                    else -> MaterialTheme.typography.headlineMedium
+                },
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = if (isTabletPortrait) 48.dp else 32.dp),
+                textAlign = if (isLandscape) TextAlign.Start else TextAlign.Center
+            )
+
+            if (isLandscape) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(40.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Column(
+                        modifier = Modifier.weight(0.4f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        ProfileHeader(currentPlayer, false)
+                    }
+
+                    Column(modifier = Modifier.weight(0.6f)) {
+                        SettingsActionsCard(false) { showLogoutDialog = true }
+                        Spacer(modifier = Modifier.weight(1f))
+                        VersionText(false)
+                    }
+                }
+            } else {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .then(if (isTabletPortrait) Modifier.widthIn(max = 520.dp).fillMaxWidth() else Modifier.fillMaxWidth()),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        ProfileHeader(currentPlayer, isTabletPortrait)
+                        Spacer(modifier = Modifier.height(if (isTabletPortrait) 64.dp else 48.dp))
+                        SettingsActionsCard(isTabletPortrait) { showLogoutDialog = true }
+                        Spacer(modifier = Modifier.weight(1f))
+                        VersionText(isTabletPortrait)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileHeader(player: at.htlleonding.taskosaurus.data.model.Player?, isTabletPortrait: Boolean) {
+    player?.let {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Surface(
+                modifier = Modifier.size(if (isTabletPortrait) 140.dp else 100.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = it.name.take(1).uppercase(),
+                        style = if (isTabletPortrait) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(if (isTabletPortrait) 28.dp else 16.dp))
+            Text(
+                // GEÄNDERT: Localization mit Platzhalter für den Namen
+                text = stringResource(R.string.hello_player, it.name),
+                style = if (isTabletPortrait) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(if (isTabletPortrait) 20.dp else 12.dp))
+            OutlinedButton(
+                onClick = { },
+                shape = RoundedCornerShape(50.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.manage_account), // GEÄNDERT: Localization
+                    style = if (isTabletPortrait) MaterialTheme.typography.titleSmall else MaterialTheme.typography.labelLarge
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsActionsCard(isTabletPortrait: Boolean, onLogoutClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(if (isTabletPortrait) 28.dp else 24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(0.dp)
+    ) {
+        Column(modifier = Modifier.padding(vertical = if (isTabletPortrait) 8.dp else 4.dp)) {
+            ListItem(
+                headlineContent = {
+                    Text(
+                        text = stringResource(R.string.logout_button), // GEÄNDERT: Localization
+                        style = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyLarge
+                    )
+                },
+                leadingContent = { Icon(Icons.Default.Logout, null, tint = MaterialTheme.colorScheme.error) },
+                modifier = Modifier.clickable { onLogoutClick() },
+                colors = ListItemDefaults.colors(
+                    headlineColor = MaterialTheme.colorScheme.error,
+                    containerColor = Color.Transparent
+                )
             )
         }
     }
+}
+
+@Composable
+private fun VersionText(isTabletPortrait: Boolean = false) {
+    Text(
+        // GEÄNDERT: Localization mit Versions-String als Parameter
+        text = stringResource(R.string.version_text, "1.0.0"),
+        style = if (isTabletPortrait) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+        textAlign = TextAlign.Center
+    )
 }
