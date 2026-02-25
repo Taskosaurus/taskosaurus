@@ -4,21 +4,26 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import at.htlleonding.taskosaurus.data.model.Player
+import at.htlleonding.taskosaurus.ui.theme.AppDimensions
+import at.htlleonding.taskosaurus.ui.theme.LocalAppDimensions
+import at.htlleonding.taskosaurus.ui.theme.bodyText
+import at.htlleonding.taskosaurus.ui.theme.heading1
+import at.htlleonding.taskosaurus.ui.theme.heading2
+import at.htlleonding.taskosaurus.ui.theme.labelText
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
@@ -29,74 +34,84 @@ fun GroupInfoScreen(
     groupId: Int,
     viewModel: ViewModel = viewModel(),
     isTabletMode: Boolean = false,
-    onBackToGame: () -> Unit = {} // NEU: Damit wir am Tablet zurück zum Spiel kommen
+    onBackToGame: () -> Unit = {}
 ) {
+    val dims = LocalAppDimensions.current
     val groups by viewModel.groups.collectAsState()
     val group = groups.find { it.id == groupId }
     val players = group?.players ?: emptyList()
     val qrData = "https://taskosaurus.at/group/$groupId"
     val qrBitmap = remember(qrData) { generateQrCode(qrData) }
 
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
-    val isTabletPortrait = configuration.screenWidthDp >= 600 && !isLandscape
-
     Scaffold(
         topBar = {
-            if (!isTabletMode) {
-                TopAppBar(title = { Text("Einladen und Info") })
-            } else {
-                // Im Tablet-Modus eine kleine eigene Bar für den Rückweg
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                }
-            }
+            if (!isTabletMode) TopAppBar(title = { Text("Einladen und Info") })
         }
     ) { padding ->
-        val topPadding = if (isTabletMode) padding.calculateTopPadding() else padding.calculateTopPadding()
-
-        Box(modifier = Modifier.padding(top = topPadding).fillMaxSize()) {
-            if (isLandscape) {
+        Box(modifier = Modifier.padding(top = padding.calculateTopPadding()).fillMaxSize()) {
+            if (dims.isLandscape) {
+                // Landscape: QR links, scrollbare Mitgliederliste rechts
                 Row(
-                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    modifier = Modifier.fillMaxSize().padding(dims.screenPaddingH),
                     horizontalArrangement = Arrangement.spacedBy(32.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
+                    Column(modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        QrSection(qrBitmap, group?.name)
+                        verticalArrangement = Arrangement.Center) {
+                        QrSection(qrBitmap, group?.name, dims)
                     }
-
+                    // Rechte Seite: Header + scrollbare Liste in einer Box mit fixer Höhe
                     Column(modifier = Modifier.weight(1.2f).fillMaxHeight()) {
-                        MemberListHeader(players.size)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        ScrollableMemberList(players)
+                        MemberListHeader(players.size, dims)
+                        Spacer(Modifier.height(12.dp))
+                        // Scrollbare Mitgliederliste — füllt den Rest der Spalte
+                        Card(
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                        ) {
+                            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                itemsIndexed(players) { index, player ->
+                                    PlayerItem(player, index == players.lastIndex, dims)
+                                }
+                            }
+                        }
                     }
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    contentPadding = PaddingValues(
-                        horizontal = if (isTabletPortrait) 48.dp else 16.dp,
-                        vertical = if (isTabletPortrait) 16.dp else 8.dp
-                    )
+                // Portrait: QR oben, dann scrollbare Mitgliederliste
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                        .padding(horizontal = dims.screenPaddingH, vertical = dims.screenPaddingV)
                 ) {
-                    item {
-                        QrSection(qrBitmap, group?.name, isTabletPortrait)
-                        Spacer(modifier = Modifier.height(if (isTabletPortrait) 36.dp else 24.dp))
-                        MemberListHeader(players.size, isTabletPortrait)
-                        Spacer(modifier = Modifier.height(if (isTabletPortrait) 16.dp else 12.dp))
+                    // QR-Bereich — fixer Teil oben
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        QrSection(qrBitmap, group?.name, dims)
+                        Spacer(Modifier.height(if (dims.isTablet) 36.dp else 24.dp))
+                        MemberListHeader(players.size, dims)
+                        Spacer(Modifier.height(if (dims.isTablet) 12.dp else 8.dp))
                     }
-                    items(players) { player ->
-                        PlayerItem(player, isLast = player == players.last(), isTabletPortrait)
+
+                    // Mitglieder-Block scrollbar — nimmt den restlichen Platz ein
+                    Card(
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        shape = RoundedCornerShape(if (dims.isTablet) 20.dp else 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(vertical = 4.dp)
+                        ) {
+                            items(players) { player ->
+                                PlayerItem(player, player == players.last(), dims)
+                            }
+                        }
                     }
                 }
             }
@@ -105,109 +120,62 @@ fun GroupInfoScreen(
 }
 
 @Composable
-private fun QrSection(qrBitmap: Bitmap?, groupName: String?, isTabletPortrait: Boolean = false) {
+private fun QrSection(qrBitmap: Bitmap?, groupName: String?, dims: AppDimensions) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Card(
-            modifier = Modifier.size(if (isTabletPortrait) 280.dp else 200.dp),
+            modifier = Modifier.size(dims.qrCardSize),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(2.dp)
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(if (isTabletPortrait) 20.dp else 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.fillMaxSize().padding(if (dims.isTablet) 20.dp else 16.dp),
+                contentAlignment = Alignment.Center) {
                 qrBitmap?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = "QR",
-                        modifier = Modifier.fillMaxSize(),
-                        filterQuality = FilterQuality.None
-                    )
+                    Image(it.asImageBitmap(), "QR", modifier = Modifier.fillMaxSize(), filterQuality = FilterQuality.None)
                 } ?: CircularProgressIndicator()
             }
         }
-        Spacer(modifier = Modifier.height(if (isTabletPortrait) 24.dp else 16.dp))
-        Text(
-            text = groupName ?: "Lade Gruppe...",
-            style = if (isTabletPortrait) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = "Code scannen zum Beitreten",
-            style = if (isTabletPortrait) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Spacer(Modifier.height(if (dims.isTablet) 20.dp else 16.dp))
+        Text(groupName ?: "Lade Gruppe...", style = dims.heading1(),
+            fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        Text("Code scannen zum Beitreten", style = dims.bodyText(),
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
-private fun MemberListHeader(count: Int, isTabletPortrait: Boolean = false) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
+private fun MemberListHeader(count: Int, dims: AppDimensions) {
+    Row(modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            "Mitglieder",
-            style = if (isTabletPortrait) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
+        verticalAlignment = Alignment.CenterVertically) {
+        Text("Mitglieder", style = dims.heading2(), fontWeight = FontWeight.Bold)
         Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape) {
-            Text(
-                text = "$count",
-                modifier = Modifier.padding(horizontal = if (isTabletPortrait) 14.dp else 10.dp, vertical = if (isTabletPortrait) 4.dp else 2.dp),
-                style = if (isTabletPortrait) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Text("$count",
+                modifier = Modifier.padding(
+                    horizontal = if (dims.isTablet) 14.dp else 10.dp,
+                    vertical = if (dims.isTablet) 4.dp else 2.dp),
+                style = dims.labelText(), fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
-private fun ScrollableMemberList(players: List<Player>) {
-    Card(
-        modifier = Modifier.fillMaxSize(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-    ) {
-        LazyColumn(Modifier.fillMaxSize()) {
-            itemsIndexed(players) { index, player ->
-                PlayerItem(player, isLast = index == players.lastIndex)
-            }
-        }
-    }
-}
-
-@Composable
-private fun PlayerItem(player: Player, isLast: Boolean, isTabletPortrait: Boolean = false) {
+private fun PlayerItem(player: Player, isLast: Boolean, dims: AppDimensions) {
     Column {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(if (isTabletPortrait) 16.dp else 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(if (isTabletPortrait) 52.dp else 36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    player.name.take(1).uppercase(),
-                    style = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium,
+        Row(modifier = Modifier.fillMaxWidth().padding(dims.memberItemPadding),
+            verticalAlignment = Alignment.CenterVertically) {
+            Box(modifier = Modifier.size(dims.memberAvatarSize).clip(CircleShape)
+                .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center) {
+                Text(player.name.take(1).uppercase(), style = dims.heading2(),
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                    color = MaterialTheme.colorScheme.onSecondaryContainer)
             }
-            Spacer(modifier = Modifier.width(if (isTabletPortrait) 16.dp else 12.dp))
-            Text(
-                player.name,
-                style = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
-            )
+            Spacer(Modifier.width(if (dims.isTablet) 16.dp else 12.dp))
+            Text(player.name, style = dims.heading2())
         }
-        if (!isLast) HorizontalDivider(Modifier.padding(top = 12.dp), thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
+        if (!isLast) HorizontalDivider(Modifier.padding(horizontal = dims.memberItemPadding),
+            thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
     }
 }
 
@@ -215,11 +183,8 @@ fun generateQrCode(content: String): Bitmap? {
     return try {
         val bitMatrix = QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, 512, 512)
         val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.RGB_565)
-        for (x in 0 until 512) {
-            for (y in 0 until 512) {
-                bitmap.setPixel(x, y, if (bitMatrix.get(x, y)) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
-            }
-        }
+        for (x in 0 until 512) for (y in 0 until 512)
+            bitmap.setPixel(x, y, if (bitMatrix.get(x, y)) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
         bitmap
     } catch (e: Exception) { null }
 }

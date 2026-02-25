@@ -10,12 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import at.htlleonding.taskosaurus.data.model.Group
 import at.htlleonding.taskosaurus.data.model.Question
+import at.htlleonding.taskosaurus.ui.theme.LocalAppDimensions
+import at.htlleonding.taskosaurus.ui.theme.heading1
+import at.htlleonding.taskosaurus.ui.theme.labelText
 import at.htlleonding.taskosaurus.view.components.GroupListItem
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
@@ -28,115 +30,94 @@ fun GameListScreen(
     onGroupClick: (Int) -> Unit,
     isTabletSideBar: Boolean = false
 ) {
+    val dims = LocalAppDimensions.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val hasConnection by viewModel.hasConnection.collectAsState()
-    val groups by viewModel.groups.collectAsState()
     val questions by viewModel.latestQuestions.collectAsState()
-
-    // Filterung der Gruppen nach Status
-    val unansweredGroups = remember(groups, questions) {
-        groups.filter { g -> questions[g.id]?.answered == false }
-    }
-    val answeredGroups = remember(groups, questions) {
-        groups.filter { g -> questions[g.id]?.answered == true }
-    }
+    val unansweredGroups = viewModel.unAnsweredGroups
+    val answeredGroups = viewModel.answeredGroups
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scanner = remember { GmsBarcodeScanning.getClient(context) }
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp &&!isTabletSideBar
-    val isTabletPortrait = configuration.screenWidthDp >= 600 && !isLandscape
 
     val startQrScanner = {
         scanner.startScan()
             .addOnSuccessListener { barcode ->
-                val rawValue = barcode.rawValue ?: ""
-                val groupId = rawValue.substringAfterLast("/").toIntOrNull()
+                val raw = barcode.rawValue ?: ""
+                val groupId = raw.substringAfterLast("/").toIntOrNull()
                 if (groupId != null) onGroupClick(groupId)
                 else scope.launch { snackbarHostState.showSnackbar("Ungültiger QR-Code") }
             }
-            .addOnFailureListener {
-                scope.launch { snackbarHostState.showSnackbar("Scan fehlgeschlagen") }
-            }
+            .addOnFailureListener { scope.launch { snackbarHostState.showSnackbar("Scan fehlgeschlagen") } }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Gruppen") },
+                title = { Text("Gruppen", style = dims.heading1()) },
                 windowInsets = WindowInsets(top = 0.dp, bottom = 0.dp)
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { startQrScanner() }, modifier = Modifier.padding(16.dp)) {
-                Icon(Icons.Filled.QrCodeScanner, contentDescription = "Gruppe beitreten")
+                Icon(Icons.Filled.QrCodeScanner, null,
+                    modifier = if (dims.isTablet) Modifier.size(dims.fabIconSize) else Modifier)
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
-        ) {
+        Column(modifier = Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
             if (!hasConnection) {
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
                 ) {
-                    Text(
-                        text = "Keine Verbindung zum Server",
-                        modifier = Modifier.padding(8.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
+                    Text("Keine Verbindung zum Server", modifier = Modifier.padding(8.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer)
                 }
             }
 
-            if (isLandscape) {
-                // --- HANDY QUERFORMAT ---
+            if (dims.isLandscape && !isTabletSideBar) {
+                // Tablet Landscape — zwei Spalten nebeneinander
                 Row(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.fillMaxSize()
+                        .padding(horizontal = dims.screenPaddingH, vertical = dims.screenPaddingV),
+                    horizontalArrangement = Arrangement.spacedBy(dims.sectionSpacing)
                 ) {
-                    // Nur anzeigen wenn nicht leer
-                    if (unansweredGroups.isNotEmpty()) {
-                        GroupSectionBox("Nicht beantwortet", unansweredGroups, questions, false, Modifier.weight(1f), onGroupClick)
-                    }
-                    // Beantwortet nimmt den restlichen Platz ein
-                    GroupSectionBox("Beantwortet", answeredGroups, questions, true, Modifier.weight(1f), onGroupClick)
+                    GroupSectionBox("Nicht beantwortet", unansweredGroups, questions, false,
+                        "Alles erledigt!", Modifier.weight(1f), dims, onGroupClick)
+                    GroupSectionBox("Beantwortet", answeredGroups, questions, true,
+                        "Noch keine Antworten.", Modifier.weight(1f), dims, onGroupClick)
                 }
             } else {
-                // --- TABLET SIDEBAR / HOCHFORMAT ---
+                // Portrait oder SideBar — Liste untereinander
+                // groupListSpacing = Gap zwischen den einzelnen Karten!
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(if (isTabletPortrait) 12.dp else 16.dp),
-                    contentPadding = PaddingValues(if (isTabletPortrait) 24.dp else 16.dp)
+                    verticalArrangement = Arrangement.spacedBy(dims.groupListSpacing),
+                    contentPadding = PaddingValues(
+                        horizontal = if (dims.isTablet) 20.dp else 12.dp,
+                        vertical = if (dims.isTablet) 16.dp else 10.dp
+                    )
                 ) {
                     if (unansweredGroups.isEmpty() && answeredGroups.isEmpty()) {
                         item {
                             Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(
-                                    "Keine Gruppen gefunden",
-                                    style = if (isTabletPortrait) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyMedium
-                                )
+                                Text("Keine Gruppen gefunden", style = dims.labelText())
                             }
                         }
                     }
                     if (unansweredGroups.isNotEmpty()) {
-                        item {
-                            GroupSectionBoxStandalone("Nicht beantwortet", unansweredGroups, questions, false, onGroupClick)
+                        item { SectionHeader("Nicht beantwortet", dims) }
+                        itemsIndexed(unansweredGroups) { index, group ->
+                            GroupItemWrapper(group, questions, false, index * 200, onGroupClick)
                         }
                     }
                     if (answeredGroups.isNotEmpty()) {
-                        item {
-                            GroupSectionBoxStandalone(
-                                title = "Beantwortet",
-                                groups = answeredGroups,
-                                questions = questions,
-                                isAnswered = true,
-                                onGroupClick = onGroupClick,
-                            )
+                        item { SectionHeader("Beantwortet", dims) }
+                        itemsIndexed(answeredGroups) { index, group ->
+                            GroupItemWrapper(group, questions, true, index * 200, onGroupClick)
                         }
                     }
                 }
@@ -145,57 +126,11 @@ fun GameListScreen(
     }
 }
 
-@Composable
-fun GroupSectionBoxStandalone(
-    title: String,
-    groups: List<Group>,
-    questions: Map<Int, Question>,
-    isAnswered: Boolean,
-    onGroupClick: (Int) -> Unit,
-    emptyText: String = ""
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        // Border wurde hier entfernt
-    ) {
-        Column(modifier = Modifier.padding(bottom = 8.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(16.dp, 12.dp, 16.dp, 8.dp)
-            )
-
-            if (groups.isEmpty() && emptyText.isNotEmpty()) {
-                Box(Modifier.fillMaxWidth().height(60.dp), contentAlignment = Alignment.Center) {
-                    Text(text = emptyText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else {
-                Column(modifier = Modifier.padding(horizontal = 8.dp)) {
-                    groups.forEachIndexed { index, group ->
-                        GroupItemWrapper(group, questions, isAnswered, index * 100, onGroupClick)
-                        if (index < groups.lastIndex) {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 12.dp),
-                                thickness = 0.5.dp,
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 @Composable
 fun GroupSectionBox(
-    title: String,
-    groups: List<Group>,
-    questions: Map<Int, Question>,
-    isAnswered: Boolean,
-    modifier: Modifier,
-    onGroupClick: (Int) -> Unit
+    title: String, groups: List<Group>, questions: Map<Int, Question>,
+    isAnswered: Boolean, emptyText: String, modifier: Modifier,
+    dims: at.htlleonding.taskosaurus.ui.theme.AppDimensions, onGroupClick: (Int) -> Unit
 ) {
     Card(
         modifier = modifier.fillMaxHeight(),
@@ -203,15 +138,29 @@ fun GroupSectionBox(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(16.dp, 8.dp, 16.dp, 4.dp))
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 12.dp)
-            ) {
-                itemsIndexed(groups) { index, group ->
-                    GroupItemWrapper(group, questions, isAnswered, index * 200, onGroupClick)
+            Text(
+                title,
+                style = if (dims.isTablet) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(
+                    start = dims.screenPaddingH + 4.dp, end = dims.screenPaddingH + 4.dp,
+                    top = if (dims.isTablet) 12.dp else 8.dp, bottom = if (dims.isTablet) 6.dp else 4.dp
+                )
+            )
+            if (groups.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(emptyText, style = dims.labelText(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
+                // Gap zwischen den Karten in der Spalten-Ansicht
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = if (dims.isTablet) 12.dp else 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(dims.groupListSpacing),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    itemsIndexed(groups) { index, group ->
+                        GroupItemWrapper(group, questions, isAnswered, index * 200, onGroupClick)
+                    }
                 }
             }
         }
@@ -235,11 +184,11 @@ fun GroupItemWrapper(group: Group, questions: Map<Int, Question>, isAnswered: Bo
 }
 
 @Composable
-fun SectionHeader(text: String, isTabletPortrait: Boolean = false) {
+fun SectionHeader(text: String, dims: at.htlleonding.taskosaurus.ui.theme.AppDimensions) {
     Text(
         text = text,
-        style = if (isTabletPortrait) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 4.dp)
+        style = if (dims.isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 2.dp)
     )
 }

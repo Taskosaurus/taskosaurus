@@ -20,6 +20,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.*
 import at.htlleonding.taskosaurus.data.model.Screen
+import at.htlleonding.taskosaurus.ui.theme.LocalAppDimensions
 import at.htlleonding.taskosaurus.view.components.MainNavigation
 import at.htlleonding.taskosaurus.view.components.MainNavigationRail
 import at.htlleonding.taskosaurus.view.screens.auth.LoginRegisterView
@@ -34,13 +35,12 @@ fun MainScreen(activity: Activity) {
     val viewModel: ViewModel = viewModel()
     val player by viewModel.player.collectAsState()
     val isReady by viewModel.isReady.collectAsState()
+    val dims = LocalAppDimensions.current
 
-    // Device & Orientation Check
     val windowSizeClass = calculateWindowSizeClass(activity)
     val configuration = LocalConfiguration.current
     val useNavRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
 
-    // Bedingung für Master-Detail: Tablet-Breite UND Querformat
     val isTabletLandscape = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
             && configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
@@ -58,10 +58,7 @@ fun MainScreen(activity: Activity) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val isTablet = configuration.screenWidthDp >= 600
-
-    // Tablet bekommt breitere Rail — muss mit MainNavigationRail übereinstimmen
-    val baseRailWidth = if (isTablet) 96.dp else 80.dp
+    val baseRailWidth = dims.railWidth
     val railWidthWithSystem = if (isNavBarLeft) baseRailWidth + 48.dp else baseRailWidth
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -76,7 +73,6 @@ fun MainScreen(activity: Activity) {
         ) { paddingValues ->
             if (isReady) {
                 val startDestination = if (player != null) Screen.Games.route else "auth"
-
                 NavHost(
                     navController = navController,
                     startDestination = startDestination,
@@ -98,7 +94,6 @@ fun MainScreen(activity: Activity) {
                             navController.navigate(Screen.Games.route) { popUpTo("auth") { inclusive = true } }
                         })
                     }
-
                     navigation(startDestination = "title", route = Screen.Games.route) {
                         composable("title") {
                             LaunchedEffect(Unit) { viewModel.startAutoRefresh() }
@@ -108,46 +103,29 @@ fun MainScreen(activity: Activity) {
                                 viewModel = viewModel
                             )
                         }
-
                         composable("game_list") {
-                            // Hier wird entschieden: Master-Detail (Tablet) oder Liste (Handy)
                             AdaptiveGameLayout(
                                 viewModel = viewModel,
                                 isTabletLandscape = isTabletLandscape,
-                                onNavigateToGame = { groupId ->
-                                    // Navigation nur für Handy-Modus
-                                    navController.navigate("game/$groupId")
-                                }
+                                onNavigateToGame = { groupId -> navController.navigate("game/$groupId") }
                             )
                         }
-
-                        // Diese Routen werden nur im Handy-Modus oder bei explizitem Aufruf (Vollbild) genutzt
                         composable(
                             route = "game/{groupId}",
                             arguments = listOf(navArgument("groupId") { type = NavType.IntType })
                         ) { backStackEntry ->
                             val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
-                            GameScreen(
-                                groupId = groupId,
-                                viewModel = viewModel,
-                                onNavigateToGroupInfo = { id -> navController.navigate("group_info/$id") },
-                                isTabletMode = false // Vollbildmodus
-                            )
+                            GameScreen(groupId = groupId, viewModel = viewModel,
+                                onNavigateToGroupInfo = { id -> navController.navigate("group_info/$id") })
                         }
-
                         composable(
                             route = "group_info/{groupId}",
                             arguments = listOf(navArgument("groupId") { type = NavType.IntType })
                         ) { backStackEntry ->
                             val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
-                            GroupInfoScreen(
-                                groupId = groupId,
-                                viewModel = viewModel,
-                                isTabletMode = false // Vollbildmodus
-                            )
+                            GroupInfoScreen(groupId = groupId, viewModel = viewModel)
                         }
                     }
-
                     composable(Screen.Settings.route) {
                         SettingsScreen(
                             viewModel = viewModel,
@@ -161,7 +139,6 @@ fun MainScreen(activity: Activity) {
                 }
             }
         }
-
         if (useNavRail && player != null && isReady) {
             MainNavigationRail(navController)
         }
