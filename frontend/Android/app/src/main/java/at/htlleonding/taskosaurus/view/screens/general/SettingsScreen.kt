@@ -1,5 +1,6 @@
 package at.htlleonding.taskosaurus.view.screens.general
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -37,6 +39,9 @@ fun SettingsScreen(
     val currentPlayer by viewModel.player.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    val configuration = LocalConfiguration.current
+    val isActuallyLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -57,7 +62,7 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxSize().statusBarsPadding()
                 .padding(horizontal = dims.settingsPaddingH, vertical = dims.settingsPaddingV)
         ) {
-            if (dims.isLandscape) {
+            if (isActuallyLandscape) {
                 // ─── TABLET LANDSCAPE: Cooles 3-Spalten-Layout ───────────────────────────
                 LandscapeSettingsLayout(currentPlayer, dims) { showLogoutDialog = true }
             } else if (dims.isPortrait) {
@@ -78,13 +83,17 @@ fun SettingsScreen(
                 }
             } else {
                 // ─── HANDY: Original ─────────────────────────────────────────────────────
-                Text("Einstellungen", style = dims.settingsTitle(), fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp), textAlign = TextAlign.Center)
-                ProfileHeader(currentPlayer, dims)
-                Spacer(modifier = Modifier.height(48.dp))
-                LogoutCard(dims) { showLogoutDialog = true }
-                Spacer(modifier = Modifier.weight(1f))
-                VersionText(dims)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Einstellungen", style = dims.settingsTitle(), fontWeight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp), textAlign = TextAlign.Center)
+                    ProfileHeader(currentPlayer, dims)
+                    Spacer(modifier = Modifier.height(48.dp))
+                    LogoutCard(dims) { showLogoutDialog = true }
+                    Spacer(modifier = Modifier.weight(1f))
+                    VersionText(dims)
+                }
             }
         }
     }

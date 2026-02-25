@@ -1,5 +1,6 @@
 package at.htlleonding.taskosaurus.view.screens.whoWouldRather
 
+import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -37,6 +39,9 @@ fun GameListScreen(
     val questions by viewModel.latestQuestions.collectAsState()
     val unansweredGroups = viewModel.unAnsweredGroups
     val answeredGroups = viewModel.answeredGroups
+
+    val configuration = LocalConfiguration.current // Füge das hinzu
+    val isActuallyLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scanner = remember { GmsBarcodeScanning.getClient(context) }
@@ -78,7 +83,7 @@ fun GameListScreen(
                 }
             }
 
-            if (dims.isLandscape && !isTabletSideBar) {
+            if (isActuallyLandscape && !isTabletSideBar) {
                 // Tablet Landscape — zwei Spalten nebeneinander
                 Row(
                     modifier = Modifier.fillMaxSize()

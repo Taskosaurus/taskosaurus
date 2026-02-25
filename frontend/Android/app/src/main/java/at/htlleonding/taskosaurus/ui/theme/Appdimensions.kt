@@ -1,5 +1,6 @@
 package at.htlleonding.taskosaurus.ui.theme
 
+import android.content.res.Configuration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -208,8 +209,9 @@ val LocalAppDimensions = compositionLocalOf<AppDimensions> { PhoneDimensions }
 @Composable
 fun AppDimensionsProvider(content: @Composable () -> Unit) {
     val configuration = LocalConfiguration.current
-    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
-    val isTablet = configuration.screenWidthDp >= 600
+    val smallestScreenWidth = configuration.smallestScreenWidthDp
+    val isTablet = smallestScreenWidth >= 600
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val dims = remember(isTablet, isLandscape) {
         when {

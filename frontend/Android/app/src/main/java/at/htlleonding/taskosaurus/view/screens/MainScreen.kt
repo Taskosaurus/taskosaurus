@@ -39,10 +39,11 @@ fun MainScreen(activity: Activity) {
 
     val windowSizeClass = calculateWindowSizeClass(activity)
     val configuration = LocalConfiguration.current
-    val useNavRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
 
-    val isTabletLandscape = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
-            && configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val smallestScreenWidth = configuration.smallestScreenWidthDp
+    val isTablet = smallestScreenWidth >= 600
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val isTabletLandscape = isTablet && isLandscape
 
     val context = LocalContext.current
     val rotation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -66,7 +67,7 @@ fun MainScreen(activity: Activity) {
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.surface,
             bottomBar = {
-                if (!useNavRail && player != null && isReady) {
+                if (!isLandscape && player != null && isReady) {
                     MainNavigation(navController)
                 }
             }
@@ -84,8 +85,8 @@ fun MainScreen(activity: Activity) {
                             else paddingValues.calculateBottomPadding()
                         )
                         .padding(
-                            start = if (useNavRail && player != null) railWidthWithSystem else 0.dp,
-                            end = if (isNavBarRight) 48.dp else 0.dp
+                            start = if (isLandscape && player != null) railWidthWithSystem else 0.dp,
+                            end = if (isLandscape && isNavBarRight) 48.dp else 0.dp
                         )
                         .imePadding()
                 ) {
@@ -139,7 +140,7 @@ fun MainScreen(activity: Activity) {
                 }
             }
         }
-        if (useNavRail && player != null && isReady) {
+        if (isLandscape && player != null && isReady) {
             MainNavigationRail(navController)
         }
     }
