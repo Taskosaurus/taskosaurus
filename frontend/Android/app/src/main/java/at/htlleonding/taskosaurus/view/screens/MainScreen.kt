@@ -58,7 +58,10 @@ fun MainScreen(activity: Activity) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val baseRailWidth = 80.dp
+    val isTablet = configuration.screenWidthDp >= 600
+
+    // Tablet bekommt breitere Rail — muss mit MainNavigationRail übereinstimmen
+    val baseRailWidth = if (isTablet) 96.dp else 80.dp
     val railWidthWithSystem = if (isNavBarLeft) baseRailWidth + 48.dp else baseRailWidth
 
     Box(modifier = Modifier.fillMaxSize()) {

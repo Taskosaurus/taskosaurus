@@ -45,7 +45,8 @@ fun GameListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scanner = remember { GmsBarcodeScanning.getClient(context) }
     val configuration = LocalConfiguration.current
-    val useLandscapeLayout = configuration.screenWidthDp > configuration.screenHeightDp && !isTabletSideBar
+    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp &&!isTabletSideBar
+    val isTabletPortrait = configuration.screenWidthDp >= 600 && !isLandscape
 
     val startQrScanner = {
         scanner.startScan()
@@ -92,7 +93,7 @@ fun GameListScreen(
                 }
             }
 
-            if (useLandscapeLayout) {
+            if (isLandscape) {
                 // --- HANDY QUERFORMAT ---
                 Row(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -109,25 +110,34 @@ fun GameListScreen(
                 // --- TABLET SIDEBAR / HOCHFORMAT ---
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(if (isTabletPortrait) 12.dp else 16.dp),
+                    contentPadding = PaddingValues(if (isTabletPortrait) 24.dp else 16.dp)
                 ) {
-                    // Sektion 1: Nur rendern, wenn wirklich Gruppen offen sind
+                    if (unansweredGroups.isEmpty() && answeredGroups.isEmpty()) {
+                        item {
+                            Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    "Keine Gruppen gefunden",
+                                    style = if (isTabletPortrait) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
                     if (unansweredGroups.isNotEmpty()) {
                         item {
                             GroupSectionBoxStandalone("Nicht beantwortet", unansweredGroups, questions, false, onGroupClick)
                         }
                     }
-
-                    // Sektion 2: Beantwortet (Immer da, oder mit eigenem emptyText)
-                    item {
-                        GroupSectionBoxStandalone(
-                            title = "Beantwortet",
-                            groups = answeredGroups,
-                            questions = questions,
-                            isAnswered = true,
-                            onGroupClick = onGroupClick,
-                        )
+                    if (answeredGroups.isNotEmpty()) {
+                        item {
+                            GroupSectionBoxStandalone(
+                                title = "Beantwortet",
+                                groups = answeredGroups,
+                                questions = questions,
+                                isAnswered = true,
+                                onGroupClick = onGroupClick,
+                            )
+                        }
                     }
                 }
             }
@@ -222,5 +232,15 @@ fun GroupItemWrapper(group: Group, questions: Map<Int, Question>, isAnswered: Bo
         leaderVoteCount = if (isAnswered) question?.answers?.maxByOrNull { it.count }?.count ?: 0 else 0,
         animationDelay = animationDelay,
         onClick = { onGroupClick(group.id) }
+    )
+}
+
+@Composable
+fun SectionHeader(text: String, isTabletPortrait: Boolean = false) {
+    Text(
+        text = text,
+        style = if (isTabletPortrait) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 4.dp)
     )
 }

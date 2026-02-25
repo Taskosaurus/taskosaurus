@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,8 +41,13 @@ fun GroupListItem(
     onClick: () -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
-    val infiniteTransition = rememberInfiniteTransition(label = "waitingPuls")
 
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    // Tablet Portrait braucht größere Karten; im Landscape teilt der Split die Karten schon auf
+    val isTabletPortrait = configuration.screenWidthDp >= 600 && !isLandscape
+
+    val infiniteTransition = rememberInfiniteTransition(label = "waitingPuls")
     val waveScale by infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 3.5f,
@@ -63,6 +69,17 @@ fun GroupListItem(
         label = "waveAlpha"
     )
 
+    // Größen abhängig vom Kontext
+    val cardPadding = if (isTabletPortrait) 20.dp else 16.dp
+    val iconSize = if (isTabletPortrait) 30.dp else 24.dp
+    val dotSize = if (isTabletPortrait) 18.dp else 14.dp
+    val dotBoxSize = if (isTabletPortrait) 30.dp else 24.dp
+    val leaderIconSize = if (isTabletPortrait) 22.dp else 18.dp
+    val spacerAfterIcon = if (isTabletPortrait) 14.dp else 12.dp
+    val leaderRowSpacing = if (isTabletPortrait) 16.dp else 12.dp
+    val leaderSurfaceSpacing = if (isTabletPortrait) 14.dp else 12.dp
+    val questionSpacing = if (isTabletPortrait) 10.dp else 8.dp
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -79,7 +96,7 @@ fun GroupListItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(cardPadding)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -96,18 +113,21 @@ fun GroupListItem(
                         } else {
                             MaterialTheme.colorScheme.primary
                         }
-
                         Icon(
-                            imageVector = if (votedCount == totalCount) Icons.Default.CheckCircle else Icons.Default.HourglassBottom,
+                            imageVector = if (votedCount == totalCount) Icons.Default.CheckCircle
+                            else Icons.Default.HourglassBottom,
                             contentDescription = null,
                             tint = statusColor,
-                            modifier = Modifier.size(if (votedCount == totalCount) 24.dp else 22.dp)
+                            modifier = Modifier.size(iconSize)
                         )
                     } else {
-                        Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier.size(dotBoxSize),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Box(
                                 modifier = Modifier
-                                    .size(14.dp)
+                                    .size(dotSize)
                                     .graphicsLayer {
                                         scaleX = waveScale
                                         scaleY = waveScale
@@ -117,18 +137,23 @@ fun GroupListItem(
                             )
                             Box(
                                 modifier = Modifier
-                                    .size(14.dp)
+                                    .size(dotSize)
                                     .background(MaterialTheme.colorScheme.primary, CircleShape)
-                                    .border(1.5.dp, if (isDark) Color(0xFF1E1E1E) else Color.White, CircleShape)
+                                    .border(
+                                        1.5.dp,
+                                        if (isDark) Color(0xFF1E1E1E) else Color.White,
+                                        CircleShape
+                                    )
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(spacerAfterIcon))
 
                     Text(
                         text = group.name,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = if (isTabletPortrait) MaterialTheme.typography.titleLarge
+                        else MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -136,17 +161,20 @@ fun GroupListItem(
 
                 Text(
                     text = "$votedCount/$totalCount",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (isDark) MaterialTheme.colorScheme.primary.copy(alpha = 0.9f) else MaterialTheme.colorScheme.primary,
+                    style = if (isTabletPortrait) MaterialTheme.typography.titleSmall
+                    else MaterialTheme.typography.labelLarge,
+                    color = if (isDark) MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
+                    else MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
                 )
             }
 
             if (!shortenedQuestion.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(questionSpacing))
                 Text(
                     text = shortenedQuestion,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = if (isTabletPortrait) MaterialTheme.typography.bodyLarge
+                    else MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -154,40 +182,44 @@ fun GroupListItem(
             }
 
             if (isAnswered && !currentLeader.isNullOrBlank() && votedCount > 0) {
-                Spacer(modifier = Modifier.height(12.dp))
-
+                Spacer(modifier = Modifier.height(leaderRowSpacing))
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(if (isTabletPortrait) 14.dp else 10.dp),
                     color = if (isDark) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
                     else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                     border = if (isDark) BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)) else null
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        modifier = Modifier.padding(
+                            horizontal = if (isTabletPortrait) 16.dp else 12.dp,
+                            vertical = if (isTabletPortrait) 12.dp else 10.dp
+                        ),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(leaderSurfaceSpacing)
                     ) {
                         Icon(
-                            imageVector = if (votedCount == totalCount) Icons.Default.EmojiEvents else Icons.Default.Leaderboard,
+                            imageVector = if (votedCount == totalCount) Icons.Default.EmojiEvents
+                            else Icons.Default.Leaderboard,
                             contentDescription = null,
-                            tint = if (votedCount == totalCount) Color(0xFFFFD54F) else MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
+                            tint = if (votedCount == totalCount) Color(0xFFFFD54F)
+                            else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(leaderIconSize)
                         )
-
                         Text(
                             text = currentLeader,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = if (isTabletPortrait) MaterialTheme.typography.titleSmall
+                            else MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (isDark) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimaryContainer,
+                            color = if (isDark) MaterialTheme.colorScheme.onSurface
+                            else MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.weight(1f)
                         )
-
                         val percentage = (leaderVoteCount.toFloat() / votedCount.toFloat() * 100).toInt()
-
                         Text(
                             text = "$percentage%",
-                            style = MaterialTheme.typography.labelLarge,
+                            style = if (isTabletPortrait) MaterialTheme.typography.titleSmall
+                            else MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.primary
                         )

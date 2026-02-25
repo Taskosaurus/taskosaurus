@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import at.htlleonding.taskosaurus.data.model.Player
@@ -37,8 +38,8 @@ fun GroupInfoScreen(
     val qrBitmap = remember(qrData) { generateQrCode(qrData) }
 
     val configuration = LocalConfiguration.current
-    // Wir nutzen das Landscape-Layout, wenn genug Platz da ist
-    val useLandscapeLayout = configuration.screenWidthDp > 600
+    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    val isTabletPortrait = configuration.screenWidthDp >= 600 && !isLandscape
 
     Scaffold(
         topBar = {
@@ -59,7 +60,7 @@ fun GroupInfoScreen(
         val topPadding = if (isTabletMode) padding.calculateTopPadding() else padding.calculateTopPadding()
 
         Box(modifier = Modifier.padding(top = topPadding).fillMaxSize()) {
-            if (useLandscapeLayout) {
+            if (isLandscape) {
                 Row(
                     modifier = Modifier.fillMaxSize().padding(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(32.dp),
@@ -83,15 +84,19 @@ fun GroupInfoScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    contentPadding = PaddingValues(16.dp)
+                    contentPadding = PaddingValues(
+                        horizontal = if (isTabletPortrait) 48.dp else 16.dp,
+                        vertical = if (isTabletPortrait) 16.dp else 8.dp
+                    )
                 ) {
                     item {
-                        QrSection(qrBitmap, group?.name)
-                        Spacer(modifier = Modifier.height(32.dp))
-                        MemberListHeader(players.size)
+                        QrSection(qrBitmap, group?.name, isTabletPortrait)
+                        Spacer(modifier = Modifier.height(if (isTabletPortrait) 36.dp else 24.dp))
+                        MemberListHeader(players.size, isTabletPortrait)
+                        Spacer(modifier = Modifier.height(if (isTabletPortrait) 16.dp else 12.dp))
                     }
-                    itemsIndexed(players) { index, player ->
-                        PlayerItem(player, isLast = index == players.lastIndex)
+                    items(players) { player ->
+                        PlayerItem(player, isLast = player == players.last(), isTabletPortrait)
                     }
                 }
             }
@@ -100,15 +105,18 @@ fun GroupInfoScreen(
 }
 
 @Composable
-private fun QrSection(qrBitmap: Bitmap?, groupName: String?) {
+private fun QrSection(qrBitmap: Bitmap?, groupName: String?, isTabletPortrait: Boolean = false) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Surface(
-            modifier = Modifier.size(220.dp),
-            shape = RoundedCornerShape(28.dp),
-            color = Color.White,
-            shadowElevation = 4.dp
+        Card(
+            modifier = Modifier.size(if (isTabletPortrait) 280.dp else 200.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(2.dp)
         ) {
-            Box(Modifier.padding(20.dp)) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(if (isTabletPortrait) 20.dp else 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 qrBitmap?.let {
                     Image(
                         bitmap = it.asImageBitmap(),
@@ -119,18 +127,40 @@ private fun QrSection(qrBitmap: Bitmap?, groupName: String?) {
                 } ?: CircularProgressIndicator()
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(groupName ?: "", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Text("Code scannen zum Beitreten", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+        Spacer(modifier = Modifier.height(if (isTabletPortrait) 24.dp else 16.dp))
+        Text(
+            text = groupName ?: "Lade Gruppe...",
+            style = if (isTabletPortrait) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = "Code scannen zum Beitreten",
+            style = if (isTabletPortrait) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
 @Composable
-private fun MemberListHeader(count: Int) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text("Mitglieder", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Badge(containerColor = MaterialTheme.colorScheme.primaryContainer) {
-            Text("$count", modifier = Modifier.padding(4.dp), color = MaterialTheme.colorScheme.primary)
+private fun MemberListHeader(count: Int, isTabletPortrait: Boolean = false) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "Mitglieder",
+            style = if (isTabletPortrait) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape) {
+            Text(
+                text = "$count",
+                modifier = Modifier.padding(horizontal = if (isTabletPortrait) 14.dp else 10.dp, vertical = if (isTabletPortrait) 4.dp else 2.dp),
+                style = if (isTabletPortrait) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
@@ -151,14 +181,31 @@ private fun ScrollableMemberList(players: List<Player>) {
 }
 
 @Composable
-private fun PlayerItem(player: Player, isLast: Boolean) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
-                Text(player.name.take(1).uppercase(), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+private fun PlayerItem(player: Player, isLast: Boolean, isTabletPortrait: Boolean = false) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(if (isTabletPortrait) 16.dp else 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(if (isTabletPortrait) 52.dp else 36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    player.name.take(1).uppercase(),
+                    style = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             }
-            Spacer(Modifier.width(16.dp))
-            Text(player.name, style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.width(if (isTabletPortrait) 16.dp else 12.dp))
+            Text(
+                player.name,
+                style = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
+            )
         }
         if (!isLast) HorizontalDivider(Modifier.padding(top = 12.dp), thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
     }

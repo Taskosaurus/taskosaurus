@@ -41,6 +41,8 @@ fun TitleScreen(
     val infiniteTransition = rememberInfiniteTransition(label = "background")
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    // Tablet Portrait: screenWidth >= 600dp und Hochformat
+    val isTabletPortrait = configuration.screenWidthDp >= 600 && !isLandscape
 
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -78,7 +80,7 @@ fun TitleScreen(
 
             Surface(
                 modifier = Modifier
-                    .size(if (isLandscape) 80.dp else 100.dp) // Kleiner im Querformat
+                    .size(when { isLandscape -> 80.dp; isTabletPortrait -> 160.dp; else -> 100.dp })
                     .scale(iconScale),
                 color = MaterialTheme.colorScheme.primaryContainer,
                 shape = MaterialTheme.shapes.extraLarge,
@@ -88,30 +90,38 @@ fun TitleScreen(
                     Icon(
                         imageVector = Icons.Outlined.People,
                         contentDescription = null,
-                        modifier = Modifier.size(if (isLandscape) 40.dp else 50.dp),
+                        modifier = Modifier.size(when { isLandscape -> 40.dp; isTabletPortrait -> 84.dp; else -> 50.dp }),
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(if (isLandscape) 24.dp else 40.dp))
+            Spacer(modifier = Modifier.height(when { isLandscape -> 24.dp; isTabletPortrait -> 64.dp; else -> 40.dp }))
 
             Text(
                 text = "Wer würde eher?",
-                style = if (isLandscape) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.headlineLarge,
+                style = when {
+                    isLandscape -> MaterialTheme.typography.headlineMedium
+                    isTabletPortrait -> MaterialTheme.typography.displayLarge
+                    else -> MaterialTheme.typography.headlineLarge
+                },
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(when { isTabletPortrait -> 28.dp; else -> 16.dp }))
 
             Text(
                 text = "Entdecke, was deine Freunde wählen würden",
-                style = MaterialTheme.typography.bodyLarge,
+                style = when {
+                    isLandscape -> MaterialTheme.typography.bodyLarge
+                    isTabletPortrait -> MaterialTheme.typography.headlineSmall
+                    else -> MaterialTheme.typography.bodyLarge
+                },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.widthIn(max = if (isLandscape) 220.dp else 300.dp)
+                modifier = Modifier.widthIn(max = when { isLandscape -> 220.dp; isTabletPortrait -> 560.dp; else -> 300.dp })
             )
         }
 
@@ -119,9 +129,9 @@ fun TitleScreen(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(24.dp),
+                .padding(if (isTabletPortrait) 36.dp else 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(if (isTabletPortrait) 20.dp else 16.dp)
         ) {
             val playButtonScale by infiniteTransition.animateFloat(
                 initialValue = 1f,
@@ -135,19 +145,20 @@ fun TitleScreen(
 
             ExtendedFloatingActionButton(
                 onClick = { onOpenGameList() },
-                icon = { Icon(Icons.Default.PlayArrow, null) },
-                text = { Text("Jetzt spielen") },
+                icon = { Icon(Icons.Default.PlayArrow, null, modifier = if (isTabletPortrait) Modifier.size(28.dp) else Modifier) },
+                text = { Text("Jetzt spielen", style = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge) },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.scale(playButtonScale)
+                modifier = Modifier.scale(playButtonScale).then(if (isTabletPortrait) Modifier.height(64.dp) else Modifier)
             )
 
             ExtendedFloatingActionButton(
                 onClick = { showCreateDialog = true },
-                icon = { Icon(Icons.Default.Add, null) },
-                text = { Text("Spiel erstellen") },
+                icon = { Icon(Icons.Default.Add, null, modifier = if (isTabletPortrait) Modifier.size(28.dp) else Modifier) },
+                text = { Text("Spiel erstellen", style = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge) },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = if (isTabletPortrait) Modifier.height(64.dp) else Modifier
             )
         }
     }

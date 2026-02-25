@@ -30,6 +30,7 @@ fun SettingsScreen(
 
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    val isTabletPortrait = configuration.screenWidthDp >= 600 && !isLandscape
 
     if (showLogoutDialog) {
         AlertDialog(
@@ -57,15 +58,22 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 20.dp)
+                .padding(
+                    horizontal = if (isTabletPortrait) 48.dp else 24.dp,
+                    vertical = if (isTabletPortrait) 28.dp else 20.dp
+                )
         ) {
             Text(
                 text = "Einstellungen",
-                style = MaterialTheme.typography.headlineMedium,
+                style = when {
+                    isTabletPortrait -> MaterialTheme.typography.displaySmall
+                    isLandscape -> MaterialTheme.typography.headlineLarge
+                    else -> MaterialTheme.typography.headlineMedium
+                },
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 32.dp),
+                    .padding(bottom = if (isTabletPortrait) 48.dp else 32.dp),
                 textAlign = if (isLandscape) TextAlign.Start else TextAlign.Center
             )
 
@@ -79,25 +87,30 @@ fun SettingsScreen(
                         modifier = Modifier.weight(0.4f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        ProfileHeader(currentPlayer)
+                        ProfileHeader(currentPlayer, false)
                     }
 
                     Column(modifier = Modifier.weight(0.6f)) {
-                        SettingsActionsCard { showLogoutDialog = true }
+                        SettingsActionsCard(false) { showLogoutDialog = true }
                         Spacer(modifier = Modifier.weight(1f))
-                        VersionText()
+                        VersionText(false)
                     }
                 }
             } else {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    ProfileHeader(currentPlayer)
-                    Spacer(modifier = Modifier.height(48.dp))
-                    SettingsActionsCard { showLogoutDialog = true }
-                    Spacer(modifier = Modifier.weight(1f))
-                    VersionText()
+                // Portrait — auf Tablet maximal zentriert mit beschränkter Breite
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .then(if (isTabletPortrait) Modifier.widthIn(max = 520.dp).fillMaxWidth() else Modifier.fillMaxWidth()),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        ProfileHeader(currentPlayer, isTabletPortrait)
+                        Spacer(modifier = Modifier.height(if (isTabletPortrait) 64.dp else 48.dp))
+                        SettingsActionsCard(isTabletPortrait) { showLogoutDialog = true }
+                        Spacer(modifier = Modifier.weight(1f))
+                        VersionText(isTabletPortrait)
+                    }
                 }
             }
         }
@@ -105,51 +118,59 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun ProfileHeader(player: at.htlleonding.taskosaurus.data.model.Player?) {
+private fun ProfileHeader(player: at.htlleonding.taskosaurus.data.model.Player?, isTabletPortrait: Boolean) {
     player?.let {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Surface(
-                modifier = Modifier.size(100.dp),
+                modifier = Modifier.size(if (isTabletPortrait) 140.dp else 100.dp),
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = it.name.take(1).uppercase(),
-                        style = MaterialTheme.typography.displaySmall,
+                        style = if (isTabletPortrait) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displaySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(if (isTabletPortrait) 28.dp else 16.dp))
             Text(
                 text = "Hallo ${it.name}!",
-                style = MaterialTheme.typography.titleLarge,
+                style = if (isTabletPortrait) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Medium
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(if (isTabletPortrait) 20.dp else 12.dp))
             OutlinedButton(
                 onClick = { },
                 shape = RoundedCornerShape(50.dp)
             ) {
-                Text("Konto verwalten", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    "Konto verwalten",
+                    style = if (isTabletPortrait) MaterialTheme.typography.titleSmall else MaterialTheme.typography.labelLarge
+                )
             }
         }
     }
 }
 
 @Composable
-private fun SettingsActionsCard(onLogoutClick: () -> Unit) {
+private fun SettingsActionsCard(isTabletPortrait: Boolean, onLogoutClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(if (isTabletPortrait) 28.dp else 24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
-        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+        Column(modifier = Modifier.padding(vertical = if (isTabletPortrait) 8.dp else 4.dp)) {
             ListItem(
-                headlineContent = { Text("Abmelden") },
+                headlineContent = {
+                    Text(
+                        "Abmelden",
+                        style = if (isTabletPortrait) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyLarge
+                    )
+                },
                 leadingContent = { Icon(Icons.Default.Logout, null, tint = MaterialTheme.colorScheme.error) },
                 modifier = Modifier.clickable { onLogoutClick() },
                 colors = ListItemDefaults.colors(
@@ -162,10 +183,10 @@ private fun SettingsActionsCard(onLogoutClick: () -> Unit) {
 }
 
 @Composable
-private fun VersionText() {
+private fun VersionText(isTabletPortrait: Boolean = false) {
     Text(
         text = "Version 1.0.0",
-        style = MaterialTheme.typography.bodySmall,
+        style = if (isTabletPortrait) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
         textAlign = TextAlign.Center
