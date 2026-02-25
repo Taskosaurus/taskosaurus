@@ -157,7 +157,7 @@ fun GroupSectionBoxStandalone(
     Card(
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        // Border wurde hier entfernt
     ) {
         Column(modifier = Modifier.padding(bottom = 8.dp)) {
             Text(
@@ -188,7 +188,6 @@ fun GroupSectionBoxStandalone(
         }
     }
 }
-
 @Composable
 fun GroupSectionBox(
     title: String,

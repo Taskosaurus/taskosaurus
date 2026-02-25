@@ -35,7 +35,7 @@ fun GameScreen(
     groupId: Int,
     viewModel: ViewModel = viewModel(),
     onNavigateToGroupInfo: (Int) -> Unit,
-    isTabletMode: Boolean = false // NEU: Steuerung für Master-Detail Ansicht
+    isTabletMode: Boolean = false
 ) {
     val groups by viewModel.groups.collectAsState()
     val questions by viewModel.latestQuestions.collectAsState()
@@ -51,8 +51,6 @@ fun GameScreen(
 
     val configuration = LocalConfiguration.current
 
-    // Wir nutzen das Landscape-Layout nur auf dem Handy.
-    // Am Tablet (in der rechten Spalte) nutzen wir das vertikale Layout.
     val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
 
     LaunchedEffect(player, isReady, group) {
@@ -80,7 +78,6 @@ fun GameScreen(
             }
         },
         floatingActionButton = {
-            // FAB nur zeigen, wenn Daten da sind. Positionierung am Tablet ggf. anpassen.
             if (group != null && question != null) {
                 FloatingActionButton(
                     onClick = { onNavigateToGroupInfo(groupId) },
