@@ -1,6 +1,7 @@
 package at.htlleonding.taskosaurus.view.screens
 
 import android.app.Activity
+import android.content.res.Configuration
 import android.os.Build
 import android.view.Surface
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -33,14 +35,21 @@ fun MainScreen(activity: Activity) {
     val player by viewModel.player.collectAsState()
     val isReady by viewModel.isReady.collectAsState()
 
+    // Device & Orientation Check
     val windowSizeClass = calculateWindowSizeClass(activity)
+    val configuration = LocalConfiguration.current
     val useNavRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
+
+    // Bedingung für Master-Detail: Tablet-Breite UND Querformat
+    val isTabletLandscape = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
+            && configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val context = LocalContext.current
     val rotation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         context.display?.rotation ?: Surface.ROTATION_0
     } else {
-        TODO("VERSION.SDK_INT < R")
+        @Suppress("DEPRECATION")
+        (context.getSystemService(android.content.Context.WINDOW_SERVICE) as android.view.WindowManager).defaultDisplay.rotation
     }
 
     val isNavBarLeft = rotation == Surface.ROTATION_270
@@ -70,16 +79,10 @@ fun MainScreen(activity: Activity) {
                     startDestination = startDestination,
                     modifier = Modifier
                         .padding(
-                            top = if (currentRoute == Screen.Settings.route || currentRoute == "auth") {
-                                0.dp
-                            } else {
-                                paddingValues.calculateTopPadding()
-                            },
-                            bottom = if (currentRoute == Screen.Settings.route || currentRoute == "auth") {
-                                0.dp
-                            } else {
-                                paddingValues.calculateBottomPadding()
-                            }
+                            top = if (currentRoute == Screen.Settings.route || currentRoute == "auth") 0.dp
+                            else paddingValues.calculateTopPadding(),
+                            bottom = if (currentRoute == Screen.Settings.route || currentRoute == "auth") 0.dp
+                            else paddingValues.calculateBottomPadding()
                         )
                         .padding(
                             start = if (useNavRail && player != null) railWidthWithSystem else 0.dp,
@@ -102,26 +105,42 @@ fun MainScreen(activity: Activity) {
                                 viewModel = viewModel
                             )
                         }
+
                         composable("game_list") {
-                            GameListScreen(viewModel) { navController.navigate("game/$it") }
+                            // Hier wird entschieden: Master-Detail (Tablet) oder Liste (Handy)
+                            AdaptiveGameLayout(
+                                viewModel = viewModel,
+                                isTabletLandscape = isTabletLandscape,
+                                onNavigateToGame = { groupId ->
+                                    // Navigation nur für Handy-Modus
+                                    navController.navigate("game/$groupId")
+                                }
+                            )
                         }
+
+                        // Diese Routen werden nur im Handy-Modus oder bei explizitem Aufruf (Vollbild) genutzt
                         composable(
                             route = "game/{groupId}",
                             arguments = listOf(navArgument("groupId") { type = NavType.IntType })
-                        ) {
+                        ) { backStackEntry ->
+                            val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
                             GameScreen(
-                                groupId = it.arguments?.getInt("groupId") ?: 0,
+                                groupId = groupId,
                                 viewModel = viewModel,
-                                onNavigateToGroupInfo = { id -> navController.navigate("group_info/$id") }
+                                onNavigateToGroupInfo = { id -> navController.navigate("group_info/$id") },
+                                isTabletMode = false // Vollbildmodus
                             )
                         }
+
                         composable(
                             route = "group_info/{groupId}",
                             arguments = listOf(navArgument("groupId") { type = NavType.IntType })
-                        ) {
+                        ) { backStackEntry ->
+                            val groupId = backStackEntry.arguments?.getInt("groupId") ?: 0
                             GroupInfoScreen(
-                                groupId = it.arguments?.getInt("groupId") ?: 0,
-                                viewModel = viewModel
+                                groupId = groupId,
+                                viewModel = viewModel,
+                                isTabletMode = false // Vollbildmodus
                             )
                         }
                     }
@@ -140,7 +159,6 @@ fun MainScreen(activity: Activity) {
             }
         }
 
-        // Die Rail liegt als Box-Overlay über dem Scaffold
         if (useNavRail && player != null && isReady) {
             MainNavigationRail(navController)
         }

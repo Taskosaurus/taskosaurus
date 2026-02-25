@@ -1,12 +1,13 @@
 package at.htlleonding.taskosaurus.view.screens.whoWouldRather
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -14,9 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import at.htlleonding.taskosaurus.data.model.Player
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
@@ -27,62 +26,72 @@ import com.google.zxing.qrcode.QRCodeWriter
 @Composable
 fun GroupInfoScreen(
     groupId: Int,
-    viewModel: ViewModel = viewModel()
+    viewModel: ViewModel = viewModel(),
+    isTabletMode: Boolean = false,
+    onBackToGame: () -> Unit = {} // NEU: Damit wir am Tablet zurück zum Spiel kommen
 ) {
     val groups by viewModel.groups.collectAsState()
     val group = groups.find { it.id == groupId }
     val players = group?.players ?: emptyList()
-
     val qrData = "https://taskosaurus.at/group/$groupId"
     val qrBitmap = remember(qrData) { generateQrCode(qrData) }
 
     val configuration = LocalConfiguration.current
-    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    // Wir nutzen das Landscape-Layout, wenn genug Platz da ist
+    val useLandscapeLayout = configuration.screenWidthDp > 600
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Einladen und Info", style = MaterialTheme.typography.titleMedium) },
-                windowInsets = WindowInsets(top = 0.dp)
-            )
-        }
-    ) { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
-            if (isLandscape) {
+            if (!isTabletMode) {
+                TopAppBar(title = { Text("Einladen und Info") })
+            } else {
+                // Im Tablet-Modus eine kleine eigene Bar für den Rückweg
                 Row(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(24.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                }
+            }
+        }
+    ) { padding ->
+        val topPadding = if (isTabletMode) padding.calculateTopPadding() else padding.calculateTopPadding()
+
+        Box(modifier = Modifier.padding(top = topPadding).fillMaxSize()) {
+            if (useLandscapeLayout) {
+                Row(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(32.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(
-                        modifier = Modifier.weight(0.4f).fillMaxHeight(),
+                        modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
                         QrSection(qrBitmap, group?.name)
                     }
 
-                    Column(modifier = Modifier.weight(0.6f).fillMaxHeight()) {
+                    Column(modifier = Modifier.weight(1.2f).fillMaxHeight()) {
                         MemberListHeader(players.size)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        ScrollableMemberList(players, modifier = Modifier.weight(1f))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        ScrollableMemberList(players)
                     }
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    contentPadding = PaddingValues(16.dp)
                 ) {
                     item {
                         QrSection(qrBitmap, group?.name)
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(32.dp))
                         MemberListHeader(players.size)
-                        Spacer(modifier = Modifier.height(12.dp))
                     }
-                    items(players) { player ->
-                        PlayerItem(player, isLast = player == players.last())
+                    itemsIndexed(players) { index, player ->
+                        PlayerItem(player, isLast = index == players.lastIndex)
                     }
                 }
             }
@@ -93,72 +102,47 @@ fun GroupInfoScreen(
 @Composable
 private fun QrSection(qrBitmap: Bitmap?, groupName: String?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Card(
-            modifier = Modifier.size(200.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(2.dp)
+        Surface(
+            modifier = Modifier.size(220.dp),
+            shape = RoundedCornerShape(28.dp),
+            color = Color.White,
+            shadowElevation = 4.dp
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(Modifier.padding(20.dp)) {
                 qrBitmap?.let {
                     Image(
                         bitmap = it.asImageBitmap(),
-                        contentDescription = "QR Code",
+                        contentDescription = "QR",
                         modifier = Modifier.fillMaxSize(),
                         filterQuality = FilterQuality.None
                     )
-                } ?: CircularProgressIndicator(strokeWidth = 2.dp)
+                } ?: CircularProgressIndicator()
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = groupName ?: "Lade Gruppe...",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = "Code scannen zum Beitreten",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Text(groupName ?: "", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text("Code scannen zum Beitreten", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
     }
 }
 
 @Composable
 private fun MemberListHeader(count: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("Mitglieder", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Surface(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = CircleShape
-        ) {
-            Text(
-                text = "$count",
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold
-            )
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Text("Mitglieder", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Badge(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+            Text("$count", modifier = Modifier.padding(4.dp), color = MaterialTheme.colorScheme.primary)
         }
     }
 }
 
 @Composable
-private fun ScrollableMemberList(players: List<Player>, modifier: Modifier = Modifier) {
+private fun ScrollableMemberList(players: List<Player>) {
     Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        modifier = Modifier.fillMaxSize(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(Modifier.fillMaxSize()) {
             itemsIndexed(players) { index, player ->
                 PlayerItem(player, isLast = index == players.lastIndex)
             }
@@ -168,48 +152,27 @@ private fun ScrollableMemberList(players: List<Player>, modifier: Modifier = Mod
 
 @Composable
 private fun PlayerItem(player: Player, isLast: Boolean) {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.size(36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    player.name.take(1).uppercase(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
+                Text(player.name.take(1).uppercase(), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(player.name, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.width(16.dp))
+            Text(player.name, style = MaterialTheme.typography.bodyLarge)
         }
-        if (!isLast) {
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-            )
-        }
+        if (!isLast) HorizontalDivider(Modifier.padding(top = 12.dp), thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
     }
 }
 
 fun generateQrCode(content: String): Bitmap? {
     return try {
-        val writer = QRCodeWriter()
-        val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, 512, 512)
-        val width = bitMatrix.width
-        val height = bitMatrix.height
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
-        for (x in 0 until width) {
-            for (y in 0 until height) {
+        val bitMatrix = QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, 512, 512)
+        val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.RGB_565)
+        for (x in 0 until 512) {
+            for (y in 0 until 512) {
                 bitmap.setPixel(x, y, if (bitMatrix.get(x, y)) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
             }
         }
         bitmap
-    } catch (e: Exception) {
-        null
-    }
+    } catch (e: Exception) { null }
 }

@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import at.htlleonding.taskosaurus.data.model.Group
@@ -26,19 +25,27 @@ import kotlinx.coroutines.launch
 @Composable
 fun GameListScreen(
     viewModel: ViewModel = viewModel(),
-    onGroupClick: (Int) -> Unit
+    onGroupClick: (Int) -> Unit,
+    isTabletSideBar: Boolean = false
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val hasConnection by viewModel.hasConnection.collectAsState()
+    val groups by viewModel.groups.collectAsState()
     val questions by viewModel.latestQuestions.collectAsState()
-    val unansweredGroups = viewModel.unAnsweredGroups
-    val answeredGroups = viewModel.answeredGroups
+
+    // Filterung der Gruppen nach Status
+    val unansweredGroups = remember(groups, questions) {
+        groups.filter { g -> questions[g.id]?.answered == false }
+    }
+    val answeredGroups = remember(groups, questions) {
+        groups.filter { g -> questions[g.id]?.answered == true }
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scanner = remember { GmsBarcodeScanning.getClient(context) }
     val configuration = LocalConfiguration.current
-    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    val useLandscapeLayout = configuration.screenWidthDp > configuration.screenHeightDp && !isTabletSideBar
 
     val startQrScanner = {
         scanner.startScan()
@@ -62,7 +69,7 @@ fun GameListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { startQrScanner() }, modifier = Modifier.padding(16.dp)) {
-                Icon(Icons.Filled.QrCodeScanner, contentDescription = null)
+                Icon(Icons.Filled.QrCodeScanner, contentDescription = "Gruppe beitreten")
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -77,34 +84,94 @@ fun GameListScreen(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
                 ) {
-                    Text(text = "Keine Verbindung zum Server", modifier = Modifier.padding(8.dp), color = MaterialTheme.colorScheme.onErrorContainer)
+                    Text(
+                        text = "Keine Verbindung zum Server",
+                        modifier = Modifier.padding(8.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
                 }
             }
 
-            if (isLandscape) {
+            if (useLandscapeLayout) {
+                // --- HANDY QUERFORMAT ---
                 Row(
-                    modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 8.dp),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    GroupSectionBox("Nicht beantwortet", unansweredGroups, questions, false, "Alles erledigt!", Modifier.weight(1f), onGroupClick)
-                    GroupSectionBox("Beantwortet", answeredGroups, questions, true, "Noch keine Antworten.", Modifier.weight(1f), onGroupClick)
+                    // Nur anzeigen wenn nicht leer
+                    if (unansweredGroups.isNotEmpty()) {
+                        GroupSectionBox("Nicht beantwortet", unansweredGroups, questions, false, Modifier.weight(1f), onGroupClick)
+                    }
+                    // Beantwortet nimmt den restlichen Platz ein
+                    GroupSectionBox("Beantwortet", answeredGroups, questions, true, Modifier.weight(1f), onGroupClick)
                 }
             } else {
+                // --- TABLET SIDEBAR / HOCHFORMAT ---
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(16.dp)
                 ) {
-                    if (unansweredGroups.isEmpty() && answeredGroups.isEmpty()) {
-                        item { Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) { Text("Keine Gruppen gefunden") } }
-                    }
+                    // Sektion 1: Nur rendern, wenn wirklich Gruppen offen sind
                     if (unansweredGroups.isNotEmpty()) {
-                        item { SectionHeader("Nicht beantwortet") }
-                        itemsIndexed(unansweredGroups) { index, group -> GroupItemWrapper(group, questions, false, index * 200, onGroupClick) }
+                        item {
+                            GroupSectionBoxStandalone("Nicht beantwortet", unansweredGroups, questions, false, onGroupClick)
+                        }
                     }
-                    if (answeredGroups.isNotEmpty()) {
-                        item { SectionHeader("Beantwortet") }
-                        itemsIndexed(answeredGroups) { index, group -> GroupItemWrapper(group, questions, true, index * 200, onGroupClick) }
+
+                    // Sektion 2: Beantwortet (Immer da, oder mit eigenem emptyText)
+                    item {
+                        GroupSectionBoxStandalone(
+                            title = "Beantwortet",
+                            groups = answeredGroups,
+                            questions = questions,
+                            isAnswered = true,
+                            onGroupClick = onGroupClick,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun GroupSectionBoxStandalone(
+    title: String,
+    groups: List<Group>,
+    questions: Map<Int, Question>,
+    isAnswered: Boolean,
+    onGroupClick: (Int) -> Unit,
+    emptyText: String = ""
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(bottom = 8.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(16.dp, 12.dp, 16.dp, 8.dp)
+            )
+
+            if (groups.isEmpty() && emptyText.isNotEmpty()) {
+                Box(Modifier.fillMaxWidth().height(60.dp), contentAlignment = Alignment.Center) {
+                    Text(text = emptyText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
+                Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+                    groups.forEachIndexed { index, group ->
+                        GroupItemWrapper(group, questions, isAnswered, index * 100, onGroupClick)
+                        if (index < groups.lastIndex) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                            )
+                        }
                     }
                 }
             }
@@ -118,7 +185,6 @@ fun GroupSectionBox(
     groups: List<Group>,
     questions: Map<Int, Question>,
     isAnswered: Boolean,
-    emptyText: String,
     modifier: Modifier,
     onGroupClick: (Int) -> Unit
 ) {
@@ -128,16 +194,15 @@ fun GroupSectionBox(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp))
-            if (groups.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(text = emptyText, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp)
-                ) {
-                    itemsIndexed(groups) { index, group -> GroupItemWrapper(group, questions, isAnswered, index * 200, onGroupClick) }
+            Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(16.dp, 8.dp, 16.dp, 4.dp))
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                itemsIndexed(groups) { index, group ->
+                    GroupItemWrapper(group, questions, isAnswered, index * 200, onGroupClick)
                 }
             }
         }
@@ -158,9 +223,4 @@ fun GroupItemWrapper(group: Group, questions: Map<Int, Question>, isAnswered: Bo
         animationDelay = animationDelay,
         onClick = { onGroupClick(group.id) }
     )
-}
-
-@Composable
-fun SectionHeader(text: String) {
-    Text(text = text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 4.dp))
 }
