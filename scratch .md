@@ -30,34 +30,16 @@
     There is additional info in sprint1/Taskosaurus.pdf
 pofm
 
-Create a docker-compose.yaml file that contains a postgresql database. Make a file ".env" that contains the credemntials.
+1. the database folder contains a docker-compose.yaml file. We want to have postgres instead of h2Make a file ".env" in the database folder that contains the credentials for postgres. We start it by "cd compose; docker compose up".
+
 Username: taskosaurus
 Password: taskosaurus
 Database name: taskosaurus
 
----
-  1. Kiss Marry Kill
-  Is "Kiss Marry Kill" also in scope for this project, or only "Wer würde eher?"? The backend data model has no trace of it yet.
+2. create a database/setup.sql. I want to have a setup.sql file that contains the full DDL. Add drop table and other drop statements so that I can reseed the database. User insert.sql to insert seed data.
+3. generate a database/drop-and-create.sh script that uses command line psql to run setup.sql and insert.sql
 
-  ---
-  2. Daily question — who triggers it?
-  Is the daily question assigned automatically (e.g., server picks a random question at midnight) or manually by someone? And is
-  it strictly one question per group per day?
+Aberger Mac: claude --resume 70ece345-a7d6-4063-8316-90dea8c319c4
 
-  ---
-  3. Voting mechanics
-  - Can a player vote for themselves?
-  - Can a player change their vote before the 24h window closes?
-  - Is it one vote per player per question, or multiple?
 
-  ---
-  4. Joining a group
-  From the git history I see QR code scanning. Is the flow:
-  - Someone creates a group → backend generates the link → shown as QR code
-  - Others scan the QR code → join the group
-  Is that correct? And does creating a group require a "creator" / admin role?
-
-  ---
-  5. Authentication
-  How is a player identified? Is there a login (username/password, Apple Sign-In, etc.), or is the player just identified by
-  their playerId stored locally on the device?
+yes, rename database folder to compose
