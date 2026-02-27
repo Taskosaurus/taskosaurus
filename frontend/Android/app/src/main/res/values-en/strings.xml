@@ -1,0 +1,62 @@
+<resources>
+    //SettingScreen
+    <string name="app_name">Taskosaurus</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_general">General</string>
+    <string name="logout_dialog_title">Sign Out</string>
+    <string name="logout_dialog_text">Are you sure you want to sign out?</string>
+    <string name="logout_button">Sign Out</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="logout_secure_hint">Secure Sign Out</string>
+    <string name="hello_user">Hello %1$s!</string>
+    <string name="manage_account">Manage Account</string>
+    <string name="active_account">Active Account</string>
+    <string name="profile_subtitle">Profile and personal data</string>
+    <string name="privacy_title">Privacy</string>
+    <string name="privacy_subtitle">Data processing and consent</string>
+    <string name="about_app_title">About App</string>
+    <string name="about_app_subtitle">Version 1.0.0 • Taskosaurus</string>
+    <string name="version_format">Version 1.0.0</string>
+
+    //TitleScreen
+    <string name="title_screen_headline">Who would rather?</string>
+    <string name="title_screen_subtitle">Discover what your friends would choose</string>
+    <string name="btn_play_now">Play Now</string>
+    <string name="btn_create_game">Create Game</string>
+    <string name="dialog_create_group_title">Create New Game</string>
+    <string name="dialog_create_group_desc">Give your group a name.</string>
+    <string name="label_group_name">Group Name</string>
+    <string name="btn_create">Create</string>
+    <string name="btn_cancel">Cancel</string>
+
+    //AdaptiveGameLayout
+    <string name="select_group_placeholder">Select a group from the list</string>
+
+    //GameScreen
+    <string name="game_loading_group">Loading group…</string>
+    <string name="game_joining_group">Joining group…</string>
+    <string name="game_loading_questions">Loading questions…</string>
+    <string name="game_join_success">Successfully joined!</string>
+    <string name="game_btn_vote">Vote</string>
+    <string name="game_voted_label">Voted</string>
+    <string name="game_results_winners">🏆 The Winners 🏆</string>
+    <string name="game_results_intermediate">Current Standings</string>
+
+    //GameListScreen
+    <string name="list_title">Groups</string>
+    <string name="list_error_no_connection">No connection to server</string>
+    <string name="list_section_unanswered">Unanswered</string>
+    <string name="list_section_answered">Answered</string>
+    <string name="list_empty_all_done">All done!</string>
+    <string name="list_empty_no_answers">No answers yet.</string>
+    <string name="list_empty_no_groups">No groups found</string>
+    <string name="scanner_invalid_qr">Invalid QR code</string>
+    <string name="scanner_failed">Scan failed</string>
+
+    //GroupInfoScreen
+    <string name="info_title">Invite and Info</string>
+    <string name="info_loading_group">Loading group…</string>
+    <string name="info_scan_to_join">Scan code to join</string>
+    <string name="info_members_header">Members</string>
+    <string name="info_qr_description">QR code for group entry</string>
+</resources>

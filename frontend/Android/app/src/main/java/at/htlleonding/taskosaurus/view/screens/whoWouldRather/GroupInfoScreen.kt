@@ -13,10 +13,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import at.htlleonding.taskosaurus.R
 import at.htlleonding.taskosaurus.data.model.Player
 import at.htlleonding.taskosaurus.ui.theme.AppDimensions
 import at.htlleonding.taskosaurus.ui.theme.LocalAppDimensions
@@ -45,12 +47,13 @@ fun GroupInfoScreen(
 
     Scaffold(
         topBar = {
-            if (!isTabletMode) TopAppBar(title = { Text("Einladen und Info") })
+            if (!isTabletMode) {
+                TopAppBar(title = { Text(stringResource(R.string.info_title)) })
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.padding(top = padding.calculateTopPadding()).fillMaxSize()) {
             if (dims.isLandscape) {
-                // Landscape: QR links, scrollbare Mitgliederliste rechts
                 Row(
                     modifier = Modifier.fillMaxSize().padding(dims.screenPaddingH),
                     horizontalArrangement = Arrangement.spacedBy(32.dp),
@@ -61,11 +64,9 @@ fun GroupInfoScreen(
                         verticalArrangement = Arrangement.Center) {
                         QrSection(qrBitmap, group?.name, dims)
                     }
-                    // Rechte Seite: Header + scrollbare Liste in einer Box mit fixer Höhe
                     Column(modifier = Modifier.weight(1.2f).fillMaxHeight()) {
                         MemberListHeader(players.size, dims)
                         Spacer(Modifier.height(12.dp))
-                        // Scrollbare Mitgliederliste — füllt den Rest der Spalte
                         Card(
                             modifier = Modifier.weight(1f).fillMaxWidth(),
                             shape = RoundedCornerShape(20.dp),
@@ -81,12 +82,10 @@ fun GroupInfoScreen(
                     }
                 }
             } else {
-                // Portrait: QR oben, dann scrollbare Mitgliederliste
                 Column(
                     modifier = Modifier.fillMaxSize()
                         .padding(horizontal = dims.screenPaddingH, vertical = dims.screenPaddingV)
                 ) {
-                    // QR-Bereich — fixer Teil oben
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -97,7 +96,6 @@ fun GroupInfoScreen(
                         Spacer(Modifier.height(if (dims.isTablet) 12.dp else 8.dp))
                     }
 
-                    // Mitglieder-Block scrollbar — nimmt den restlichen Platz ein
                     Card(
                         modifier = Modifier.weight(1f).fillMaxWidth(),
                         shape = RoundedCornerShape(if (dims.isTablet) 20.dp else 16.dp),
@@ -131,15 +129,27 @@ private fun QrSection(qrBitmap: Bitmap?, groupName: String?, dims: AppDimensions
             Box(modifier = Modifier.fillMaxSize().padding(if (dims.isTablet) 20.dp else 16.dp),
                 contentAlignment = Alignment.Center) {
                 qrBitmap?.let {
-                    Image(it.asImageBitmap(), "QR", modifier = Modifier.fillMaxSize(), filterQuality = FilterQuality.None)
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = stringResource(R.string.info_qr_description),
+                        modifier = Modifier.fillMaxSize(),
+                        filterQuality = FilterQuality.None
+                    )
                 } ?: CircularProgressIndicator()
             }
         }
         Spacer(Modifier.height(if (dims.isTablet) 20.dp else 16.dp))
-        Text(groupName ?: "Lade Gruppe...", style = dims.heading1(),
-            fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-        Text("Code scannen zum Beitreten", style = dims.bodyText(),
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = groupName ?: stringResource(R.string.info_loading_group),
+            style = dims.heading1(),
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = stringResource(R.string.info_scan_to_join),
+            style = dims.bodyText(),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -148,7 +158,7 @@ private fun MemberListHeader(count: Int, dims: AppDimensions) {
     Row(modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically) {
-        Text("Mitglieder", style = dims.heading2(), fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.info_members_header), style = dims.heading2(), fontWeight = FontWeight.Bold)
         Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape) {
             Text("$count",
                 modifier = Modifier.padding(

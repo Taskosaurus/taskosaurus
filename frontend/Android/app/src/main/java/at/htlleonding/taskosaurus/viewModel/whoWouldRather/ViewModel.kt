@@ -9,8 +9,7 @@ import at.htlleonding.taskosaurus.data.model.*
 import at.htlleonding.taskosaurus.data.remote.RetrofitInstance
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -18,7 +17,6 @@ import java.time.format.DateTimeFormatter
 
 class ViewModel(application: Application) : AndroidViewModel(application) {
 
-    // State flows
     private val _randomQuestions = MutableStateFlow<List<Question>>(emptyList())
     val randomQuestions: StateFlow<List<Question>> get() = _randomQuestions
 
@@ -38,25 +36,21 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _playerId = MutableStateFlow(0)
     val playerId: StateFlow<Int> get() = _playerId
-
     private var autoRefreshJob: Job? = null
-
-    // Computed properties like iOS
-    val unAnsweredGroups: List<Group>
-        get() = _groups.value.filter { group ->
-            val question = _latestQuestions.value[group.id]
+    val unAnsweredGroups: StateFlow<List<Group>> = combine(_groups, _latestQuestions) { groups, questions ->
+        groups.filter { group ->
+            val question = questions[group.id]
             question != null && !question.answered
         }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val answeredGroups: List<Group>
-        get() = _groups.value.filter { group ->
-            val question = _latestQuestions.value[group.id]
+    val answeredGroups: StateFlow<List<Group>> = combine(_groups, _latestQuestions) { groups, questions ->
+        groups.filter { group ->
+            val question = questions[group.id]
             question?.answered == true
         }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    /*****
-     * INIT
-     */
     init {
         val savedPlayerId = PlayerPrefs.getPlayerId(application)
         if (savedPlayerId != 0) {
@@ -70,7 +64,6 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
 
     fun startAutoRefresh() {
         fetchGroups()
-
         autoRefreshJob?.cancel()
         autoRefreshJob = viewModelScope.launch {
             while (isActive) {
@@ -88,12 +81,10 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val createdPlayer = RetrofitInstance.playerApi.createPlayer(playerDto)
-
                 _player.value = createdPlayer
                 _playerId.value = createdPlayer.id
                 PlayerPrefs.savePlayer(getApplication(), createdPlayer)
                 _hasConnection.value = true
-
                 onSuccess(createdPlayer)
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error creating player", e)
@@ -111,12 +102,10 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                 _player.value = loadedPlayer
                 _playerId.value = loadedPlayer.id
                 _hasConnection.value = true
-
                 onSuccess(loadedPlayer)
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error loading player", e)
                 _hasConnection.value = false
-
                 onError(e.message ?: "Unknown error")
             }
         }
@@ -132,7 +121,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                 _isReady.value = true
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error loading player", e)
-                _isReady.value = true;
+                _isReady.value = true
                 _hasConnection.value = false
             }
         }
@@ -151,17 +140,13 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-
     private fun fetchGroups() {
         viewModelScope.launch {
             try {
                 val player = _player.value ?: return@launch
-
                 val groups = RetrofitInstance.groupApi.getJoinedGroups(player)
                 _groups.value = groups
                 _hasConnection.value = true
-
-                // Load questions for each group
                 loadQuestionsForGroups()
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error fetching groups", e)
@@ -172,7 +157,6 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun loadQuestionsForGroups() {
         val playerId = _playerId.value
-
         _groups.value.forEach { group ->
             try {
                 val request = DailyQuestionRequest(
@@ -181,7 +165,6 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                     groupId = group.id,
                     date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
                 )
-
                 val question = RetrofitInstance.questionApi.getDailyQuestion(request)
                 _latestQuestions.value = _latestQuestions.value + (group.id to question)
                 _hasConnection.value = true
@@ -191,19 +174,14 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-
     fun joinGroup(groupId: Int, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             try {
                 val currentPlayer = _player.value ?: return@launch
                 RetrofitInstance.groupApi.joinGroup(groupId, currentPlayer.name)
-
                 val updatedGroups = RetrofitInstance.groupApi.getJoinedGroups(currentPlayer)
                 _groups.value = updatedGroups
-
                 loadQuestionsForGroups()
-                Log.d("ViewModel", "Join erfolgreich")
-
                 onSuccess()
             } catch (e: Exception) {
                 Log.e("ViewModel", "Fehler beim Joinen von $groupId", e)
@@ -223,18 +201,16 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                     onError("Player not found")
                     return@launch
                 }
-
                 val answer = DailyQuestionAnswer(
                     playerId = player.id,
                     answerId = answeredPlayerId,
                     groupId = groupId,
                     date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
                 )
-
                 val updatedQuestion = RetrofitInstance.questionApi.answerDailyQuestion(answer)
+
                 _latestQuestions.value = _latestQuestions.value + (groupId to updatedQuestion)
                 _hasConnection.value = true
-
                 onSuccess(updatedQuestion)
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error submitting vote", e)
@@ -251,13 +227,9 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                     onError("Player not found")
                     return@launch
                 }
-
                 val group = RetrofitInstance.groupApi.createGroup(name, player)
                 _hasConnection.value = true
-
-                // Refresh groups after creating
                 fetchGroups()
-
                 onSuccess(group)
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error creating group", e)

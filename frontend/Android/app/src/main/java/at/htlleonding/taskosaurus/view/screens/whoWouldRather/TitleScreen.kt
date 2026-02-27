@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -24,12 +25,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import at.htlleonding.taskosaurus.R
 import at.htlleonding.taskosaurus.data.model.Question
 import at.htlleonding.taskosaurus.ui.theme.LocalAppDimensions
 import at.htlleonding.taskosaurus.ui.theme.displayTitle
 import at.htlleonding.taskosaurus.ui.theme.subtitleText
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
-import kotlin.random.Random
 
 @Composable
 fun TitleScreen(
@@ -57,10 +58,8 @@ fun TitleScreen(
             ))
         ))
 
-        // Schwebende Hintergrundkarten — überall verteilt, je nach Modus
         FloatingQuestionCards(infiniteTransition, questions, isLandscape, dims.floatingCardWidth, dims.floatingCardAlpha)
 
-        // Mitte: Icon + Titel + Subtitle
         Column(
             modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -85,20 +84,23 @@ fun TitleScreen(
 
             Spacer(modifier = Modifier.height(dims.titleSpacerAfterIcon))
 
-            Text("Wer würde eher?",
+            Text(
+                text = stringResource(R.string.title_screen_headline),
                 style = dims.displayTitle(), fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface)
+                textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface
+            )
 
             Spacer(modifier = Modifier.height(dims.titleSpacerAfterSubtitle))
 
-            Text("Entdecke, was deine Freunde wählen würden",
+            Text(
+                text = stringResource(R.string.title_screen_subtitle),
                 style = dims.subtitleText(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.widthIn(max = dims.titleMaxWidth))
+                modifier = Modifier.widthIn(max = dims.titleMaxWidth)
+            )
         }
 
-        // FABs unten rechts
         Column(
             modifier = Modifier.align(Alignment.BottomEnd).padding(dims.fabPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -111,8 +113,10 @@ fun TitleScreen(
             ExtendedFloatingActionButton(
                 onClick = onOpenGameList,
                 icon = { Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(dims.fabIconSize)) },
-                text = { Text("Jetzt spielen",
-                    style = if (dims.isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge) },
+                text = { Text(
+                    text = stringResource(R.string.btn_play_now),
+                    style = if (dims.isPortrait) MaterialTheme.typography.labelLarge else MaterialTheme.typography.titleMedium
+                ) },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.scale(playScale).height(dims.fabHeight)
@@ -120,8 +124,10 @@ fun TitleScreen(
             ExtendedFloatingActionButton(
                 onClick = { showCreateDialog = true },
                 icon = { Icon(Icons.Default.Add, null, modifier = Modifier.size(dims.fabIconSize)) },
-                text = { Text("Spiel erstellen",
-                    style = if (dims.isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge) },
+                text = { Text(
+                    text = stringResource(R.string.btn_create_game),
+                    style = if (dims.isPortrait) MaterialTheme.typography.labelLarge else MaterialTheme.typography.titleMedium
+                ) },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.height(dims.fabHeight)
@@ -150,23 +156,13 @@ fun FloatingQuestionCards(
     cardWidth: Dp,
     cardAlpha: Float
 ) {
-    // Portrait — 6 Positionen verteilt über den ganzen Screen (links, rechts, oben, unten, mitte)
     val portraitPositions = listOf(
-        Offset(0.05f, 0.08f),   // oben links
-        Offset(0.70f, 0.06f),   // oben rechts
-        Offset(0.80f, 0.38f),   // rechts mitte
-        Offset(0.02f, 0.50f),   // links mitte
-        Offset(0.12f, 0.78f),   // unten links
-        Offset(0.72f, 0.72f),   // unten rechts
+        Offset(0.05f, 0.08f), Offset(0.70f, 0.06f), Offset(0.80f, 0.38f),
+        Offset(0.02f, 0.50f), Offset(0.12f, 0.78f), Offset(0.72f, 0.72f),
     )
-    // Landscape — 6 Positionen an den Rändern, nicht zu nah zur Mitte
     val landscapePositions = listOf(
-        Offset(0.04f, 0.08f),
-        Offset(0.03f, 0.60f),
-        Offset(0.72f, 0.06f),
-        Offset(0.64f, 0.38f),
-        Offset(0.40f, 0.75f),
-        Offset(0.33f, 0.08f)
+        Offset(0.04f, 0.08f), Offset(0.03f, 0.60f), Offset(0.72f, 0.06f),
+        Offset(0.64f, 0.38f), Offset(0.40f, 0.75f), Offset(0.33f, 0.08f)
     )
 
     val positions = if (isLandscape) landscapePositions else portraitPositions
@@ -222,20 +218,29 @@ private fun CreateGroupDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Neues Spiel erstellen") },
+        title = { Text(stringResource(R.string.dialog_create_group_title)) },
         text = {
             Column {
-                Text("Gib deiner Gruppe einen Namen.", Modifier.padding(bottom = 16.dp))
-                OutlinedTextField(value = groupName, onValueChange = onGroupNameChange,
-                    label = { Text("Gruppenname") }, singleLine = true, enabled = !isSubmitting)
+                Text(stringResource(R.string.dialog_create_group_desc), Modifier.padding(bottom = 16.dp))
+                OutlinedTextField(
+                    value = groupName,
+                    onValueChange = onGroupNameChange,
+                    label = { Text(stringResource(R.string.label_group_name)) },
+                    singleLine = true,
+                    enabled = !isSubmitting
+                )
             }
         },
         confirmButton = {
             Button(onClick = onConfirm, enabled = groupName.isNotBlank() && !isSubmitting) {
                 if (isSubmitting) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                else Text("Erstellen")
+                else Text(stringResource(R.string.btn_create))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Abbrechen") } }
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isSubmitting) {
+                Text(stringResource(R.string.btn_cancel))
+            }
+        }
     )
 }
