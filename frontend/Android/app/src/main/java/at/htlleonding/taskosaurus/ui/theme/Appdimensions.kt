@@ -12,9 +12,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// ─── Geräteklasse ─────────────────────────────────────────────────────────────
-// PHONE = Handy (Portrait ODER Landscape — Handy-Landscape bleibt Handy!)
-// TABLET_PORTRAIT / TABLET_LANDSCAPE = nur echte Tablets (screenWidthDp >= 600)
+// ─── Device Class ─────────────────────────────────────────────────────────────
 
 enum class DeviceClass { PHONE, TABLET_PORTRAIT, TABLET_LANDSCAPE }
 
@@ -22,6 +20,7 @@ enum class DeviceClass { PHONE, TABLET_PORTRAIT, TABLET_LANDSCAPE }
 
 data class AppDimensions(
     val device: DeviceClass,
+    val isLandscape: Boolean = false,
 
     // NAV RAIL
     val railWidth: Dp,
@@ -35,7 +34,6 @@ data class AppDimensions(
     // FLOATING BACKGROUND CARDS (TitleScreen)
     val floatingCardWidth: Dp,
     val floatingCardAlpha: Float,
-    // Anzahl der schwebenden Karten-Positionen (4 Portrait, 6 Landscape)
     val floatingCardPositionCount: Int,
 
     // TITLE SCREEN
@@ -49,7 +47,7 @@ data class AppDimensions(
     val fabPadding: Dp,
     val fabSpacing: Dp,
 
-    // GAME SCREEN — Abstimmen
+    // GAME SCREEN
     val voteButtonHeight: Dp,
     val playerAvatarSize: Dp,
     val playerItemPaddingH: Dp,
@@ -59,7 +57,7 @@ data class AppDimensions(
     val questionCardPadding: Dp,
     val questionCardRadius: Dp,
 
-    // PODIUM — Handy-Landscape bekommt kompaktere Werte
+    // PODIUM
     val podiumRowHeight: Dp,
     val podiumBar1: Dp,
     val podiumBar2: Dp,
@@ -96,23 +94,20 @@ data class AppDimensions(
     val loginButtonHeight: Dp,
     val loginPaddingH: Dp,
 
-    // ALLGEMEIN
+    // COMMON
     val cardRadius: Dp,
     val screenPaddingH: Dp,
     val screenPaddingV: Dp,
     val sectionSpacing: Dp,
     val itemSpacing: Dp,
-    // Abstand zwischen Gruppen-Karten in der Liste
     val groupListSpacing: Dp,
 ) {
     val isTablet: Boolean get() = device != DeviceClass.PHONE
-    val isPortrait: Boolean get() = device == DeviceClass.TABLET_PORTRAIT
-    val isLandscape: Boolean get() = device == DeviceClass.TABLET_LANDSCAPE
 }
 
-// ─── Konfigurationen ──────────────────────────────────────────────────────────
+// ─── Configuration ──────────────────────────────────────────────────────────
 
-// HANDY — exakt die Originalwerte, nichts verändert
+// Phone
 val PhoneDimensions = AppDimensions(
     device = DeviceClass.PHONE,
     railWidth = 80.dp, railWidthExpanded = 220.dp,
@@ -126,7 +121,6 @@ val PhoneDimensions = AppDimensions(
     playerAvatarSize = 34.dp, playerItemPaddingH = 12.dp, playerItemPaddingV = 10.dp,
     progressBarHeight = 6.dp, progressCardPadding = 10.dp,
     questionCardPadding = 16.dp, questionCardRadius = 12.dp,
-    // Handy-Portrait Podium (original)
     podiumRowHeight = 240.dp,
     podiumBar1 = 140.dp, podiumBar2 = 100.dp, podiumBar3 = 80.dp,
     podiumColWidth = 90.dp, podiumAvatarSize = 40.dp, podiumTinyAvatarSize = 28.dp,
@@ -148,7 +142,6 @@ val TabletPortraitDimensions = AppDimensions(
     railWidth = 96.dp, railWidthExpanded = 260.dp,
     railIconSize = 30.dp, railItemHeight = 68.dp,
     navIconSize = 28.dp,
-    // Größere schwebende Karten + mehr Positionen = überall verteilt
     floatingCardWidth = 200.dp, floatingCardAlpha = 0.30f, floatingCardPositionCount = 6,
     titleIconSurface = 160.dp, titleIconInner = 84.dp,
     titleSpacerAfterIcon = 64.dp, titleSpacerAfterSubtitle = 28.dp, titleMaxWidth = 560.dp,
@@ -210,16 +203,19 @@ val LocalAppDimensions = compositionLocalOf<AppDimensions> { PhoneDimensions }
 fun AppDimensionsProvider(content: @Composable () -> Unit) {
     val configuration = LocalConfiguration.current
     val smallestScreenWidth = configuration.smallestScreenWidthDp
-    val isTablet = smallestScreenWidth >= 600
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val isTabletDevice = smallestScreenWidth >= 600
+    val isLandscapeRightNow = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    val dims = remember(isTablet, isLandscape) {
-        when {
-            isTablet && isLandscape  -> TabletLandscapeDimensions
-            isTablet && !isLandscape -> TabletPortraitDimensions
-            else                     -> PhoneDimensions  // Handy Portrait UND Landscape!
+    val dims = remember(isTabletDevice, isLandscapeRightNow) {
+        val baseDims = when {
+            isTabletDevice && isLandscapeRightNow -> TabletLandscapeDimensions
+            isTabletDevice && !isLandscapeRightNow -> TabletPortraitDimensions
+            else -> PhoneDimensions
         }
+
+        baseDims.copy(isLandscape = isLandscapeRightNow)
     }
+
     CompositionLocalProvider(LocalAppDimensions provides dims, content = content)
 }
 

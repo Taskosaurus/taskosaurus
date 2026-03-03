@@ -40,8 +40,6 @@ fun GameScreen(
     isTabletMode: Boolean = false
 ) {
     val dims = LocalAppDimensions.current
-    val configuration = LocalConfiguration.current
-    val isPhoneLandscape = !dims.isTablet && configuration.screenWidthDp > configuration.screenHeightDp
 
     val groups by viewModel.groups.collectAsState()
     val questions by viewModel.latestQuestions.collectAsState()
@@ -95,8 +93,7 @@ fun GameScreen(
                     Text(if (group == null) "Trete Gruppe bei..." else "Lade Fragen...", style = dims.bodyText())
                 }
             } else {
-                // Landscape-Modus: sowohl Handy-Landscape als auch Tablet-Landscape
-                if (isPhoneLandscape || dims.isLandscape) {
+                if (dims.isLandscape) {
                     Row(
                         modifier = Modifier.fillMaxSize()
                             .padding(horizontal = dims.screenPaddingH, vertical = dims.screenPaddingV),
@@ -110,7 +107,7 @@ fun GameScreen(
                             VoteProgressHeader(question.answers.sumOf { it.count }, group.players?.size ?: 0, dims)
                         }
                         Box(modifier = Modifier.weight(0.6f).fillMaxHeight()) {
-                            InteractionArea(question, group, selectedPlayer, dims, isPhoneLandscape,
+                            InteractionArea(question, group, selectedPlayer, dims, !dims.isTablet,
                                 onPlayerSelect = { selectedPlayer = it },
                                 onVoteSubmit = { selectedPlayer?.let { p ->
                                     viewModel.submitVote(groupId, p.id, { selectedPlayer = null }, {}) } }
@@ -146,7 +143,7 @@ private fun InteractionArea(
     onPlayerSelect: (Player) -> Unit, onVoteSubmit: () -> Unit
 ) {
     if (question.answered) {
-        ResultsPodium(question, question.answers.sumOf { it.count }, group.players?.size ?: 0, dims, isPhoneLandscape)
+        ResultsPodium(question, question.answers.sumOf { it.count }, group.players?.size ?: 0, dims)
     } else {
         Column(Modifier.fillMaxSize()) {
             VotingSection(group.players ?: emptyList(), selectedPlayer, Modifier.weight(1f), dims, onPlayerSelect)
@@ -211,8 +208,10 @@ private fun buildOlympicRanks(sortedAnswers: List<Answer>): List<RankedGroup> {
 
 @Composable
 private fun ResultsPodium(
-    question: Question, votedCount: Int, totalCount: Int,
-    dims: AppDimensions, isPhoneLandscape: Boolean
+    question: Question,
+    votedCount: Int,
+    totalCount: Int,
+    dims: AppDimensions
 ) {
     val rankedGroups = buildOlympicRanks(question.answers.sortedByDescending { it.count })
     val rank1 = rankedGroups.find { it.place == 1 }
@@ -233,15 +232,15 @@ private fun ResultsPodium(
     }
 
     // Handy-Landscape bekommt kompakte Werte, damit das Podium sichtbar bleibt
-    val podiumRowH  = if (isPhoneLandscape) 160.dp else dims.podiumRowHeight
-    val bar1        = if (isPhoneLandscape) 90.dp  else dims.podiumBar1
-    val bar2        = if (isPhoneLandscape) 65.dp  else dims.podiumBar2
-    val bar3        = if (isPhoneLandscape) 50.dp  else dims.podiumBar3
-    val colW        = if (isPhoneLandscape) 70.dp  else dims.podiumColWidth
-    val avatarSz    = if (isPhoneLandscape) 28.dp  else dims.podiumAvatarSize
-    val tinyAvatSz  = if (isPhoneLandscape) 20.dp  else dims.podiumTinyAvatarSize
-    val medalSz     = if (isPhoneLandscape) 18.sp  else dims.podiumMedalSize
-    val colSpacing  = if (isPhoneLandscape) 6.dp   else dims.podiumColSpacing
+    val podiumRowH  = if (dims.isLandscape && !dims.isTablet) 160.dp else dims.podiumRowHeight
+    val bar1        = if (dims.isLandscape && !dims.isTablet) 90.dp  else dims.podiumBar1
+    val bar2        = if (dims.isLandscape && !dims.isTablet) 65.dp  else dims.podiumBar2
+    val bar3        = if (dims.isLandscape && !dims.isTablet) 50.dp  else dims.podiumBar3
+    val colW        = if (dims.isLandscape && !dims.isTablet) 70.dp  else dims.podiumColWidth
+    val avatarSz    = if (dims.isLandscape && !dims.isTablet) 28.dp  else dims.podiumAvatarSize
+    val tinyAvatSz  = if (dims.isLandscape && !dims.isTablet) 20.dp  else dims.podiumTinyAvatarSize
+    val medalSz     = if (dims.isLandscape && !dims.isTablet) 18.sp  else dims.podiumMedalSize
+    val colSpacing  = if (dims.isLandscape && !dims.isTablet) 6.dp   else dims.podiumColSpacing
 
     Box(modifier = Modifier.fillMaxSize()) {
         ConfettiAnimation(confettiParticles, infiniteTransition)
@@ -249,7 +248,7 @@ private fun ResultsPodium(
             Text(
                 if (votedCount == totalCount) "🏆 Die Gewinner 🏆" else "Zwischenstand",
                 style = dims.podiumTitle(), fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = if (dims.isPortrait) 32.dp else if (isPhoneLandscape) 4.dp else if (dims.isLandscape) 16.dp else 12.dp)
+                modifier = Modifier.padding(bottom = if (!dims.isLandscape) 32.dp else if (!dims.isTablet) 4.dp else if (dims.isTablet) 16.dp else 12.dp)
             )
             Row(
                 modifier = Modifier.fillMaxWidth().height(podiumRowH),
@@ -272,9 +271,15 @@ private fun ResultsPodium(
 
 @Composable
 private fun PodiumColumn(
-    rankedGroup: RankedGroup, votedCount: Int, barHeight: Dp,
-    infiniteTransition: InfiniteTransition, dims: AppDimensions,
-    colWidth: Dp, avatarSize: Dp, tinyAvatarSize: Dp, medalSize: TextUnit
+    rankedGroup: RankedGroup,
+    votedCount: Int,
+    barHeight: Dp,
+    infiniteTransition: InfiniteTransition,
+    dims: AppDimensions,
+    colWidth: Dp,
+    avatarSize: Dp,
+    tinyAvatarSize: Dp,
+    medalSize: TextUnit
 ) {
     val place = rankedGroup.place
     val medalColor = when (place) { 1 -> Color(0xFFFFD700); 2 -> Color(0xFFC0C0C0); 3 -> Color(0xFFCD7F32); else -> MaterialTheme.colorScheme.primary }
@@ -290,7 +295,7 @@ private fun PodiumColumn(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(medalEmoji, fontSize = medalSize,
-            modifier = Modifier.padding(bottom = if (dims.isPortrait) 10.dp else if (dims.isLandscape) 4.dp else 2.dp))
+            modifier = Modifier.padding(bottom = if (!dims.isLandscape) 10.dp else if (dims.isTablet) 4.dp else 2.dp))
 
         if (rankedGroup.entries.size == 1) {
             Box(modifier = Modifier.size(avatarSize).clip(CircleShape).background(medalColor), contentAlignment = Alignment.Center) {
@@ -308,7 +313,7 @@ private fun PodiumColumn(
             }
         }
 
-        Spacer(Modifier.height(if (dims.isPortrait) 12.dp else if (dims.isLandscape) 6.dp else 4.dp))
+        Spacer(Modifier.height(if (!dims.isLandscape) 12.dp else if (dims.isTablet) 6.dp else 4.dp))
 
         rankedGroup.entries.forEach { entry ->
             Text(entry.answeredName, style = dims.podiumName(), fontWeight = FontWeight.Bold,
@@ -320,7 +325,7 @@ private fun PodiumColumn(
                 style = dims.labelText(), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
-        Spacer(Modifier.height(if (dims.isPortrait) 14.dp else if (dims.isLandscape) 8.dp else 4.dp))
+        Spacer(Modifier.height(if (!dims.isLandscape) 14.dp else if (dims.isTablet) 8.dp else 4.dp))
 
         Card(
             modifier = Modifier.width(colWidth - 6.dp).height(barHeight),
@@ -390,7 +395,7 @@ private fun QuestionCard(question: String, dims: AppDimensions) {
     ) {
         Text(question, style = dims.questionText(), fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(dims.questionCardPadding),
-            lineHeight = if (dims.isPortrait) 36.sp else if (dims.isLandscape) 28.sp else 22.sp)
+            lineHeight = if (!dims.isLandscape) 36.sp else if (dims.isTablet) 28.sp else 22.sp)
     }
 }
 

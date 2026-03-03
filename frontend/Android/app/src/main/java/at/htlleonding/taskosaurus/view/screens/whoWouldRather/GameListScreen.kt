@@ -40,9 +40,6 @@ fun GameListScreen(
     val unansweredGroups = viewModel.unAnsweredGroups
     val answeredGroups = viewModel.answeredGroups
 
-    val configuration = LocalConfiguration.current // Füge das hinzu
-    val isActuallyLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
     val snackbarHostState = remember { SnackbarHostState() }
     val scanner = remember { GmsBarcodeScanning.getClient(context) }
 
@@ -83,8 +80,8 @@ fun GameListScreen(
                 }
             }
 
-            if (isActuallyLandscape && !isTabletSideBar) {
-                // Tablet Landscape — zwei Spalten nebeneinander
+            if (dims.isLandscape && !isTabletSideBar) {
+                // Tablet Landscape — 2 columns
                 Row(
                     modifier = Modifier.fillMaxSize()
                         .padding(horizontal = dims.screenPaddingH, vertical = dims.screenPaddingV),
@@ -96,8 +93,7 @@ fun GameListScreen(
                         "Noch keine Antworten.", Modifier.weight(1f), dims, onGroupClick)
                 }
             } else {
-                // Portrait oder SideBar — Liste untereinander
-                // groupListSpacing = Gap zwischen den einzelnen Karten!
+                // Portrait or fragment view
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(dims.groupListSpacing),
@@ -157,7 +153,6 @@ fun GroupSectionBox(
                     Text(emptyText, style = dims.labelText(), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             } else {
-                // Gap zwischen den Karten in der Spalten-Ansicht
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(horizontal = if (dims.isTablet) 12.dp else 8.dp),
                     verticalArrangement = Arrangement.spacedBy(dims.groupListSpacing),

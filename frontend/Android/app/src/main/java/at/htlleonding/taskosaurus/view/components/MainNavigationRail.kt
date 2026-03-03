@@ -32,12 +32,8 @@ fun MainNavigationRail(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    val context = LocalContext.current
-    val rotation = context.display?.rotation ?: Surface.ROTATION_0
-    val needsLeftPadding = rotation == Surface.ROTATION_270
-
     val baseWidth = if (isExpanded) dims.railWidthExpanded else dims.railWidth
-    val totalWidth = if (needsLeftPadding) baseWidth + 48.dp else baseWidth
+    val totalWidth = baseWidth
 
     Surface(
         color = MaterialTheme.colorScheme.surface,
@@ -48,7 +44,7 @@ fun MainNavigationRail(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))
-                .padding(start = if (needsLeftPadding) 48.dp else 0.dp)
+                .padding(start = 0.dp)
                 .padding(vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

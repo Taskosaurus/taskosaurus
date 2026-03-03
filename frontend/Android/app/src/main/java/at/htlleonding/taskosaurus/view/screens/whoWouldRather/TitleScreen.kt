@@ -38,8 +38,6 @@ fun TitleScreen(
     viewModel: ViewModel = viewModel()
 ) {
     val dims = LocalAppDimensions.current
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
 
     var showCreateDialog by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
@@ -57,10 +55,8 @@ fun TitleScreen(
             ))
         ))
 
-        // Schwebende Hintergrundkarten — überall verteilt, je nach Modus
-        FloatingQuestionCards(infiniteTransition, questions, isLandscape, dims.floatingCardWidth, dims.floatingCardAlpha)
+        FloatingQuestionCards(infiniteTransition, questions, dims.isLandscape, dims.floatingCardWidth, dims.floatingCardAlpha)
 
-        // Mitte: Icon + Titel + Subtitle
         Column(
             modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -98,7 +94,6 @@ fun TitleScreen(
                 modifier = Modifier.widthIn(max = dims.titleMaxWidth))
         }
 
-        // FABs unten rechts
         Column(
             modifier = Modifier.align(Alignment.BottomEnd).padding(dims.fabPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -150,16 +145,13 @@ fun FloatingQuestionCards(
     cardWidth: Dp,
     cardAlpha: Float
 ) {
-    // Portrait — 6 Positionen verteilt über den ganzen Screen (links, rechts, oben, unten, mitte)
     val portraitPositions = listOf(
-        Offset(0.05f, 0.08f),   // oben links
-        Offset(0.70f, 0.06f),   // oben rechts
-        Offset(0.80f, 0.38f),   // rechts mitte
-        Offset(0.02f, 0.50f),   // links mitte
-        Offset(0.12f, 0.78f),   // unten links
-        Offset(0.72f, 0.72f),   // unten rechts
+        Offset(0.05f, 0.08f),
+        Offset(0.70f, 0.06f),
+        Offset(0.12f, 0.78f),
+        Offset(0.72f, 0.72f),
     )
-    // Landscape — 6 Positionen an den Rändern, nicht zu nah zur Mitte
+
     val landscapePositions = listOf(
         Offset(0.04f, 0.08f),
         Offset(0.03f, 0.60f),

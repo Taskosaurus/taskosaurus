@@ -50,7 +50,6 @@ fun GroupInfoScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(top = padding.calculateTopPadding()).fillMaxSize()) {
             if (dims.isLandscape) {
-                // Landscape: QR links, scrollbare Mitgliederliste rechts
                 Row(
                     modifier = Modifier.fillMaxSize().padding(dims.screenPaddingH),
                     horizontalArrangement = Arrangement.spacedBy(32.dp),
@@ -61,11 +60,9 @@ fun GroupInfoScreen(
                         verticalArrangement = Arrangement.Center) {
                         QrSection(qrBitmap, group?.name, dims)
                     }
-                    // Rechte Seite: Header + scrollbare Liste in einer Box mit fixer Höhe
                     Column(modifier = Modifier.weight(1.2f).fillMaxHeight()) {
                         MemberListHeader(players.size, dims)
                         Spacer(Modifier.height(12.dp))
-                        // Scrollbare Mitgliederliste — füllt den Rest der Spalte
                         Card(
                             modifier = Modifier.weight(1f).fillMaxWidth(),
                             shape = RoundedCornerShape(20.dp),
@@ -81,12 +78,10 @@ fun GroupInfoScreen(
                     }
                 }
             } else {
-                // Portrait: QR oben, dann scrollbare Mitgliederliste
                 Column(
                     modifier = Modifier.fillMaxSize()
                         .padding(horizontal = dims.screenPaddingH, vertical = dims.screenPaddingV)
                 ) {
-                    // QR-Bereich — fixer Teil oben
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -97,7 +92,6 @@ fun GroupInfoScreen(
                         Spacer(Modifier.height(if (dims.isTablet) 12.dp else 8.dp))
                     }
 
-                    // Mitglieder-Block scrollbar — nimmt den restlichen Platz ein
                     Card(
                         modifier = Modifier.weight(1f).fillMaxWidth(),
                         shape = RoundedCornerShape(if (dims.isTablet) 20.dp else 16.dp),
@@ -121,25 +115,39 @@ fun GroupInfoScreen(
 
 @Composable
 private fun QrSection(qrBitmap: Bitmap?, groupName: String?, dims: AppDimensions) {
+    val isPhoneLandscape = !dims.isTablet && dims.isLandscape
+    val adjustedCardSize = if (isPhoneLandscape) 140.dp else dims.qrCardSize
+    val adjustedSpacer = if (isPhoneLandscape) 8.dp else (if (dims.isTablet) 20.dp else 16.dp)
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Card(
-            modifier = Modifier.size(dims.qrCardSize),
-            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.size(adjustedCardSize),
+            shape = RoundedCornerShape(if (isPhoneLandscape) 16.dp else 24.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(2.dp)
         ) {
-            Box(modifier = Modifier.fillMaxSize().padding(if (dims.isTablet) 20.dp else 16.dp),
+            Box(modifier = Modifier.fillMaxSize().padding(if (isPhoneLandscape) 10.dp else 16.dp),
                 contentAlignment = Alignment.Center) {
                 qrBitmap?.let {
                     Image(it.asImageBitmap(), "QR", modifier = Modifier.fillMaxSize(), filterQuality = FilterQuality.None)
                 } ?: CircularProgressIndicator()
             }
         }
-        Spacer(Modifier.height(if (dims.isTablet) 20.dp else 16.dp))
-        Text(groupName ?: "Lade Gruppe...", style = dims.heading1(),
-            fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-        Text("Code scannen zum Beitreten", style = dims.bodyText(),
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+        Spacer(Modifier.height(adjustedSpacer))
+
+        Text(
+            groupName ?: "Lade Gruppe...",
+            style = if (isPhoneLandscape) dims.heading2() else dims.heading1(),
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            maxLines = 1
+        )
+
+        if (!isPhoneLandscape) {
+            Text("Code scannen zum Beitreten", style = dims.bodyText(),
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 

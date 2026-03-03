@@ -39,9 +39,6 @@ fun SettingsScreen(
     val currentPlayer by viewModel.player.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
-    val configuration = LocalConfiguration.current
-    val isActuallyLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -62,11 +59,9 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxSize().statusBarsPadding()
                 .padding(horizontal = dims.settingsPaddingH, vertical = dims.settingsPaddingV)
         ) {
-            if (isActuallyLandscape) {
-                // ─── TABLET LANDSCAPE: Cooles 3-Spalten-Layout ───────────────────────────
+            if (dims.isLandscape) {
                 LandscapeSettingsLayout(currentPlayer, dims) { showLogoutDialog = true }
-            } else if (dims.isPortrait) {
-                // ─── TABLET PORTRAIT: Zentriert mit max-width ────────────────────────────
+            } else if (!dims.isLandscape && dims.isTablet) {
                 Text("Einstellungen", style = dims.settingsTitle(), fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 48.dp), textAlign = TextAlign.Center)
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
@@ -82,7 +77,6 @@ fun SettingsScreen(
                     }
                 }
             } else {
-                // ─── HANDY: Original ─────────────────────────────────────────────────────
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -99,13 +93,10 @@ fun SettingsScreen(
     }
 }
 
-// ─── Tablet Landscape: Modernes 3-Panel-Design ────────────────────────────────
-
 @Composable
 private fun LandscapeSettingsLayout(player: Player?, dims: AppDimensions, onLogoutClick: () -> Unit) {
     Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
 
-        // LINKE SPALTE — Avatar + Name
         Card(
             modifier = Modifier.width(260.dp).fillMaxHeight(),
             shape = RoundedCornerShape(28.dp),
@@ -141,11 +132,9 @@ private fun LandscapeSettingsLayout(player: Player?, dims: AppDimensions, onLogo
             }
         }
 
-        // MITTLERE SPALTE — Aktionen / Einstellungs-Karten
         Column(modifier = Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("Einstellungen", style = dims.settingsTitle(), fontWeight = FontWeight.Bold)
 
-            // Konto-Karte
             SettingsActionCard(
                 icon = Icons.Default.Person,
                 title = "Konto verwalten",
@@ -154,7 +143,6 @@ private fun LandscapeSettingsLayout(player: Player?, dims: AppDimensions, onLogo
                 onClick = {}
             )
 
-            // Datenschutz-Karte
             SettingsActionCard(
                 icon = Icons.Default.Shield,
                 title = "Datenschutz",
@@ -163,7 +151,6 @@ private fun LandscapeSettingsLayout(player: Player?, dims: AppDimensions, onLogo
                 onClick = {}
             )
 
-            // Info-Karte
             SettingsActionCard(
                 icon = Icons.Default.Info,
                 title = "Über die App",
@@ -175,9 +162,7 @@ private fun LandscapeSettingsLayout(player: Player?, dims: AppDimensions, onLogo
             Spacer(Modifier.weight(1f))
         }
 
-        // RECHTE SPALTE — Logout prominent
         Column(modifier = Modifier.width(220.dp).fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
-            // Großer Logout-Button
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onLogoutClick() },
                 shape = RoundedCornerShape(20.dp),
@@ -235,7 +220,6 @@ private fun SettingsActionCard(
     }
 }
 
-// ─── Geteilt genutzte Composables ─────────────────────────────────────────────
 
 @Composable
 private fun ProfileHeader(player: Player?, dims: AppDimensions) {

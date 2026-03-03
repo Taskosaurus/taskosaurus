@@ -30,20 +30,13 @@ import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
-fun MainScreen(activity: Activity) {
+fun MainScreen() {
     val navController = rememberNavController()
     val viewModel: ViewModel = viewModel()
     val player by viewModel.player.collectAsState()
     val isReady by viewModel.isReady.collectAsState()
+
     val dims = LocalAppDimensions.current
-
-    val windowSizeClass = calculateWindowSizeClass(activity)
-    val configuration = LocalConfiguration.current
-
-    val smallestScreenWidth = configuration.smallestScreenWidthDp
-    val isTablet = smallestScreenWidth >= 600
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val isTabletLandscape = isTablet && isLandscape
 
     val context = LocalContext.current
     val rotation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -53,21 +46,17 @@ fun MainScreen(activity: Activity) {
         (context.getSystemService(android.content.Context.WINDOW_SERVICE) as android.view.WindowManager).defaultDisplay.rotation
     }
 
-    val isNavBarLeft = rotation == Surface.ROTATION_270
     val isNavBarRight = rotation == Surface.ROTATION_90
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-
-    val baseRailWidth = dims.railWidth
-    val railWidthWithSystem = if (isNavBarLeft) baseRailWidth + 48.dp else baseRailWidth
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.surface,
             bottomBar = {
-                if (!isLandscape && player != null && isReady) {
+                if (!dims.isLandscape && player != null && isReady) {
                     MainNavigation(navController)
                 }
             }
@@ -85,8 +74,8 @@ fun MainScreen(activity: Activity) {
                             else paddingValues.calculateBottomPadding()
                         )
                         .padding(
-                            start = if (isLandscape && player != null) railWidthWithSystem else 0.dp,
-                            end = if (isLandscape && isNavBarRight) 48.dp else 0.dp
+                            start = if (dims.isLandscape && player != null) dims.railWidth else 0.dp,
+                            end = 0.dp
                         )
                         .imePadding()
                 ) {
@@ -107,7 +96,7 @@ fun MainScreen(activity: Activity) {
                         composable("game_list") {
                             AdaptiveGameLayout(
                                 viewModel = viewModel,
-                                isTabletLandscape = isTabletLandscape,
+                                isTabletLandscape = dims.isLandscape && dims.isTablet,
                                 onNavigateToGame = { groupId -> navController.navigate("game/$groupId") }
                             )
                         }
@@ -140,7 +129,7 @@ fun MainScreen(activity: Activity) {
                 }
             }
         }
-        if (isLandscape && player != null && isReady) {
+        if (dims.isLandscape && player != null && isReady) {
             MainNavigationRail(navController)
         }
     }
