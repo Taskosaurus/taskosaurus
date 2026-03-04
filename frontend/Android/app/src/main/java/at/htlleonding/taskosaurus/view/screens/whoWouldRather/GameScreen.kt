@@ -18,13 +18,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import at.htlleonding.taskosaurus.R
 import at.htlleonding.taskosaurus.data.model.*
 import at.htlleonding.taskosaurus.ui.theme.*
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
@@ -53,10 +56,13 @@ fun GameScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    val joinSuccessText = stringResource(R.string.game_join_success)
+
+    // Automatisches Beitreten, falls man den Link/QR nutzt aber noch nicht drin ist
     LaunchedEffect(player, isReady, group) {
         if (isReady && player != null && group == null) {
             viewModel.joinGroup(groupId = groupId, onSuccess = {
-                scope.launch { snackbarHostState.showSnackbar("Erfolgreich beigetreten!") }
+                scope.launch { snackbarHostState.showSnackbar(joinSuccessText) }
             })
         }
     }
@@ -65,7 +71,7 @@ fun GameScreen(
         topBar = {
             if (!isTabletMode) {
                 TopAppBar(
-                    title = { Text(group?.name ?: "Lade Gruppe...", style = dims.heading2()) },
+                    title = { Text(group?.name ?: stringResource(R.string.game_loading_group), style = dims.heading2()) },
                     windowInsets = WindowInsets(top = 0.dp)
                 )
             }
@@ -90,7 +96,10 @@ fun GameScreen(
                 Column(Modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) {
                     CircularProgressIndicator()
                     Spacer(Modifier.height(16.dp))
-                    Text(if (group == null) "Trete Gruppe bei..." else "Lade Fragen...", style = dims.bodyText())
+                    Text(
+                        text = if (group == null) stringResource(R.string.game_joining_group) else stringResource(R.string.game_loading_questions),
+                        style = dims.bodyText()
+                    )
                 }
             } else {
                 if (dims.isLandscape) {
@@ -109,8 +118,12 @@ fun GameScreen(
                         Box(modifier = Modifier.weight(0.6f).fillMaxHeight()) {
                             InteractionArea(question, group, selectedPlayer, dims, !dims.isTablet,
                                 onPlayerSelect = { selectedPlayer = it },
-                                onVoteSubmit = { selectedPlayer?.let { p ->
-                                    viewModel.submitVote(groupId, p.id, { selectedPlayer = null }, {}) } }
+                                onVoteSubmit = {
+                                    // TRIGGER: ViewModel Update
+                                    selectedPlayer?.let { p ->
+                                        viewModel.submitVote(groupId, p.id, { selectedPlayer = null }, {})
+                                    }
+                                }
                             )
                         }
                     }
@@ -125,8 +138,11 @@ fun GameScreen(
                         Box(modifier = Modifier.weight(1f)) {
                             InteractionArea(question, group, selectedPlayer, dims, false,
                                 onPlayerSelect = { selectedPlayer = it },
-                                onVoteSubmit = { selectedPlayer?.let { p ->
-                                    viewModel.submitVote(groupId, p.id, { selectedPlayer = null }, {}) } }
+                                onVoteSubmit = {
+                                    selectedPlayer?.let { p ->
+                                        viewModel.submitVote(groupId, p.id, { selectedPlayer = null }, {})
+                                    }
+                                }
                             )
                         }
                     }
@@ -154,7 +170,7 @@ private fun InteractionArea(
                 modifier = Modifier.fillMaxWidth().height(dims.voteButtonHeight),
                 shape = RoundedCornerShape(dims.questionCardRadius)
             ) {
-                Text("Abstimmen", style = dims.voteButtonText(), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.game_btn_vote), style = dims.voteButtonText(), fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -186,8 +202,6 @@ private fun VotingSection(
     }
 }
 
-// ─── Olympische Rang-Logik ────────────────────────────────────────────────────
-
 private data class RankedGroup(val place: Int, val entries: List<Answer>)
 
 private fun buildOlympicRanks(sortedAnswers: List<Answer>): List<RankedGroup> {
@@ -203,8 +217,6 @@ private fun buildOlympicRanks(sortedAnswers: List<Answer>): List<RankedGroup> {
     }
     return result
 }
-
-// ─── Podium ───────────────────────────────────────────────────────────────────
 
 @Composable
 private fun ResultsPodium(
@@ -246,7 +258,7 @@ private fun ResultsPodium(
         ConfettiAnimation(confettiParticles, infiniteTransition)
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                if (votedCount == totalCount) "🏆 Die Gewinner 🏆" else "Zwischenstand",
+                text = if (votedCount == totalCount) stringResource(R.string.game_results_winners) else stringResource(R.string.game_results_intermediate),
                 style = dims.podiumTitle(), fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = if (!dims.isLandscape) 32.dp else if (!dims.isTablet) 4.dp else if (dims.isTablet) 16.dp else 12.dp)
             )
@@ -317,7 +329,8 @@ private fun PodiumColumn(
 
         rankedGroup.entries.forEach { entry ->
             Text(entry.answeredName, style = dims.podiumName(), fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center, modifier = Modifier.widthIn(max = colWidth))
+                textAlign = TextAlign.Center, modifier = Modifier.widthIn(max = colWidth),
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
 
         if (votedCount > 0) {
@@ -373,7 +386,7 @@ private fun VoteProgressHeader(votedCount: Int, totalCount: Int, dims: AppDimens
     ) {
         Column(Modifier.padding(dims.progressCardPadding)) {
             Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                Text("Abgestimmt", style = dims.progressText(), color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.game_voted_label), style = dims.progressText(), color = MaterialTheme.colorScheme.primary)
                 Text("$votedCount/$totalCount", style = dims.progressText(), fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.height(dims.itemSpacing))
@@ -419,9 +432,6 @@ private fun ConfettiAnimation(particles: List<ConfettiParticle>, transition: Inf
         }
     }
 }
-
-@Composable
-fun MaterialTheme.onPrimary() = MaterialTheme.colorScheme.onPrimary
 
 data class ConfettiParticle(
     val initialX: Float, val initialY: Float, val speed: Float,

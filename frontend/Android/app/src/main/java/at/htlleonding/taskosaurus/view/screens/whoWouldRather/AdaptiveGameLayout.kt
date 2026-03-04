@@ -7,7 +7,9 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import at.htlleonding.taskosaurus.R
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 
 @Composable
@@ -21,7 +23,6 @@ fun AdaptiveGameLayout(
 
     if (isTabletLandscape) {
         Row(modifier = Modifier.fillMaxSize()) {
-            // LINKE SPALTE (Master): Gruppen untereinander
             Box(modifier = Modifier.weight(1.1f)) {
                 GameListScreen(
                     viewModel = viewModel,
@@ -29,13 +30,12 @@ fun AdaptiveGameLayout(
                         selectedGroupId = id
                         showInfoRightSide = false
                     },
-                    isTabletSideBar = true // Erzwingt die Listenansicht untereinander
+                    isTabletSideBar = true
                 )
             }
 
             VerticalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
-            // RECHTE SPALTE (Detail)
             Box(modifier = Modifier.weight(2.5f)) {
                 val currentId = selectedGroupId
                 if (currentId != null) {
@@ -57,7 +57,7 @@ fun AdaptiveGameLayout(
                 } else {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = "Wähle eine Gruppe aus der Liste aus",
+                            text = stringResource(R.string.select_group_placeholder),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

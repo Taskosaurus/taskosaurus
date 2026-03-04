@@ -13,10 +13,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import at.htlleonding.taskosaurus.R
 import at.htlleonding.taskosaurus.data.model.Player
 import at.htlleonding.taskosaurus.ui.theme.AppDimensions
 import at.htlleonding.taskosaurus.ui.theme.LocalAppDimensions
@@ -45,7 +47,9 @@ fun GroupInfoScreen(
 
     Scaffold(
         topBar = {
-            if (!isTabletMode) TopAppBar(title = { Text("Einladen und Info") })
+            if (!isTabletMode) {
+                TopAppBar(title = { Text(stringResource(R.string.info_title)) })
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.padding(top = padding.calculateTopPadding()).fillMaxSize()) {
@@ -129,25 +133,27 @@ private fun QrSection(qrBitmap: Bitmap?, groupName: String?, dims: AppDimensions
             Box(modifier = Modifier.fillMaxSize().padding(if (isPhoneLandscape) 10.dp else 16.dp),
                 contentAlignment = Alignment.Center) {
                 qrBitmap?.let {
-                    Image(it.asImageBitmap(), "QR", modifier = Modifier.fillMaxSize(), filterQuality = FilterQuality.None)
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = stringResource(R.string.info_qr_description),
+                        modifier = Modifier.fillMaxSize(),
+                        filterQuality = FilterQuality.None
+                    )
                 } ?: CircularProgressIndicator()
             }
         }
-
-        Spacer(Modifier.height(adjustedSpacer))
-
+        Spacer(Modifier.height(if (dims.isTablet) 20.dp else 16.dp))
         Text(
-            groupName ?: "Lade Gruppe...",
-            style = if (isPhoneLandscape) dims.heading2() else dims.heading1(),
+            text = groupName ?: stringResource(R.string.info_loading_group),
+            style = dims.heading1(),
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            maxLines = 1
+            textAlign = TextAlign.Center
         )
-
-        if (!isPhoneLandscape) {
-            Text("Code scannen zum Beitreten", style = dims.bodyText(),
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        Text(
+            text = stringResource(R.string.info_scan_to_join),
+            style = dims.bodyText(),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -156,7 +162,7 @@ private fun MemberListHeader(count: Int, dims: AppDimensions) {
     Row(modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically) {
-        Text("Mitglieder", style = dims.heading2(), fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.info_members_header), style = dims.heading2(), fontWeight = FontWeight.Bold)
         Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape) {
             Text("$count",
                 modifier = Modifier.padding(
