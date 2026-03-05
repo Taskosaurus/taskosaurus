@@ -38,7 +38,9 @@ Eine Weitergabe Ihrer persönlichen Daten an Dritte zu Werbezwecken findet nicht
 
 Wir speichern Ihre Daten nur so lange, wie Ihr Account aktiv ist. Sie haben jederzeit das Recht, die Löschung Ihres Accounts und der damit verbundenen Daten zu verlangen. Dies können Sie direkt in der App oder per E-Mail an t.gossenreiter@gmx.at tun.
 
-6. Ihre Rechte
+Nach Abschluss der Testphase (voraussichtlich [Mitte April/2026]) werden alle erhobenen Daten sowie das Backend unwiderruflich gelöscht.
+
+7. Ihre Rechte
 
 Sie haben das Recht auf:
 
