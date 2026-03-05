@@ -6,6 +6,7 @@ Der Schutz Ihrer persönlichen Daten ist uns ein wichtiges Anliegen. Diese Daten
 
 1. Verantwortliche Stelle
 Verantwortlich für die Datenverarbeitung im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:
+
 Thomas Gossenreiter
 
 Mosing 38
