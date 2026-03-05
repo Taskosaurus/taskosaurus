@@ -7,11 +7,14 @@ Der Schutz Ihrer persönlichen Daten ist uns ein wichtiges Anliegen. Diese Daten
 1. Verantwortliche Stelle
 Verantwortlich für die Datenverarbeitung im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:
 Thomas Gossenreiter
-Mosing 38
-4431 Haidershofen, Österreich
-T.Gossenreiter@gmx.at
 
-2. Arten der erhobenen Daten
+Mosing 38
+
+4431 Haidershofen, Österreich
+
+t.gossenreiter@gmx.at
+
+3. Arten der erhobenen Daten
 
 Wir erheben und speichern folgende Daten, um die Funktionen der App bereitzustellen:
 
@@ -32,7 +35,7 @@ Eine Weitergabe Ihrer persönlichen Daten an Dritte zu Werbezwecken findet nicht
 
 5. Speicherdauer und Löschung
 
-Wir speichern Ihre Daten nur so lange, wie Ihr Account aktiv ist. Sie haben jederzeit das Recht, die Löschung Ihres Accounts und der damit verbundenen Daten zu verlangen. Dies können Sie direkt in der App oder per E-Mail an [Deine E-Mail-Adresse] tun.
+Wir speichern Ihre Daten nur so lange, wie Ihr Account aktiv ist. Sie haben jederzeit das Recht, die Löschung Ihres Accounts und der damit verbundenen Daten zu verlangen. Dies können Sie direkt in der App oder per E-Mail an t.gossenreiter@gmx.at tun.
 
 6. Ihre Rechte
 
