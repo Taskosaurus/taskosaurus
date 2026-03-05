@@ -26,6 +26,10 @@ import at.htlleonding.taskosaurus.ui.theme.bodyText
 import at.htlleonding.taskosaurus.ui.theme.heading1
 import at.htlleonding.taskosaurus.ui.theme.heading2
 import at.htlleonding.taskosaurus.ui.theme.labelText
+import at.htlleonding.taskosaurus.view.components.MemberListHeader
+import at.htlleonding.taskosaurus.view.components.PlayerCard
+import at.htlleonding.taskosaurus.view.components.QrSection
+import at.htlleonding.taskosaurus.view.utility.generateQrCode
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
@@ -74,8 +78,14 @@ fun GroupInfoScreen(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                         ) {
                             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                itemsIndexed(players) { index, player ->
-                                    PlayerItem(player, index == players.lastIndex, dims)
+                                items(players) { player ->
+                                    PlayerCard(player, false, dims, onClick = {})
+                                    if (player != players.last()) {
+                                        HorizontalDivider(
+                                            modifier = Modifier.padding(horizontal = dims.playerItemPaddingH),
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -107,7 +117,13 @@ fun GroupInfoScreen(
                             contentPadding = PaddingValues(vertical = 4.dp)
                         ) {
                             items(players) { player ->
-                                PlayerItem(player, player == players.last(), dims)
+                                PlayerCard(player, false, dims, onClick = {})
+                                if (player != players.last()) {
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(horizontal = dims.playerItemPaddingH),
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                    )
+                                }
                             }
                         }
                     }
@@ -115,90 +131,4 @@ fun GroupInfoScreen(
             }
         }
     }
-}
-
-@Composable
-private fun QrSection(qrBitmap: Bitmap?, groupName: String?, dims: AppDimensions) {
-    val isPhoneLandscape = !dims.isTablet && dims.isLandscape
-    val adjustedCardSize = if (isPhoneLandscape) 140.dp else dims.qrCardSize
-    val adjustedSpacer = if (isPhoneLandscape) 8.dp else (if (dims.isTablet) 20.dp else 16.dp)
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Card(
-            modifier = Modifier.size(adjustedCardSize),
-            shape = RoundedCornerShape(if (isPhoneLandscape) 16.dp else 24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(2.dp)
-        ) {
-            Box(modifier = Modifier.fillMaxSize().padding(if (isPhoneLandscape) 10.dp else 16.dp),
-                contentAlignment = Alignment.Center) {
-                qrBitmap?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = stringResource(R.string.info_qr_description),
-                        modifier = Modifier.fillMaxSize(),
-                        filterQuality = FilterQuality.None
-                    )
-                } ?: CircularProgressIndicator()
-            }
-        }
-        Spacer(Modifier.height(if (dims.isTablet) 20.dp else 16.dp))
-        Text(
-            text = groupName ?: stringResource(R.string.info_loading_group),
-            style = dims.heading1(),
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = stringResource(R.string.info_scan_to_join),
-            style = dims.bodyText(),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun MemberListHeader(count: Int, dims: AppDimensions) {
-    Row(modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.info_members_header), style = dims.heading2(), fontWeight = FontWeight.Bold)
-        Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape) {
-            Text("$count",
-                modifier = Modifier.padding(
-                    horizontal = if (dims.isTablet) 14.dp else 10.dp,
-                    vertical = if (dims.isTablet) 4.dp else 2.dp),
-                style = dims.labelText(), fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-private fun PlayerItem(player: Player, isLast: Boolean, dims: AppDimensions) {
-    Column {
-        Row(modifier = Modifier.fillMaxWidth().padding(dims.memberItemPadding),
-            verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(dims.memberAvatarSize).clip(CircleShape)
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center) {
-                Text(player.name.take(1).uppercase(), style = dims.heading2(),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer)
-            }
-            Spacer(Modifier.width(if (dims.isTablet) 16.dp else 12.dp))
-            Text(player.name, style = dims.heading2())
-        }
-        if (!isLast) HorizontalDivider(Modifier.padding(horizontal = dims.memberItemPadding),
-            thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
-    }
-}
-
-fun generateQrCode(content: String): Bitmap? {
-    return try {
-        val bitMatrix = QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, 512, 512)
-        val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.RGB_565)
-        for (x in 0 until 512) for (y in 0 until 512)
-            bitmap.setPixel(x, y, if (bitMatrix.get(x, y)) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
-        bitmap
-    } catch (e: Exception) { null }
 }

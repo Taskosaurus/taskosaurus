@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -60,6 +61,7 @@ fun MainNavigationRail(navController: NavController) {
             Spacer(modifier = Modifier.height(20.dp))
             items.forEach { screen ->
                 val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+
                 NavRailItem(screen, isSelected, isExpanded, dims) {
                     val route = if (screen == Screen.Games) "title" else screen.route
                     navController.navigate(route) {
@@ -75,6 +77,7 @@ fun MainNavigationRail(navController: NavController) {
 
 @Composable
 fun NavRailItem(screen: Screen, isSelected: Boolean, isExpanded: Boolean, dims: AppDimensions, onClick: () -> Unit) {
+    val labelText = stringResource(id = screen.title)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -98,7 +101,7 @@ fun NavRailItem(screen: Screen, isSelected: Boolean, isExpanded: Boolean, dims: 
             if (isExpanded) {
                 Spacer(Modifier.width(16.dp))
                 Text(
-                    screen.title,
+                    labelText,
                     style = if (dims.isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge,
                     maxLines = 1,
                     color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface

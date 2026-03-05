@@ -3,6 +3,7 @@ package at.htlleonding.taskosaurus.view.components
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -21,6 +22,7 @@ fun MainNavigation(navController: NavController) {
     NavigationBar {
         items.forEach { screen ->
             val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+            val labelText = stringResource(id = screen.title)
 
             NavigationBarItem(
                 selected = isSelected,
@@ -46,11 +48,11 @@ fun MainNavigation(navController: NavController) {
                 icon = {
                     Icon(
                         imageVector = screen.icon,
-                        contentDescription = screen.title
+                        contentDescription = labelText
                     )
                 },
                 label = {
-                    Text(screen.title)
+                    Text(labelText)
                 }
             )
         }

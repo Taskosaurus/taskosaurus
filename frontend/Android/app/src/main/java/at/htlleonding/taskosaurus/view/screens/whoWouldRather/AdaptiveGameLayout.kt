@@ -66,7 +66,7 @@ fun AdaptiveGameLayout(
             }
         }
     } else {
-        // Handy-Modus
+        // Phone-Mode
         GameListScreen(viewModel = viewModel, onGroupClick = onNavigateToGame)
     }
 }

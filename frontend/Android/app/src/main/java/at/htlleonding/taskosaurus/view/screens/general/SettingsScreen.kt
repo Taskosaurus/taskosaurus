@@ -243,7 +243,7 @@ private fun ProfileHeader(player: Player?, dims: AppDimensions) {
                 }
             }
             Spacer(Modifier.height(if (dims.isTablet) 28.dp else 16.dp))
-            // Platzhalter-String: "Hallo %1$s!"
+
             Text(stringResource(R.string.hello_user, it.name), style = dims.settingsName(), fontWeight = FontWeight.Medium)
             Spacer(Modifier.height(if (dims.isTablet) 20.dp else 12.dp))
             OutlinedButton(onClick = {}, shape = RoundedCornerShape(50.dp)) {

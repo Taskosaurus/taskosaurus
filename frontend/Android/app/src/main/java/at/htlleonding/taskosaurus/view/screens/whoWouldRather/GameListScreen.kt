@@ -24,7 +24,10 @@ import at.htlleonding.taskosaurus.data.model.Question
 import at.htlleonding.taskosaurus.ui.theme.LocalAppDimensions
 import at.htlleonding.taskosaurus.ui.theme.heading1
 import at.htlleonding.taskosaurus.ui.theme.labelText
+import at.htlleonding.taskosaurus.view.components.GroupItemWrapper
 import at.htlleonding.taskosaurus.view.components.GroupListItem
+import at.htlleonding.taskosaurus.view.components.GroupSectionBox
+import at.htlleonding.taskosaurus.view.components.SectionHeader
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import kotlinx.coroutines.launch
@@ -170,93 +173,4 @@ fun GameListScreen(
             }
         }
     }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun GroupSectionBox(
-    title: String,
-    groups: List<Group>,
-    questions: Map<Int, Question>,
-    isAnswered: Boolean,
-    emptyText: String,
-    modifier: Modifier,
-    onGroupClick: (Int) -> Unit
-) {
-    val dims = LocalAppDimensions.current
-    Card(
-        modifier = modifier.fillMaxHeight(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Text(
-                title,
-                style = if (dims.isTablet) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(12.dp)
-            )
-            if (groups.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(emptyText, style = dims.labelText(), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(dims.groupListSpacing),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    itemsIndexed(
-                        items = groups,
-                        key = { _, group -> group.id }
-                    ) { index, group ->
-                        GroupItemWrapper(
-                            group = group,
-                            questions = questions,
-                            isAnswered = isAnswered,
-                            animationDelay = index * 100,
-                            onGroupClick = onGroupClick
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun LazyItemScope.GroupItemWrapper(
-    group: Group,
-    questions: Map<Int, Question>,
-    isAnswered: Boolean,
-    animationDelay: Int,
-    onGroupClick: (Int) -> Unit
-) {
-    val question = questions[group.id]
-
-    Box() {
-        GroupListItem(
-            group = group,
-            votedCount = question?.answers?.sumOf { it.count } ?: 0,
-            totalCount = group.players?.size ?: 0,
-            isAnswered = isAnswered,
-            shortenedQuestion = question?.shortenedQuestion,
-            currentLeader = if (isAnswered) question?.currentLeader else null,
-            leaderVoteCount = if (isAnswered) question?.answers?.maxByOrNull { it.count }?.count ?: 0 else 0,
-            animationDelay = animationDelay,
-            onClick = { onGroupClick(group.id) }
-        )
-    }
-}
-
-@Composable
-fun SectionHeader(text: String) {
-    val dims = LocalAppDimensions.current
-    Text(
-        text = text,
-        style = if (dims.isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 2.dp)
-    )
 }

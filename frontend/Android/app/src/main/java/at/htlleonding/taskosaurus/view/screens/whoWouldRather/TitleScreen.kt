@@ -30,7 +30,9 @@ import at.htlleonding.taskosaurus.data.model.Question
 import at.htlleonding.taskosaurus.ui.theme.LocalAppDimensions
 import at.htlleonding.taskosaurus.ui.theme.displayTitle
 import at.htlleonding.taskosaurus.ui.theme.subtitleText
+import at.htlleonding.taskosaurus.view.components.FloatingQuestionCards
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
+import at.htlleonding.taskosaurus.view.components.dialog.CreateGroupDialog
 
 @Composable
 fun TitleScreen(
@@ -144,104 +146,4 @@ fun TitleScreen(
             }
         )
     }
-}
-
-@Composable
-fun FloatingQuestionCards(
-    infiniteTransition: InfiniteTransition,
-    questions: List<Question>,
-    isLandscape: Boolean,
-    cardWidth: Dp,
-    cardAlpha: Float
-) {
-    val portraitPositions = listOf(
-        Offset(0.05f, 0.08f),
-        Offset(0.70f, 0.06f),
-        Offset(0.12f, 0.78f),
-        Offset(0.72f, 0.72f),
-    )
-
-    val landscapePositions = listOf(
-        Offset(0.04f, 0.08f), Offset(0.03f, 0.60f), Offset(0.72f, 0.06f),
-        Offset(0.64f, 0.38f), Offset(0.40f, 0.75f), Offset(0.33f, 0.08f)
-    )
-
-    val positions = if (isLandscape) landscapePositions else portraitPositions
-    val displayQuestions = if (questions.isEmpty()) emptyList()
-    else List(positions.size) { questions[it % questions.size] }
-
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val screenW = maxWidth
-        val screenH = maxHeight
-
-        displayQuestions.forEachIndexed { index, question ->
-            val pos = positions[index]
-            val offsetY by infiniteTransition.animateFloat(
-                0f, 28f,
-                infiniteRepeatable(tween(3000 + index * 500, easing = EaseInOutCubic), RepeatMode.Reverse),
-                "float$index"
-            )
-            val rotation by infiniteTransition.animateFloat(
-                if (index % 2 == 0) -3f else 3f,
-                if (index % 2 == 0) 3f else -3f,
-                infiniteRepeatable(tween(2000 + index * 300, easing = EaseInOut), RepeatMode.Reverse),
-                "rotate$index"
-            )
-            Box(modifier = Modifier.fillMaxSize()) {
-                Card(
-                    modifier = Modifier
-                        .offset(x = screenW * pos.x, y = screenH * pos.y + offsetY.dp)
-                        .rotate(rotation)
-                        .alpha(cardAlpha)
-                        .width(cardWidth),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    elevation = CardDefaults.cardElevation(2.dp)
-                ) {
-                    Text(
-                        text = question.shortenedQuestion,
-                        modifier = Modifier.padding(12.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        maxLines = 3, overflow = TextOverflow.Ellipsis,
-                        lineHeight = 14.sp
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CreateGroupDialog(
-    groupName: String, onGroupNameChange: (String) -> Unit,
-    isSubmitting: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.dialog_create_group_title)) },
-        text = {
-            Column {
-                Text(stringResource(R.string.dialog_create_group_desc), Modifier.padding(bottom = 16.dp))
-                OutlinedTextField(
-                    value = groupName,
-                    onValueChange = onGroupNameChange,
-                    label = { Text(stringResource(R.string.label_group_name)) },
-                    singleLine = true,
-                    enabled = !isSubmitting
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = onConfirm, enabled = groupName.isNotBlank() && !isSubmitting) {
-                if (isSubmitting) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                else Text(stringResource(R.string.btn_create))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isSubmitting) {
-                Text(stringResource(R.string.btn_cancel))
-            }
-        }
-    )
 }

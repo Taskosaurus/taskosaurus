@@ -1,4 +1,8 @@
 <resources>
+    //Navigation
+    <string name="screen_games">Spielen</string>
+    <string name="screen_settings">Einstellungen</string>
+
     //SettingScreen
     <string name="app_name">Taskosaurus</string>
     <string name="settings_title">Einstellungen</string>
