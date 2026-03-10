@@ -40,7 +40,7 @@ Wir speichern Ihre Daten nur so lange, wie Ihr Account aktiv ist. Sie haben jede
 
 Nach Abschluss der Testphase (voraussichtlich [Mitte April/2026]) werden alle erhobenen Daten sowie das Backend unwiderruflich gelöscht.
 
-7. Ihre Rechte
+6. Ihre Rechte
 
 Sie haben das Recht auf:
 
@@ -52,3 +52,20 @@ Sie haben das Recht auf:
 7. Änderungen dieser Datenschutzerklärung
 
 Wir behalten uns vor, diese Erklärung anzupassen, um sie an technische Entwicklungen oder rechtliche Änderungen anzupassen.
+
+
+## Informationen zur Kontolöschung (Account Deletion)
+
+Gemäß den Richtlinien von Google Play bieten wir Ihnen eine einfache Möglichkeit, Ihr Nutzerkonto und alle damit verbundenen Daten dauerhaft zu löschen.
+
+So fordern Sie eine Löschung an:
+Senden Sie bitte eine formlose E-Mail mit Ihrem in der App verwendeten Nutzernamen an:
+t.gossenreiter@gmx.at
+
+Was passiert bei einer Löschung?
+
+    Ihr Nutzerprofil (Nutzername und Passwort) wird unwiderruflich aus unserer Datenbank gelöscht.
+
+    Sämtliche von Ihnen abgegebenen Antworten auf "Wer würde eher"-Fragen werden vollständig entfernt.
+
+    Die Bearbeitung Ihrer Anfrage erfolgt manuell innerhalb von maximal 48 Stunden. Eine Bestätigung über die erfolgreiche Löschung senden wir Ihnen per E-Mail zu.
