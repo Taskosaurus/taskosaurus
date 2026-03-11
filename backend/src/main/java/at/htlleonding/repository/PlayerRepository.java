@@ -8,6 +8,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 
 import java.util.List;
@@ -44,7 +45,14 @@ public class PlayerRepository {
     public Player createPlayerFromDto(PlayerNameDto dto) {
         Player createdPlayer = new Player(dto.name());
         // dto.password() is already SHA-256 hashed by the Android client
-        // We apply BCrypt on top for secure storage
+
+        List<Player> players = em.createQuery("SELECT p FROM Player p WHERE p.name = :name", Player.class)
+                .setParameter("name", dto.name()).getResultList();
+
+        if (!players.isEmpty()) {
+            throw new BadRequestException("Player with this name already exists");
+        }
+
         String bcryptHash = passwordService.hashPassword(dto.password());
         createdPlayer.setPassword(bcryptHash);
         em.persist(createdPlayer);
