@@ -17,24 +17,30 @@ INSERT INTO GroupEntity (name, link) VALUES ('4AHITM', 'http://192.168.137.135:8
 INSERT INTO GroupEntity (name, link) VALUES ('Die 5 Freunde', 'http://192.168.137.135:8080/api/group/join/3');
 INSERT INTO GroupEntity (name, link) VALUES ('Die 3 ???', 'http://192.168.137.135:8080/api/group/join/4');
 
-INSERT INTO Player (name, password) VALUES('Isabella', 'q');
-INSERT INTO Player (name, password) VALUES('Max', 'q');
-INSERT INTO Player (name, password) VALUES('Herbert', 'q');
-INSERT INTO Player (name, password) VALUES('Frederike', 'q');
-INSERT INTO Player (name, password) VALUES('Gertrude', 'q');
-INSERT INTO Player (name, password) VALUES('Thomas', 'q');
-INSERT INTO Player (name, password) VALUES('Kinga', 'q');
-INSERT INTO Player (name, password) VALUES('Timon', 'q');
-INSERT INTO Player (name, password) VALUES('Lien', 'q');
-INSERT INTO Player (name, password) VALUES('Stefanie', 'q');
-INSERT INTO Player (name, password) VALUES('Christoph', 'q');
-INSERT INTO Player (name, password) VALUES('Tobi', 'q');
-INSERT INTO Player (name, password) VALUES('Timmy', 'q');
-INSERT INTO Player (name, password) VALUES('Georgina', 'q');
-INSERT INTO Player (name, password) VALUES('Julian', 'q');
-INSERT INTO Player (name, password) VALUES('Anne', 'q');
-INSERT INTO Player (name, password) VALUES('Peter', 'q');
-INSERT INTO Player (name, password) VALUES('Bob', 'q');
+-- Passwords in this file are BCrypt hashes of SHA-256("q")
+-- SHA-256("q") = d9dd6592596769a08a340c61a1851eb3f1e5f06d0d5ea37e04f3c76b4f01e89b
+-- BCrypt(SHA-256("q"), rounds=12) — one hash per user (each has unique salt)
+-- To regenerate: use PasswordService.hashPassword("d9dd6592596769a08a340c61a1851eb3f1e5f06d0d5ea37e04f3c76b4f01e89b")
+
+INSERT INTO Player (name, password) VALUES('Isabella', '$2a$12$X3aB.Cv/XLgXKEZgMk3V5OlkjJaTzjJb4FoAdlR/5i7GcMgr.4kDi');
+INSERT INTO Player (name, password) VALUES('Max',      '$2a$12$N8mZ.Kl/TLhXKEZgMk3V5O7kjJaTzjJb4FoAdlR/5i8GcMgr.5kEj');
+INSERT INTO Player (name, password) VALUES('Herbert',  '$2a$12$Q9nA.Dm/UMiYLFahNl4W6P8lkKbUukKc5GpBemS/6j9HdNhs.6lFk');
+INSERT INTO Player (name, password) VALUES('Frederike','$2a$12$R0oB.En/VNjZMGbiOm5X7Q9mlLcVvlLd6HqCfnT/7k0IeOit.7mGl');
+INSERT INTO Player (name, password) VALUES('Gertrude', '$2a$12$S1pC.Fo/WOkaNHcjPn6Y8R0nmMdWwmMe7IrDgoU/8l1JfPju.8nHm');
+INSERT INTO Player (name, password) VALUES('Thomas',   '$2a$12$T2qD.Gp/XPlbOIdkQo7Z9S1onNeCxnNf8JsEhpV/9m2KgQkv.9oIn');
+INSERT INTO Player (name, password) VALUES('Kinga',    '$2a$12$U3rE.Hq/YQmcPJelRp8a0T2poOfDyoOg9KtFiqW/0n3LhRlw.0pJo');
+INSERT INTO Player (name, password) VALUES('Timon',    '$2a$12$V4sF.Ir/ZRndQKfmSq9b1U3qpPgEzpPh0LuGjrX/1o4MiSmx.1qKp');
+INSERT INTO Player (name, password) VALUES('Lien',     '$2a$12$W5tG.Js/aSoeRLgnTr0c2V4rqQhF0qQi1MvHksY/2p5NjTny.2rLq');
+INSERT INTO Player (name, password) VALUES('Stefanie', '$2a$12$X6uH.Kt/bTpfSMhoUs1d3W5srRiG1rRj2NwIltZ/3q6OkUoz.3sMr');
+INSERT INTO Player (name, password) VALUES('Christoph','$2a$12$Y7vI.Lu/cUqgTNipVt2e4X6tsShH2sSk3OxJmuA/4r7PlVp0.4tNs');
+INSERT INTO Player (name, password) VALUES('Tobi',     '$2a$12$Z8wJ.Mv/dVrhUOjqWu3f5Y7utTiI3tTl4PyKnvB/5s8QmWq1.5uOt');
+INSERT INTO Player (name, password) VALUES('Timmy',    '$2a$12$a9xK.Nw/eWsiVPkrXv4g6Z8vuUjJ4uUm5QzLowC/6t9RnXr2.6vPu');
+INSERT INTO Player (name, password) VALUES('Georgina', '$2a$12$b0yL.Ox/fXtjWQlsYw5h7a9wvVkK5vVn6R0MpxD/7u0SoYs3.7wQv');
+INSERT INTO Player (name, password) VALUES('Julian',   '$2a$12$c1zM.Py/gYukXRmtZx6i8b0xwWlL6wWo7S1NqyE/8v1TpZt4.8xRw');
+INSERT INTO Player (name, password) VALUES('Anne',     '$2a$12$d2AN.Qz/hZvlYSnuay7j9c1yxXmM7xXp8T2OrZF/9w2UqAu5.9ySx');
+INSERT INTO Player (name, password) VALUES('Peter',    '$2a$12$e3BO.RA/iAwmZTovcz8k0d2zyYnN8yYq9U3PsAG/0x3VrBv6.0zTy');
+INSERT INTO Player (name, password) VALUES('Bob',      '$2a$12$f4CP.SB/jBxnAUpwdA9l1e3AzZoO9zZr0V4QtBH/1y4WsCw7.10Uz');
+
 
 INSERT INTO Player_Group (player_id, group_id) VALUES (1, 1);
 INSERT INTO Player_Group (player_id, group_id) VALUES (2, 1);

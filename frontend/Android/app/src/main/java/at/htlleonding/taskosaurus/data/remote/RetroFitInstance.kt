@@ -7,13 +7,13 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
 
-    /* val BASE_URL = if (EmulatorHelper.isEmulator()) {
+    val BASE_URL = if (EmulatorHelper.isEmulator()) {
         "http://10.0.2.2:8080/api/"  // Emulator
     } else {
         "http://127.0.0.1:8080/api/"  // Real device
-    } */
+    }  /*
     val BASE_URL = "https://it210142.cloud.htl-leonding.ac.at/api/"
-
+    */
     private val client = OkHttpClient.Builder()
         .addInterceptor { chain ->
             val request = chain.request().newBuilder()
