@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import at.htlleonding.taskosaurus.data.model.PlayerNameDto
 import at.htlleonding.taskosaurus.ui.theme.LocalAppDimensions
 import at.htlleonding.taskosaurus.ui.theme.loginTitle
+import at.htlleonding.taskosaurus.util.PasswordHasher
 import at.htlleonding.taskosaurus.viewModel.whoWouldRather.ViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -161,7 +162,9 @@ private fun handleAuth(
     onLoading: (Boolean) -> Unit, onError: (String) -> Unit, onSuccess: () -> Unit
 ) {
     onLoading(true)
-    val dto = PlayerNameDto(name, password)
+    // Hash the password with SHA-256 before sending — no plaintext password ever leaves the device
+    val hashedPassword = PasswordHasher.hashPassword(password)
+    val dto = PlayerNameDto(name, hashedPassword)
     if (isLoginMode) viewModel.loadPlayerFromDto(dto, { onLoading(false); onSuccess() }, { onLoading(false); onError(it) })
     else viewModel.createAndSaveUser(dto, { onLoading(false); onSuccess() }, { onLoading(false); onError(it) })
 }
