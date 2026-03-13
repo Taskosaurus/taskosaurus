@@ -57,7 +57,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
             _playerId.value = savedPlayerId
             loadPlayerFromId(savedPlayerId)
         } else {
-            loadPlayerFromId(1)
+            _isReady.value = true;
         }
         fetchRandomQuestions(8)
     }

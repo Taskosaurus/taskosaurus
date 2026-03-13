@@ -30,10 +30,21 @@ fun LoginRegisterView(viewModel: ViewModel = viewModel(), onSuccess: () -> Unit)
     val dims = LocalAppDimensions.current
     var name by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var isLoginMode by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
 
-    val doAuth = { handleAuth(name, password, isLoginMode, viewModel, { isLoading = it }, {}, onSuccess) }
+    // Logic: Passwords must match and not be blank if registering.
+    // If logging in, we only care if password is not blank.
+    val isPasswordValid = if (isLoginMode) {
+        password.isNotBlank()
+    } else {
+        password.isNotBlank() && password == confirmPassword
+    }
+
+    val doAuth = {
+        handleAuth(name, password, isLoginMode, viewModel, { isLoading = it }, {}, onSuccess)
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))) {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding().safeDrawingPadding()) {
@@ -46,7 +57,10 @@ fun LoginRegisterView(viewModel: ViewModel = viewModel(), onSuccess: () -> Unit)
                     Column(modifier = Modifier.weight(0.4f), horizontalAlignment = Alignment.CenterHorizontally) {
                         AuthBranding(dims, isLandscape = true)
                         Spacer(Modifier.height(24.dp))
-                        AuthModeToggle(isLoginMode) { isLoginMode = it }
+                        AuthModeToggle(isLoginMode) {
+                            isLoginMode = it
+                            confirmPassword = "" // Reset confirmation when switching modes
+                        }
                     }
                     Card(
                         modifier = Modifier.weight(0.6f).imePadding(),
@@ -59,7 +73,12 @@ fun LoginRegisterView(viewModel: ViewModel = viewModel(), onSuccess: () -> Unit)
                                 .padding(horizontal = 24.dp, vertical = 20.dp)
                                 .verticalScroll(rememberScrollState())
                         ) {
-                            AuthInputFields(dims, name, { name = it }, password, { password = it }, isLoginMode, isLoading, doAuth)
+                            AuthInputFields(
+                                dims, name, { name = it },
+                                password, { password = it },
+                                confirmPassword, { confirmPassword = it },
+                                isLoginMode, isLoading, isPasswordValid, doAuth
+                            )
                         }
                     }
                 }
@@ -74,9 +93,17 @@ fun LoginRegisterView(viewModel: ViewModel = viewModel(), onSuccess: () -> Unit)
                 ) {
                     AuthBranding(dims, isLandscape = false)
                     Spacer(Modifier.height(if (dims.isTablet) 48.dp else 32.dp))
-                    AuthModeToggle(isLoginMode) { isLoginMode = it }
+                    AuthModeToggle(isLoginMode) {
+                        isLoginMode = it
+                        confirmPassword = ""
+                    }
                     Spacer(Modifier.height(if (dims.isTablet) 32.dp else 24.dp))
-                    AuthInputFields(dims, name, { name = it }, password, { password = it }, isLoginMode, isLoading, doAuth)
+                    AuthInputFields(
+                        dims, name, { name = it },
+                        password, { password = it },
+                        confirmPassword, { confirmPassword = it },
+                        isLoginMode, isLoading, isPasswordValid, doAuth
+                    )
                 }
             }
         }
@@ -122,7 +149,8 @@ private fun AuthInputFields(
     dims: at.htlleonding.taskosaurus.ui.theme.AppDimensions,
     name: String, onNameChange: (String) -> Unit,
     password: String, onPasswordChange: (String) -> Unit,
-    isLoginMode: Boolean, isLoading: Boolean, onAuth: () -> Unit
+    confirmPassword: String, onConfirmPasswordChange: (String) -> Unit,
+    isLoginMode: Boolean, isLoading: Boolean, isPasswordValid: Boolean, onAuth: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(if (dims.isTablet) 20.dp else 16.dp)) {
         OutlinedTextField(
@@ -132,27 +160,58 @@ private fun AuthInputFields(
             shape = RoundedCornerShape(12.dp),
             textStyle = if (dims.isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
         )
+
         OutlinedTextField(
             value = password, onValueChange = onPasswordChange, label = { Text("Passwort") },
             singleLine = true, enabled = !isLoading,
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { onAuth() }),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = if (isLoginMode) ImeAction.Done else ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(onDone = { if (isLoginMode && isPasswordValid) onAuth() }),
             modifier = Modifier.fillMaxWidth().heightIn(min = dims.loginFieldHeight),
             shape = RoundedCornerShape(12.dp),
             textStyle = if (dims.isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
         )
-        Spacer(Modifier.height(if (dims.isTablet) 8.dp else 8.dp))
+
+        if (!isLoginMode) {
+            val passwordsMatch = password == confirmPassword || confirmPassword.isEmpty()
+            OutlinedTextField(
+                value = confirmPassword, onValueChange = onConfirmPasswordChange,
+                label = { Text("Passwort wiederholen") },
+                singleLine = true, enabled = !isLoading,
+                isError = !passwordsMatch,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { if (isPasswordValid) onAuth() }),
+                modifier = Modifier.fillMaxWidth().heightIn(min = dims.loginFieldHeight),
+                shape = RoundedCornerShape(12.dp),
+                supportingText = {
+                    if (!passwordsMatch) {
+                        Text("Passwörter stimmen nicht überein", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                textStyle = if (dims.isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+
         Button(
-            onClick = onAuth, enabled = name.isNotBlank() && password.isNotBlank() && !isLoading,
+            onClick = onAuth,
+            enabled = name.isNotBlank() && isPasswordValid && !isLoading,
             modifier = Modifier.fillMaxWidth().height(dims.loginButtonHeight),
             shape = RoundedCornerShape(12.dp)
         ) {
-            if (isLoading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-            else Text(
-                if (isLoginMode) "Anmelden" else "Registrieren",
-                style = if (dims.isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
-            )
+            if (isLoading) {
+                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+            } else {
+                Text(
+                    if (isLoginMode) "Anmelden" else "Registrieren",
+                    style = if (dims.isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
+                )
+            }
         }
     }
 }
@@ -162,9 +221,12 @@ private fun handleAuth(
     onLoading: (Boolean) -> Unit, onError: (String) -> Unit, onSuccess: () -> Unit
 ) {
     onLoading(true)
-    // Hash the password with SHA-256 before sending — no plaintext password ever leaves the device
     val hashedPassword = PasswordHasher.hashPassword(password)
     val dto = PlayerNameDto(name, hashedPassword)
-    if (isLoginMode) viewModel.loadPlayerFromDto(dto, { onLoading(false); onSuccess() }, { onLoading(false); onError(it) })
-    else viewModel.createAndSaveUser(dto, { onLoading(false); onSuccess() }, { onLoading(false); onError(it) })
+
+    if (isLoginMode) {
+        viewModel.loadPlayerFromDto(dto, { onLoading(false); onSuccess() }, { onLoading(false); onError(it) })
+    } else {
+        viewModel.createAndSaveUser(dto, { onLoading(false); onSuccess() }, { onLoading(false); onError(it) })
+    }
 }

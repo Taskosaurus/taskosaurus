@@ -54,6 +54,9 @@ public class GroupResource {
         try {
             EntityGroup validatedGroup = groupRepository.getGroupById(id);
             Player validatedPlayer = playerRepository.getPlayerByName(playerName);
+            if(validatedGroup.getPlayers().contains(validatedPlayer)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorMessageDto("Player already in group!")).build();
+            }
             Player mergedPlayer = groupRepository.addPlayerToGroup(validatedPlayer, validatedGroup);
 
             return Response.status(Response.Status.OK).entity(mergedPlayer).build();
