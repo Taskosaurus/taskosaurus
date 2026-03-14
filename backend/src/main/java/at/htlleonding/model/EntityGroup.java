@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity(name="GroupEntity")
 @NamedQuery(name= EntityGroup.GET_ALL_GROUPS, query="SELECT g from GroupEntity g")
@@ -18,7 +19,7 @@ public class EntityGroup {
 
     @ManyToMany(mappedBy = "groups")
     @JsonIgnoreProperties({ "groups" })
-    List<Player> players;
+    Set<Player> players;
 
     public EntityGroup(String name) {
         this.name = name;
@@ -51,11 +52,11 @@ public class EntityGroup {
         this.link = link;
     }
 
-    public List<Player> getPlayers() {
+    public Set<Player> getPlayers() {
         return players;
     }
 
-    public void setPlayers(List<Player> players) {
+    public void setPlayers(Set<Player> players) {
         this.players = players;
     }
 }

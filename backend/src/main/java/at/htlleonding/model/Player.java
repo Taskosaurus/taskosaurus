@@ -1,9 +1,11 @@
 package at.htlleonding.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @NamedQuery(name= Player.GET_ALL_PLAYERS, query="SELECT p from Player p")
@@ -15,6 +17,7 @@ public class Player {
     Long id;
     String name;
 
+    @JsonIgnore
     String password;
 
     @ManyToMany
@@ -24,7 +27,7 @@ public class Player {
             inverseJoinColumns = @JoinColumn(name="group_id")
     )
     @JsonIgnoreProperties({ "players" })
-    List<EntityGroup> groups;
+    Set<EntityGroup> groups;
 
     public Player(String name) {
         this.name = name;
@@ -49,11 +52,11 @@ public class Player {
         this.name = name;
     }
 
-    public List<EntityGroup> getGroups() {
+    public Set<EntityGroup> getGroups() {
         return groups;
     }
 
-    public void setGroup(List<EntityGroup> group) {
+    public void setGroup(Set<EntityGroup> group) {
         this.groups = group;
     }
 

@@ -8,6 +8,7 @@ import at.htlleonding.repository.GroupRepository;
 import at.htlleonding.model.EntityGroup;
 import at.htlleonding.repository.PlayerRepository;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -33,11 +34,15 @@ public class GroupResource {
     @Path("create/{name}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
     public Response create(Player player, @PathParam("name") String name) {
         try {
             Player validatedPlayer = playerRepository.getPlayerById(player.getId());
             EntityGroup createdGroup = groupRepository.createGroupFromDto(new GroupNameDto(name));
-            groupRepository.addPlayerToGroup(validatedPlayer, createdGroup);
+
+            if (!createdGroup.getPlayers().contains(validatedPlayer)) {
+                groupRepository.addPlayerToGroup(validatedPlayer, createdGroup);
+            }
 
             return Response.status(Response.Status.OK).entity(createdGroup).build();
         } catch (NotFoundException e) {
@@ -50,6 +55,7 @@ public class GroupResource {
     @Path("join/{id}/{playerName}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
     public Response joinGroup(@PathParam("id") Long id,  @PathParam("playerName") String playerName) {
         try {
             EntityGroup validatedGroup = groupRepository.getGroupById(id);

@@ -11,6 +11,7 @@ import jakarta.ws.rs.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @ApplicationScoped
 public class GroupRepository {
@@ -36,8 +37,9 @@ public class GroupRepository {
 
         em.persist(createdGroup);
 
-        String link = "http://192.168.137.135:8080/api/group/join/" + createdGroup.getId();
+        String link = "https://at.taskosaurus/group/" + createdGroup.getId();
         createdGroup.setLink(link);
+        createdGroup.setPlayers(Set.of());
 
         return createdGroup;
     }
