@@ -3,11 +3,12 @@ package at.htlleonding.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 @Entity(name="GroupEntity")
-@NamedQuery(name= EntityGroup.GET_ALL_GROUPS, query="SELECT g from GroupEntity g")
+@NamedQuery(name= EntityGroup.GET_ALL_GROUPS, query="SELECT g from GroupEntity g ORDER BY g.name")
 public class EntityGroup {
     public static final String GET_ALL_GROUPS = "Group.getAll";
 
@@ -19,7 +20,8 @@ public class EntityGroup {
 
     @ManyToMany(mappedBy = "groups")
     @JsonIgnoreProperties({ "groups" })
-    Set<Player> players;
+    @OrderBy("name ASC")
+    Set<Player> players = new LinkedHashSet<>();
 
     public EntityGroup(String name) {
         this.name = name;

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -27,7 +28,8 @@ public class Player {
             inverseJoinColumns = @JoinColumn(name="group_id")
     )
     @JsonIgnoreProperties({ "players" })
-    Set<EntityGroup> groups;
+    @OrderBy("name ASC")
+    Set<EntityGroup> groups = new LinkedHashSet<>();
 
     public Player(String name) {
         this.name = name;
