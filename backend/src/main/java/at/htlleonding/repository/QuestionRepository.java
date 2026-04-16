@@ -60,6 +60,10 @@ public class QuestionRepository {
 
         System.out.println(possibleQuestions);
 
+        if (possibleQuestions.isEmpty()) {
+            possibleQuestions = entityManager.createNamedQuery(Question.GET_ALL_QUESTIONS, Question.class).getResultList();
+        }
+
         int randomIndex = (int) (Math.random() * possibleQuestions.size());
         createGroupQuestion(group, possibleQuestions.get(randomIndex), date);
         return possibleQuestions.get(randomIndex);
